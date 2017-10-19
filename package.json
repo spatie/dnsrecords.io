@@ -1,0 +1,29 @@
+{
+  "private": true,
+  "scripts": {
+    "css-lint": "stylelint \"resources/assets/css/**/*.css\" --fix",
+    "js-lint": "eslint resources/assets/js --ext .js,.vue --fix && exit 0",
+    "dev": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "watch": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
+  },
+  "dependencies": {
+    "axios": "^0.16.2",
+    "babel-plugin-syntax-dynamic-import": "^6.18.0",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.6.0",
+    "cross-env": "^5.0.1",
+    "eslint": "^4.3.0",
+    "eslint-config-spatie": "^2.0.1",
+    "jest": "^20.0.4",
+    "laravel-mix": "^1.4",
+    "lodash": "^4.17.4",
+    "postcss-cli": "^4.1.0",
+    "postcss-cssnext": "^3.0.2",
+    "postcss-easy-import": "^2.1.0",
+    "stylelint": "^8.0.0",
+    "stylelint-config-standard": "^17.0.0",
+    "vue": "^2.4.0"
+  }
+}
