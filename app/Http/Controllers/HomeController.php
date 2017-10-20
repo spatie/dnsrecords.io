@@ -25,7 +25,7 @@ class HomeController extends Controller
         $process->run();
 
         if (!$process->isSuccessful()) {
-            flash()->error('Could not fetch dns records');
+            flash()->error("Could not fetch dns records for '{$attributes['url']}'");
 
             return back();
         }
@@ -33,14 +33,14 @@ class HomeController extends Controller
         $dnsInfo = $process->getOutput();
 
         if ($dnsInfo === "") {
-            flash()->error('Could not fetch dns records');
+            flash()->error("Could not fetch dns records for '{$attributes['url']}'");
 
             return back();
         }
 
         $request->session()->flash('dnsInfo', $dnsInfo);
 
-        flash()->success('Here are the dns records');
+        flash()->success("Here are the dns records for '{$attributes['url']}'");
 
         return back();
     }
