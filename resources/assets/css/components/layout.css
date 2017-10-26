@@ -5,6 +5,7 @@
     min-height: 100vh;
     user-select: none;
 
+    /* Fade out overflow content on the right */
     &:after {
         position: fixed;
         top: 0;

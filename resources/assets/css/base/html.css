@@ -8,7 +8,7 @@ html {
     line-height: 2;
 
     /* 16px up to 1066, then grow */
-    @media (min-width: 1066px) { 
+    @media (min-width: 1066px) {
         font-size: 1.5vw;
     }
 }
