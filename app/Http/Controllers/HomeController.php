@@ -26,7 +26,7 @@ class HomeController extends Controller
         }
 
         if ($domain === '?') {
-            flash()->message('A simple digga service by <a href="https://spatie.be/en/opensource">spatie.be</a>.<br>Enter a domain name to retrieve all DNS records.');
+            flash()->message('A simple digga service by <a href="https://spatie.be/en/opensource">spatie.be</a>.<br>Enter a domain name to retrieve all DNS records.', 'message');
 
             return back();
         }
