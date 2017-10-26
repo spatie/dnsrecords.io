@@ -1,0 +1,31 @@
+input {
+    padding: 0;
+    width: 100%;
+    height: auto;
+    border: none;
+    background-color: transparent;
+    color: var(--green);
+    transition: color .1s .5s ease;
+
+    &:focus {
+        outline: none;
+        color: inherit;
+        transition: none;
+    }
+}
+
+::-webkit-input-placeholder {
+    color: color(var(--gray-light) a(.5));
+}
+
+::-moz-placeholder {
+    color: color(var(--gray-light) a(.5));
+}
+
+:-ms-input-placeholder {
+    color: color(var(--gray-light) a(.5));
+}
+
+:-moz-placeholder {
+    color: color(var(--gray-light) a(.5));
+}

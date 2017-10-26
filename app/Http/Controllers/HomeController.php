@@ -15,17 +15,33 @@ class HomeController extends Controller
     public function submit(Request $request)
     {
         $attributes = $request->validate([
-            'url' => 'required',
+            'input' => 'required',
         ]);
 
-        $command = 'dig +nocmd "' . $attributes['url'] . '" any +multiline +noall +answer';
+        $input = $this->sanitizeInput($attributes['input']);
+        if ($input === 'ip') {
+            $request->session()->flash('output', "Your ip address is {$request->ip()}");
+            return back();
+        }
+
+        if ($input === 'clear') {
+            return back();
+        }
+
+        if ($input === '?') {
+            flash()->message('A simple digga service by <a href="https://spatie.be/en/opensource">spatie.be</a>.<br>Enter a domain name to retrieve all DNS records.', 'message');
+
+            return back();
+        }
+
+        $command = 'dig +nocmd ' . escapeshellarg($input) . ' any +multiline +noall +answer';
 
         $process = new Process($command);
 
         $process->run();
 
         if (!$process->isSuccessful()) {
-            flash()->error("Could not fetch dns records for '{$attributes['url']}'");
+            flash()->error("Could not fetch dns records for '{$input}'.");
 
             return back();
         }
@@ -33,15 +49,22 @@ class HomeController extends Controller
         $dnsInfo = $process->getOutput();
 
         if ($dnsInfo === "") {
-            flash()->error("Could not fetch dns records for '{$attributes['url']}'");
+            flash()->error("Could not fetch dns records for '{$input}'.");
 
             return back();
         }
 
-        $request->session()->flash('dnsInfo', $dnsInfo);
-
-        flash()->success("Here are the dns records for '{$attributes['url']}'");
+        $request->session()->flash('output', $dnsInfo);
 
         return back();
+    }
+
+    protected function sanitizeInput(string $input = ''): string
+    {
+        $input = str_replace(['http://', 'https://'], '', $input);
+
+        $input = str_before($input, '/');
+
+        return strtolower($input);
     }
 }

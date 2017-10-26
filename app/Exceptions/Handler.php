@@ -38,7 +38,7 @@ class Handler extends ExceptionHandler
     public function report(Exception $exception)
     {
         if ($exception instanceof ValidationException) {
-            flash()->error('Correct the errors in the form');
+            // flash()->error('Correct the errors in the form');
         }
 
         parent::report($exception);
