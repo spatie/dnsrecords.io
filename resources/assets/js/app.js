@@ -1,6 +1,6 @@
 const input = document.getElementById('url');
 
-document.body.addEventListener('click', event => {
+window.addEventListener('click', event => {
     event.stopPropagation();
 
     const source = event.srcElement || event.originalTarget;
