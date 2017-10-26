@@ -31,7 +31,7 @@ class HomeController extends Controller
         }
 
         if ($input === '?') {
-            flash()->message('A simple dig service by <a href="https://spatie.be/en/opensource">spatie.be</a>.<br>Enter a domain name to retrieve all DNS records.', 'message');
+            flash()->message('Enter a domain name to retrieve all DNS records.<br>Enter \'ip\' to check your own address.<br>Enter \'clear\' to wipe the screen.', 'message');
 
             return back();
         }
