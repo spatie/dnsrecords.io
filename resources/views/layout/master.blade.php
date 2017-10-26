@@ -16,7 +16,6 @@
 </head>
 
 <body class="layout">
-    @include('layout._partials.flash')
     @yield('content')
 </body>
 </html>

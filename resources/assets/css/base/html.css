@@ -7,7 +7,8 @@ html {
     font-family: 'Fira Mono', monospace;
     line-height: 1.75;
 
-    @media (min-width: 914px) {
-        font-size: 1.75vw;
+    /* 16px up to 1066, then grow */
+    @media (min-width: 1066px) { 
+        font-size: 1.5vw;
     }
 }

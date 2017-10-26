@@ -12,15 +12,18 @@
     @if(session('dnsInfo'))
         <pre class="main__results" id="results">{{ session('dnsInfo') }}</pre>
     @endif
+
+    @if($errors->has('url'))
+        {{ $errors->first('url') }}
+    @endif
+    @include('layout._partials.flash')
+
     <form method="post" action="/" class="selection-disable">
         {{ csrf_field() }}
 
-        <input autofocus required id="url" name="url" placeholder="Enter a domain"/>
+        <input autofocus id="url" name="url" placeholder="Enter a domain"/>
         <span class="input-carret"></span>
 
-        @if($errors->has('url'))
-            {{ $errors->first('url') }}
-        @endif
     </form>  
 </main>   
  
