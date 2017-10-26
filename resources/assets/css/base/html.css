@@ -1,0 +1,13 @@
+html {
+    box-sizing: border-box;
+    background-color: var(--gray-dark);
+    color: var(--gray-light);
+    font-weight: 400;
+    font-size: 16px;
+    font-family: 'Fira Mono', monospace;
+    line-height: 1.75;
+
+    @media (min-width: 914px) {
+        font-size: 1.75vw;
+    }
+}
