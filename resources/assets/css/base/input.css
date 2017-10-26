@@ -4,70 +4,36 @@ input {
     height: auto;
     border: none;
     background-color: transparent;
-    color: inherit;
-    line-height: 1.75;
-
-    & + .input-carret {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: .75rem;
-        height: 100%;
-        border: solid 1px var(--blue);
-        content: '';
-        transition: opacity .1s .2s ease; /* prevent immediate border when focus stutters */
-    }
+    color: var(--green);
+    transition: color .1s .5s ease;
 
     &:focus {
         outline: none;
-
-        & + .input-carret {
-            opacity: 0;
-            transition: none;
-        }
+        color: inherit;
+        transition: none;
     }
 }
 
 ::-webkit-input-placeholder {
-    color: var(--blue);
-    opacity: 0;
-    transition: opacity .1s .2s ease;
-
-    @nest :focus& {
-        opacity: 1;
-        transition: none;
-    }
+    color: color(var(--gray-light) a(.5));
 }
 
 ::-moz-placeholder {
-    color: var(--blue);
-    opacity: 0;
-    transition: opacity .1s .2s ease;
-
-    @nest :focus& {
-        opacity: 1;
-        transition: none;
-    }
+    color: color(var(--gray-light) a(.5));
 }
 
 :-ms-input-placeholder {
-    color: var(--blue);
-    opacity: 0;
-    transition: opacity .1s .2s ease;
-
-    @nest :focus& {
-        opacity: 1;
-        transition: none;
-    }
+    color: color(var(--gray-light) a(.5));
 }
 
 :-moz-placeholder {
-    color: var(--blue);
-    opacity: 0;
-    transition: opacity .1s .2s ease;
+    color: color(var(--gray-light) a(.5));
+}
 
-    @nest :focus& {
-        opacity: 1;
-        transition: none;
-    }
+.input-carret {
+    position: absolute;
+    left: -1.5rem;
+    display: block;
+    width: 1rem;
+    color: var(--green);
 }

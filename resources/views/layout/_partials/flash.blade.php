@@ -1,5 +1,5 @@
 @foreach (session('flash_notification', collect())->toArray() as $message)
-    <p role="alert">
+    <p role="alert" class=alert>
         {!! $message['message'] !!}
     </p>
 @endforeach

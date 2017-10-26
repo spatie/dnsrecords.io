@@ -5,7 +5,7 @@ html {
     font-weight: 400;
     font-size: 16px;
     font-family: 'Fira Mono', monospace;
-    line-height: 1.75;
+    line-height: 2;
 
     /* 16px up to 1066, then grow */
     @media (min-width: 1066px) { 

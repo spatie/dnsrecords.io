@@ -14,15 +14,17 @@
     @endif
 
     @if($errors->has('url'))
-        {{ $errors->first('url') }}
+        <p class="alert">
+            {{ $errors->first('url') }}
+        </p>
     @endif
     @include('layout._partials.flash')
 
     <form method="post" action="/" class="selection-disable">
         {{ csrf_field() }}
-
+        
+        <span class="input-carret">&rarr;</span>
         <input autofocus id="url" name="url" placeholder="Enter a domain"/>
-        <span class="input-carret"></span>
 
     </form>  
 </main>   
