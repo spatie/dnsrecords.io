@@ -41,7 +41,7 @@ class HomeController extends Controller
 
         $process->run();
 
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             flash()->error("Could not fetch dns records for '{$input}'.");
 
             return back();
