@@ -1,5 +1,5 @@
 .footer {
-    padding: .5rem 0;
+    padding: 4rem 0 .5rem 0;
     color: color(var(--gray-light) a(.25));
     font-size: .75rem;
 }
