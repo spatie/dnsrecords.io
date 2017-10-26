@@ -18,7 +18,7 @@ class HomeController extends Controller
             'url' => 'required',
         ]);
 
-        $url = str_replace(['http://', 'https://'], '', $attributes['url']);
+        $url = $this->sanitizeUrl($attributes['url']);
 
         if ($url === 'clear') {
             return back();
@@ -30,7 +30,7 @@ class HomeController extends Controller
             return back();
         }
 
-        $command = 'dig +nocmd "' . escapeshellarg($url) . '" any +multiline +noall +answer';
+        $command = 'dig +nocmd ' . escapeshellarg($url) . ' any +multiline +noall +answer';
 
         $process = new Process($command);
 
@@ -53,5 +53,14 @@ class HomeController extends Controller
         $request->session()->flash('dnsInfo', $dnsInfo);
 
         return back();
+    }
+
+    protected function sanitizeUrl(string $url = ''): string
+    {
+        $url = str_replace(['http://', 'https://'], '', $url);
+
+        $url = str_before($url, '/');
+
+        return strtolower($url);
     }
 }
