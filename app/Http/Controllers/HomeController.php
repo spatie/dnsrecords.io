@@ -18,7 +18,6 @@ class HomeController extends Controller
             'input' => 'required',
         ]);
 
-
         $input = $this->sanitizeInput($attributes['input']);
         if ($input === 'ip') {
             $request->session()->flash('output', "Your ip address is {$request->ip()}");
