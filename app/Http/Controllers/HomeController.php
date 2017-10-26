@@ -15,30 +15,34 @@ class HomeController extends Controller
     public function submit(Request $request)
     {
         $attributes = $request->validate([
-            'domain' => 'required',
+            'input' => 'required',
         ]);
 
 
-        $domain = $this->sanitizeDomain($attributes['domain']);
-
-        if ($domain === 'clear') {
+        $input = $this->sanitizeInput($attributes['input']);
+        if ($input === 'ip') {
+            $request->session()->flash('output', $request->ip());
             return back();
         }
 
-        if ($domain === '?') {
+        if ($input === 'clear') {
+            return back();
+        }
+
+        if ($input === '?') {
             flash()->message('A simple digga service by <a href="https://spatie.be/en/opensource">spatie.be</a>.<br>Enter a domain name to retrieve all DNS records.', 'message');
 
             return back();
         }
 
-        $command = 'dig +nocmd ' . escapeshellarg($domain) . ' any +multiline +noall +answer';
+        $command = 'dig +nocmd ' . escapeshellarg($input) . ' any +multiline +noall +answer';
 
         $process = new Process($command);
 
         $process->run();
 
         if (!$process->isSuccessful()) {
-            flash()->error("Could not fetch dns records for '{$domain}'.");
+            flash()->error("Could not fetch dns records for '{$input}'.");
 
             return back();
         }
@@ -46,22 +50,22 @@ class HomeController extends Controller
         $dnsInfo = $process->getOutput();
 
         if ($dnsInfo === "") {
-            flash()->error("Could not fetch dns records for '{$domain}'.");
+            flash()->error("Could not fetch dns records for '{$input}'.");
 
             return back();
         }
 
-        $request->session()->flash('dnsInfo', $dnsInfo);
+        $request->session()->flash('output', $dnsInfo);
 
         return back();
     }
 
-    protected function sanitizeDomain(string $domain = ''): string
+    protected function sanitizeInput(string $input = ''): string
     {
-        $domain = str_replace(['http://', 'https://'], '', $domain);
+        $input = str_replace(['http://', 'https://'], '', $input);
 
-        $domain = str_before($domain, '/');
+        $input = str_before($input, '/');
 
-        return strtolower($domain);
+        return strtolower($input);
     }
 }

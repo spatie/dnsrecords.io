@@ -9,13 +9,13 @@
     </h1>
 </header>
 <main class="main">
-    @if(session('dnsInfo'))
-        <pre class="main__results" id="results">{{ session('dnsInfo') }}</pre>
+    @if(session('output'))
+        <pre class="main__results" id="results">{{ session('output') }}</pre>
     @endif
 
-    @if($errors->has('url'))
+    @if($errors->has('input'))
         <p class="alert--danger">
-            {{ $errors->first('url') }}
+            {{ $errors->first('input') }}
         </p>
     @endif
     @include('layout._partials.flash')
@@ -24,7 +24,7 @@
         {{ csrf_field() }}
         
         <span class="carret -green">&rarr;</span>
-        <input autofocus id="url" name="domain" placeholder="Enter a domain" autocomplete="off" />
+        <input autofocus id="url" name="input" placeholder="Enter a domain" autocomplete="off" />
 
     </form>  
 </main>   
