@@ -16,6 +16,8 @@
 </head>
 
 <body class="layout">
+    @include('googletagmanager::script')
+
     @yield('content')
 </body>
 </html>
