@@ -18,21 +18,19 @@ class HomeController extends Controller
             'url' => 'required',
         ]);
 
-        $url = $attributes['url'];
-        $url = str_replace('https://', '', $url);
-        $url = str_replace('http://', '', $url);
+        $url = str_replace(['http://', 'https://'], '', $attributes['url']);
 
-        if($url === 'clear') {
+        if ($url === 'clear') {
             return back();
         }
 
-        if($url === '?') {
-            flash()->message("A simple digga service by <a href='https://spatie.be/en/opensource'>spatie.be</a>.<br>Enter a domain name to retrieve all DNS records.");
+        if ($url === '?') {
+            flash()->message('A simple digga service by <a href="https://spatie.be/en/opensource">spatie.be</a>.<br>Enter a domain name to retrieve all DNS records.', 'message');
 
             return back();
         }
 
-        $command = 'dig +nocmd "' . $url . '" any +multiline +noall +answer';
+        $command = 'dig +nocmd "' . escapeshellarg($url) . '" any +multiline +noall +answer';
 
         $process = new Process($command);
 
