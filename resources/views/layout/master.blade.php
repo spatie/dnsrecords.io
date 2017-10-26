@@ -16,7 +16,7 @@
 </head>
 
 <body class="layout">
-    @include('flash::message')
+    @include('layout._partials.flash')
     @yield('content')
 </body>
 </html>
