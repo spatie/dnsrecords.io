@@ -43,7 +43,7 @@ class HomeController extends Controller
         $process->run();
 
         if (! $process->isSuccessful()) {
-            flash()->error("Could not fetch dns records for <span class='text-break'>'{$input}'</span>.");
+            flash()->error("Could not fetch dns records for <span class='text-break'>'{$input}'.</span>");
 
             return back();
         }
@@ -51,7 +51,7 @@ class HomeController extends Controller
         $dnsInfo = $process->getOutput();
 
         if ($dnsInfo === "") {
-            flash()->error("Could not fetch dns records for <span class='text-break'>'{$input}'</span>.");
+            flash()->error("Could not fetch dns records for <span class='text-break'>'{$input}'.</span>");
 
             return back();
         }

@@ -38,7 +38,7 @@
     </form>  
 </main>   
  
-<footer class="footer selection-disable">
+<footer class="footer">
     © <a href='https://spatie.be/en/opensource'>spatie</a> {{ date('Y') }} — '<kbd>?</kbd>' for help
 </footer>
 
