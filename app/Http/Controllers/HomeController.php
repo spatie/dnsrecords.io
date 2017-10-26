@@ -22,6 +22,7 @@ class HomeController extends Controller
 
         if ($input === 'ip') {
             $request->session()->flash('output', "Your ip address is {$request->ip()}");
+
             return back();
         }
 
