@@ -1,0 +1,28 @@
+* {
+    position: relative;
+    box-sizing: inherit;
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    font-size: inherit;
+    font-family: inherit;
+    line-height: inherit;
+
+    &:after,
+    &:before {
+        box-sizing: inherit;
+    }
+}
+
+/* From reboot.css: speed up any delay that might exist for touch users */
+a,
+button,
+input:not([type=range]),
+label,
+select,
+textarea {
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+}

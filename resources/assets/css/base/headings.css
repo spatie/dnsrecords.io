@@ -1,0 +1,8 @@
+h1 {
+    font-size: 1rem;
+}
+
+.h1__prefix {
+    display: inline-block;
+    width: 1rem;
+}

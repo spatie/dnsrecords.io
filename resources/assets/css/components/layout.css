@@ -1,0 +1,17 @@
+.layout {
+    display: flex;
+    flex-direction: column;
+    padding: 0 var(--gutter);
+    min-height: 100vh;
+    user-select: none;
+
+    &:after {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: var(--gutter);
+        height: 100%;
+        background-image: linear-gradient(to right, color(var(--gray-dark) a(0)), var(--gray-dark));
+        content: '';
+    }
+}

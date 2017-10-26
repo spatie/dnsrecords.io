@@ -1,18 +1,31 @@
-/**
- * Bootstrap the application. This includes all setup that doesn't really *do*
- * anything.
- */
+const input = document.getElementById('url');
 
-require('./bootstrap');
+document.body.addEventListener('click', event => {
+    event.stopPropagation();
 
-/**
- * Finally, we'll mount our Vue application.
- */
+    const source = event.srcElement || event.originalTarget;
 
-const Vue = require('vue');
+    if (source.id !== 'results') {
+        input.focus();
+    }
 
-Vue.component('example', require('./components/Example.vue'));
-
-new Vue({
-    el: '#app',
+    setTimeout(() => {
+        if (! isResultTextSelected()) {
+            input.focus();
+        }
+    }, 200);
 });
+
+function isResultTextSelected() {
+
+    if (typeof window.getSelection !== 'undefined' && window.getSelection().toString() !== '') { 
+        return true;
+    }
+
+    if (typeof document.selection !== 'undefined' && document.selection.createRange().text !== '') {
+        return true;
+    }
+
+    return false;
+}
+

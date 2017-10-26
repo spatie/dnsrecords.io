@@ -1,0 +1,73 @@
+input {
+    padding: 0;
+    width: 100%;
+    height: auto;
+    border: none;
+    background-color: transparent;
+    color: inherit;
+    line-height: 1.75;
+
+    & + .input-carret {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: .75rem;
+        height: 100%;
+        border: solid 1px var(--blue);
+        content: '';
+        transition: opacity .1s .2s ease; /* prevent immediate border when focus stutters */
+    }
+
+    &:focus {
+        outline: none;
+
+        & + .input-carret {
+            opacity: 0;
+            transition: none;
+        }
+    }
+}
+
+::-webkit-input-placeholder {
+    color: var(--blue);
+    opacity: 0;
+    transition: opacity .1s .2s ease;
+
+    @nest :focus& {
+        opacity: 1;
+        transition: none;
+    }
+}
+
+::-moz-placeholder {
+    color: var(--blue);
+    opacity: 0;
+    transition: opacity .1s .2s ease;
+
+    @nest :focus& {
+        opacity: 1;
+        transition: none;
+    }
+}
+
+:-ms-input-placeholder {
+    color: var(--blue);
+    opacity: 0;
+    transition: opacity .1s .2s ease;
+
+    @nest :focus& {
+        opacity: 1;
+        transition: none;
+    }
+}
+
+:-moz-placeholder {
+    color: var(--blue);
+    opacity: 0;
+    transition: opacity .1s .2s ease;
+
+    @nest :focus& {
+        opacity: 1;
+        transition: none;
+    }
+}
