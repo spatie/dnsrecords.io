@@ -25,7 +25,7 @@
         
         <span class="carret -green">&rarr;</span>
         <input
-            autofocus
+            @if(! session('output')) autofocus @endif
             id="url"
             name="input"
             placeholder="Enter a domain"
