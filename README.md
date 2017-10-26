@@ -1,81 +1,35 @@
-# Spoon
+# dnsrecords.io
 
-Spoon is the Laravel template that is used for our projects that don't use [Blender](https://github.com/spatie/blender), which ships with big features like i18n and an admin panel. Spoon is relatively unopinionated, and comes with some utility packages we use in every project.
+## Contributing
 
-You may use our template but please notice that we offer no support whatsoever. We also don't
-follow semver for this project and won't guarantee that the code (especially the master branch) is stable. In short: when using this, you're on your own.
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
-## What's in the Box?
+## Security
 
-Some highlights of what's included here:
+If you discover any security related issues, please email [freek@spatie.be](mailto:freek@spatie.be) instead of using the issue tracker.
 
-- Devtools: debugbar, laravel-mail-preview, laravel-tail, laravel-tinker-tools
-- Database backups
-- Bugsnag integration
-- PHP-CS fixer
-- A zero-downtime deploy script with Envoy
-- Our babel setup
-- CSS transpilation with CSSNext
+## Postcardware
 
-## Install
+You're free to use this package, but if it makes it to your production environment we highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using.
 
-This guide assumes you're using [Laravel Valet](https://github.com/laravel/valet)
+Our address is: Spatie, Samberstraat 69D, 2060 Antwerp, Belgium.
 
-### Laravel App
+We publish all received postcards [on our company website](https://spatie.be/en/opensource/postcards).
 
-Download the master branch
+## Credits
 
-```bash
-git clone https://github.com/spatie/spoon.git
-```
+- [Sebastian De Deyne](https://github.com/sebdeyne)
+- [Willem Van Bockstal](https://github.com/willemvanbockstal)
+- [Freek Van der Herten](https://github.com/freekmurze)
+- [All Contributors](../../contributors)
 
-Install the composer dependencies
+## Support us
 
-```bash
-composer install
-```
+Spatie is a webdesign agency based in Antwerp, Belgium. You'll find an overview of all our open source projects [on our website](https://spatie.be/opensource).
 
-Make a copy of the `.env.example` file
-
-```bash
-cp .env.example .env
-```
-
-Generate an application key
-
-```bash
-php artisan key:generate
-```
-
-Finally make sure you have a database named `spoon`, and run the migrations and seeds
-
-```bash
-php artisan migrate --seed
-```
-
-### Assets
-
-Installing Spoon's front end dependencies requires `yarn`.
-
-```bash
-yarn
-```
-
-Spoon uses [Laravel Mix](https://laravel.com/docs/5.4/mix) to build assets.
-To build assets run:
-
-```bash
-yarn run dev
-```
-
-Available build tasks are defined in `package.json`
-
-## Colofon
-
-### Contributing
-
-Generally we won't accept any PR requests to Spoon. If you have discovered a bug or have an idea to improve the code, contact us first before you start coding.
+Does your business depend on our contributions? Reach out and support us on [Patreon](https://www.patreon.com/spatie). 
+All pledges will be dedicated to allocating workforce on maintenance and new awesome stuff.
 
 ### License
 
-Spoon and The Laravel framework are open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
+The code in this repo and The Laravel framework are open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
