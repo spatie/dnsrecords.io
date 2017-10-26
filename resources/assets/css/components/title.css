@@ -1,11 +1,3 @@
 .title {
     font-weight: 700;
 }
-
-.title__prefix {
-    position: absolute;
-    left: -1.5rem;
-    display: block;
-    width: 1rem;
-    color: var(--blue);
-}

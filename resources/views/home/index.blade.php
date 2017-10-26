@@ -4,7 +4,7 @@
 
 <header class="header selection-disable">
     <h1 class="title">
-        <span class="title__prefix">~</span>
+        <span class="carret">~</span>
         dnsrecords.io
     </h1>
 </header>
@@ -23,7 +23,7 @@
     <form method="post" action="/" class="selection-disable">
         {{ csrf_field() }}
         
-        <span class="input-carret">&rarr;</span>
+        <span class="carret -green">&rarr;</span>
         <input autofocus id="url" name="url" placeholder="Enter a domain" autocomplete="off" />
 
     </form>  
