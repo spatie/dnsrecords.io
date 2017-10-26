@@ -1,5 +1,7 @@
 # dnsrecords.io
 
+This repo contains the source code of [https://dnsrecords.io](https://dnsrecords.io)
+
 ## Contributing
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
