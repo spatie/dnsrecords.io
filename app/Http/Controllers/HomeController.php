@@ -15,29 +15,30 @@ class HomeController extends Controller
     public function submit(Request $request)
     {
         $attributes = $request->validate([
-            'url' => 'required',
+            'domain' => 'required',
         ]);
 
-        $url = $this->sanitizeUrl($attributes['url']);
 
-        if ($url === 'clear') {
+        $domain = $this->sanitizeDomain($attributes['domain']);
+
+        if ($domain === 'clear') {
             return back();
         }
 
-        if ($url === '?') {
+        if ($domain === '?') {
             flash()->message('A simple digga service by <a href="https://spatie.be/en/opensource">spatie.be</a>.<br>Enter a domain name to retrieve all DNS records.');
 
             return back();
         }
 
-        $command = 'dig +nocmd ' . escapeshellarg($url) . ' any +multiline +noall +answer';
+        $command = 'dig +nocmd ' . escapeshellarg($domain) . ' any +multiline +noall +answer';
 
         $process = new Process($command);
 
         $process->run();
 
         if (!$process->isSuccessful()) {
-            flash()->error("Could not fetch dns records for '{$url}'.");
+            flash()->error("Could not fetch dns records for '{$domain}'.");
 
             return back();
         }
@@ -45,7 +46,7 @@ class HomeController extends Controller
         $dnsInfo = $process->getOutput();
 
         if ($dnsInfo === "") {
-            flash()->error("Could not fetch dns records for '{$url}'.");
+            flash()->error("Could not fetch dns records for '{$domain}'.");
 
             return back();
         }
@@ -55,12 +56,12 @@ class HomeController extends Controller
         return back();
     }
 
-    protected function sanitizeUrl(string $url = ''): string
+    protected function sanitizeDomain(string $domain = ''): string
     {
-        $url = str_replace(['http://', 'https://'], '', $url);
+        $domain = str_replace(['http://', 'https://'], '', $domain);
 
-        $url = str_before($url, '/');
+        $domain = str_before($domain, '/');
 
-        return strtolower($url);
+        return strtolower($domain);
     }
 }

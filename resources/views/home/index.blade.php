@@ -24,7 +24,7 @@
         {{ csrf_field() }}
         
         <span class="carret -green">&rarr;</span>
-        <input autofocus id="url" name="url" placeholder="Enter a domain" autocomplete="off" />
+        <input autofocus id="url" name="domain" placeholder="Enter a domain" autocomplete="off" />
 
     </form>  
 </main>   
