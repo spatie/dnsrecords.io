@@ -1,7 +1,10 @@
 @foreach (session('flash_notification', collect())->toArray() as $message)
-    <p role="alert" class=alert>
+    <div class="alert alert--{{ $message['level'] }}
+    {{ $message['important'] ? 'alert--important' : '' }}"
+         role="alert"
+    >
         {!! $message['message'] !!}
-    </p>
+    </div>
 @endforeach
 
 {{ session()->forget('flash_notification') }}

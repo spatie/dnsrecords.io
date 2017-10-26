@@ -14,7 +14,7 @@
     @endif
 
     @if($errors->has('url'))
-        <p class="alert">
+        <p class="alert--danger">
             {{ $errors->first('url') }}
         </p>
     @endif
@@ -24,13 +24,13 @@
         {{ csrf_field() }}
         
         <span class="input-carret">&rarr;</span>
-        <input autofocus id="url" name="url" placeholder="Enter a domain"/>
+        <input autofocus id="url" name="url" placeholder="Enter a domain" autocomplete="off" />
 
     </form>  
 </main>   
  
 <footer class="footer selection-disable">
-    © {{ date('Y') }} <a href="https://spatie.be/en/opensource">spatie.be</a>
+    © <a href='https://spatie.be/en/opensource'>spatie</a> {{ date('Y') }} — '<kbd>?</kbd>' for help
 </footer>
 
 @endsection

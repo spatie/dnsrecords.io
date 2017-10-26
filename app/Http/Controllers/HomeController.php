@@ -18,14 +18,28 @@ class HomeController extends Controller
             'url' => 'required',
         ]);
 
-        $command = 'dig +nocmd "' . $attributes['url'] . '" any +multiline +noall +answer';
+        $url = $attributes['url'];
+        $url = str_replace('https://', '', $url);
+        $url = str_replace('http://', '', $url);
+
+        if($url === 'clear') {
+            return back();
+        }
+
+        if($url === '?') {
+            flash()->message("A simple digga service by <a href='https://spatie.be/en/opensource'>spatie.be</a>.<br>Enter a domain name to retrieve all DNS records.");
+
+            return back();
+        }
+
+        $command = 'dig +nocmd "' . $url . '" any +multiline +noall +answer';
 
         $process = new Process($command);
 
         $process->run();
 
         if (!$process->isSuccessful()) {
-            flash()->error("Could not fetch dns records for '{$attributes['url']}'.");
+            flash()->error("Could not fetch dns records for '{$url}'.");
 
             return back();
         }
@@ -33,7 +47,7 @@ class HomeController extends Controller
         $dnsInfo = $process->getOutput();
 
         if ($dnsInfo === "") {
-            flash()->error("Could not fetch dns records for '{$attributes['url']}'.");
+            flash()->error("Could not fetch dns records for '{$url}'.");
 
             return back();
         }
