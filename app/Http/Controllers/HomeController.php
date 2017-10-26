@@ -42,8 +42,10 @@ class HomeController extends Controller
 
         $process->run();
 
+        $limitedInput = str_limit($input, 75);
+
         if (! $process->isSuccessful()) {
-            flash()->error("Could not fetch dns records for '{$input}'.");
+            flash()->error("Could not fetch dns records for '{$limitedInput}'.");
 
             return back();
         }
@@ -51,7 +53,7 @@ class HomeController extends Controller
         $dnsInfo = $process->getOutput();
 
         if ($dnsInfo === "") {
-            flash()->error("Could not fetch dns records for '{$input}'.");
+            flash()->error("Could not fetch dns records for '{$limitedInput}'.");
 
             return back();
         }
