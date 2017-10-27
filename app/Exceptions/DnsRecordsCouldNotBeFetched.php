@@ -14,7 +14,7 @@ class DnsRecordsCouldNotBeFetched extends Exception
 
     public static function processFailed(Process $process, string $domain)
     {
-        $exception =  new static("Could not fetch the dns records for {$domain}");
+        $exception =  new static("Could not fetch dns records for <span class='text-break'>'{$domain}'.</span>");
 
         $exception->domain = $domain;
 

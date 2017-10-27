@@ -1,0 +1,4 @@
+.text-break {
+    display: inline-block;
+    word-break: break-all;
+}

@@ -27,8 +27,6 @@ runYarn
 generateAssets
 updateSymlinks
 optimizeInstallation
-backupDatabase
-migrateDatabase
 blessNewRelease
 cleanOldReleases
 finishDeploy
@@ -104,18 +102,6 @@ ln -nfs {{ $baseDir }}/.env .env;
 cd {{ $newReleaseDir }};
 php artisan clear-compiled;
 php artisan optimize;
-@endtask
-
-@task('backupDatabase', ['on' => 'remote'])
-{{ logMessage("📀  Backing up database...") }}
-cd {{ $newReleaseDir }}
-php artisan backup:run
-@endtask
-
-@task('migrateDatabase', ['on' => 'remote'])
-{{ logMessage("🙈  Migrating database...") }}
-cd {{ $newReleaseDir }};
-php artisan migrate --force;
 @endtask
 
 @task('blessNewRelease', ['on' => 'remote'])

@@ -20,8 +20,10 @@ class HomeController extends Controller
         ]);
 
         $input = $this->sanitizeInput($attributes['input']);
+
         if ($input === 'ip') {
             $request->session()->flash('output', "Your ip address is {$request->ip()}");
+
             return back();
         }
 
@@ -30,7 +32,7 @@ class HomeController extends Controller
         }
 
         if ($input === '?') {
-            flash()->message('A simple digga service by <a href="https://spatie.be/en/opensource">spatie.be</a>.<br>Enter a domain name to retrieve all DNS records.', 'message');
+            flash()->message('Enter a domain name to retrieve all DNS records.<br>Enter \'ip\' to check your own address.<br>Enter \'clear\' to wipe the screen.', 'message');
 
             return back();
         }
@@ -39,9 +41,8 @@ class HomeController extends Controller
             return $this->getDnsRecords($input);
         });
 
-
         if ($dnsInfo === "") {
-            flash()->error("Could not fetch dns records for '{$input}'.");
+            flash()->error("Could not fetch dns records for <span class='text-break'>'{$input}'.</span>");
 
             return back();
         }

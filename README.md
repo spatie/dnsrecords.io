@@ -1,5 +1,7 @@
 # dnsrecords.io
 
+![screenshot](https://spatie.github.io/dnsrecords.io/screenshot.png)
+
 This repo contains the source code of [https://dnsrecords.io](https://dnsrecords.io)
 
 ## Contributing
