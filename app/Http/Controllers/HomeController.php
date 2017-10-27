@@ -76,6 +76,13 @@ class HomeController extends Controller
                 'DNSKEY',
             ])
                 ->map(function (string $recordType) use ($domain) {
+
+                    if(function_exists('idn_to_ascii')){
+                        if(($ascii_domain = idn_to_ascii($domain)) !== false) {
+                            $domain = $ascii_domain;
+                        }
+                    }
+
                     $command = 'dig +nocmd ' . escapeshellarg($domain) . " {$recordType} +multiline +noall +answer";
 
                     $process = new Process($command);
