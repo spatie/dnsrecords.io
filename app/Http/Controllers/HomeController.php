@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\DnsRecordsCouldNotBeFetched;
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Process;
 
@@ -34,19 +35,10 @@ class HomeController extends Controller
             return back();
         }
 
-        $command = 'dig +nocmd ' . escapeshellarg($input) . ' any +multiline +noall +answer';
+        $dnsInfo = cache()->remember(md5($input), 1, function () use ($input) {
+            return $this->getDnsRecords($input);
+        });
 
-        $process = new Process($command);
-
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            flash()->error("Could not fetch dns records for '{$input}'.");
-
-            return back();
-        }
-
-        $dnsInfo = $process->getOutput();
 
         if ($dnsInfo === "") {
             flash()->error("Could not fetch dns records for '{$input}'.");
@@ -57,6 +49,24 @@ class HomeController extends Controller
         $request->session()->flash('output', $dnsInfo);
 
         return back();
+    }
+
+    protected function getDnsRecords(string $domain): string
+    {
+        return collect(['A', 'NS', 'SOA', 'MX', 'TXT', 'DNSKEY'])
+            ->map(function (string $recordType) use ($domain) {
+                $command = 'dig +nocmd ' . escapeshellarg($domain) . " {$recordType} +multiline +noall +answer";
+
+                $process = new Process($command);
+
+                $process->run();
+
+                if (! $process->isSuccessful()) {
+                    throw DnsRecordsCouldNotBeFetched::processFailed($process, $domain);
+                }
+
+                return $process->getOutput();
+            })->implode('');
     }
 
     protected function sanitizeInput(string $input = ''): string
