@@ -21,12 +21,16 @@ class HomeController extends Controller
         ]);
 
         if ($validatedAttributed['input'] === '?') {
-            flash()->message('Enter a domain name to retrieve all DNS records.<br>Enter \'ip\' to check your own address.<br>Enter \'clear\' to wipe the screen.', 'message');
+            flash()->message('Enter a domain name to retrieve all DNS records.<br>Enter \'ip\' to check your own address.<br>Enter \'clear\' to wipe the screen.<br>Enter \'doom\' to play Doom.', 'message');
 
             return back();
         }
 
         $input = $this->sanitizeInput($validatedAttributed['input']);
+
+        if ($input === 'doom') {
+            return redirect('https://js-dos.com/games/doom.exe.html');
+        }
 
         if ($input === 'localhost') {
             flash()->error("Please try someone else's domain.");
