@@ -62,7 +62,15 @@ class HomeController extends Controller
     protected function getDnsRecords(string $domain): string
     {
         try {
-            return collect(['A', 'AAAA', 'NS', 'SOA', 'MX', 'TXT', 'DNSKEY'])
+            return collect([
+                'A',
+                'AAAA',
+                'NS',
+                'SOA',
+                'MX',
+                'TXT',
+                'DNSKEY',
+            ])
                 ->map(function (string $recordType) use ($domain) {
                     $command = 'dig +nocmd ' . escapeshellarg($domain) . " {$recordType} +multiline +noall +answer";
 
