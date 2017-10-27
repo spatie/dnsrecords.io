@@ -16,11 +16,17 @@ class HomeController extends Controller
 
     public function submit(Request $request)
     {
-        $attributes = $request->validate([
+        $validatedAttributed = $request->validate([
             'input' => 'required',
         ]);
 
-        $input = $this->sanitizeInput($attributes['input']);
+        if ($validatedAttributed['input'] === '?') {
+            flash()->message('Enter a domain name to retrieve all DNS records.<br>Enter \'ip\' to check your own address.<br>Enter \'clear\' to wipe the screen.', 'message');
+
+            return back();
+        }
+
+        $input = $this->sanitizeInput($validatedAttributed['input']);
 
         if ($input === 'localhost') {
             flash()->error("Please try someone else's domain.");
@@ -35,12 +41,6 @@ class HomeController extends Controller
         }
 
         if ($input === 'clear') {
-            return back();
-        }
-
-        if ($input === '?') {
-            flash()->message('Enter a domain name to retrieve all DNS records.<br>Enter \'ip\' to check your own address.<br>Enter \'clear\' to wipe the screen.', 'message');
-
             return back();
         }
 
