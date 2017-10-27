@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\DnsRecordsCouldNotBeFetched;
+use Exception;
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Process;
 
@@ -54,20 +55,25 @@ class HomeController extends Controller
 
     protected function getDnsRecords(string $domain): string
     {
-        return collect(['A', 'NS', 'SOA', 'MX', 'TXT', 'DNSKEY'])
-            ->map(function (string $recordType) use ($domain) {
-                $command = 'dig +nocmd ' . escapeshellarg($domain) . " {$recordType} +multiline +noall +answer";
+        try {
+            return collect(['A', 'NS', 'SOA', 'MX', 'TXT', 'DNSKEY'])
+                ->map(function (string $recordType) use ($domain) {
+                    $command = 'dig +nocmd ' . escapeshellarg($domain) . " {$recordType} +multiline +noall +answer";
 
-                $process = new Process($command);
+                    $process = new Process($command);
 
-                $process->run();
+                    $process->run();
 
-                if (! $process->isSuccessful()) {
-                    throw DnsRecordsCouldNotBeFetched::processFailed($process, $domain);
-                }
+                    if (! $process->isSuccessful()) {
+                        throw DnsRecordsCouldNotBeFetched::processFailed($process, $domain);
+                    }
 
-                return $process->getOutput();
-            })->implode('');
+                    return $process->getOutput();
+                })->implode('');
+        } catch (Exception $e) {
+            return '';
+        }
+
     }
 
     protected function sanitizeInput(string $input = ''): string

@@ -37,12 +37,6 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $exception)
     {
-        if ($exception instanceof DnsRecordsCouldNotBeFetched) {
-            flash()->error("Could not fetch dns records for '{$exception->domain}'.");
-
-            return back();
-        }
-
         if ($exception instanceof ValidationException) {
             // flash()->error('Correct the errors in the form');
         }
