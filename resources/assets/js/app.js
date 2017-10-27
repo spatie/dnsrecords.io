@@ -1,4 +1,9 @@
+import History from './History.js';
+
 const input = document.getElementById('url');
+const form = document.getElementById('form');
+const history = new History();
+
 
 window.addEventListener('click', event => {
     event.stopPropagation();
@@ -15,6 +20,19 @@ window.addEventListener('click', event => {
         }
     }, 200);
 });
+
+input.addEventListener('keydown', event => {
+    if (event.keyCode === 38) {
+        input.value = history.getPrevious();
+    } else if (event.keyCode === 40) {
+        input.value = history.getNext();
+    }
+});
+
+form.addEventListener('submit', event => {
+    history.add(event.target.url.value);
+});
+
 
 function isResultTextSelected() {
 

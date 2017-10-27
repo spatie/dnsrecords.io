@@ -20,7 +20,7 @@
     @endif
     @include('layout._partials.flash')
 
-    <form method="post" action="/">
+    <form id="form" method="post" action="/">
         {{ csrf_field() }}
         
         <span class="carret -green">&rarr;</span>
