@@ -100,6 +100,8 @@ class HomeController extends Controller
 
         $input = parse_url("http://{$input}", PHP_URL_HOST);
 
+        $input = idn_to_ascii($input);
+
         $input = str_before($input, '/');
 
         return strtolower($input);
