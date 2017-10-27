@@ -21,7 +21,14 @@ class HomeController extends Controller
         ]);
 
         if ($validatedAttributed['input'] === '?') {
-            flash()->message('Enter a domain name to retrieve all DNS records.<br>Enter \'ip\' to check your own address.<br>Enter \'clear\' to wipe the screen.<br>Enter \'doom\' to play Doom.', 'message');
+            $manualText = collect([
+                'Enter a domain name to retrieve all DNS records.',
+                "Enter 'ip' to check your own address.",
+                "Enter 'clear' to wipe the screen.",
+                "Enter 'doom' to play Doom.",
+            ])->implode('<br>');
+
+            flash()->message($manualText);
 
             return back();
         }
