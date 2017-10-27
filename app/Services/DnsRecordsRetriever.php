@@ -23,7 +23,7 @@ class DnsRecordsRetriever
         $domain = parse_url("http://{$domain}", PHP_URL_HOST);
 
         if (function_exists('idn_to_ascii')) {
-            $domain = idn_to_ascii($domain);
+            $domain = idn_to_ascii($domain) ?? $domain;
         }
 
         $domain = str_before($domain, '/');
