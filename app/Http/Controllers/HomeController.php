@@ -80,7 +80,7 @@ class HomeController extends Controller
     {
         $input = str_replace(['http://', 'https://'], '', $input);
 
-        $input = preg_replace("/[^A-Za-z0-9 .]/", '', $input);
+        $input = parse_url("http://{$input}", PHP_URL_HOST);
 
         $input = str_before($input, '/');
 
