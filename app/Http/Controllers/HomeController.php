@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\DnsRecordsCouldNotBeFetched;
-use Exception;
+use App\Services\DnsRecordsRetriever;
 use Illuminate\Http\Request;
-use Symfony\Component\Process\Process;
 
 class HomeController extends Controller
 {
@@ -16,11 +14,11 @@ class HomeController extends Controller
 
     public function submit(Request $request)
     {
-        $validatedAttributed = $request->validate([
+        $attributes = $request->validate([
             'input' => 'required',
         ]);
 
-        if ($validatedAttributed['input'] === '?') {
+        if ($attributes['input'] === '?') {
             $manualText = collect([
                 'Enter a domain name to retrieve all DNS records.',
                 "Enter 'ip' to check your own address.",
@@ -33,7 +31,7 @@ class HomeController extends Controller
             return back();
         }
 
-        $input = $this->sanitizeInput($validatedAttributed['input']);
+        $input = $attributes['input'];
 
         if ($input === 'doom') {
             return redirect('https://js-dos.com/games/doom.exe.html');
@@ -55,62 +53,20 @@ class HomeController extends Controller
             return back();
         }
 
-        $dnsInfo = cache()->remember(md5($input), 1, function () use ($input) {
-            return $this->getDnsRecords($input);
+        $dnsRecordsRetriever = new DnsRecordsRetriever();
+
+        $dnsRecords = cache()->remember(md5($input), 1, function () use ($dnsRecordsRetriever, $input) {
+            return $dnsRecordsRetriever->retrieveDnsRecords($input);
         });
 
-        if ($dnsInfo === "") {
-            flash()->error("Could not fetch dns records for <span class='text-break'>'{$input}'.</span>");
+        if ($dnsRecords === "") {
+            flash()->error("Could not fetch dns records for <span class='text-break'>'{$dnsRecordsRetriever->getSanitizedDomain($input)}'.</span>");
 
             return back();
         }
 
-        $request->session()->flash('output', $dnsInfo);
+        $request->session()->flash('output', $dnsRecords);
 
         return back();
-    }
-
-    protected function getDnsRecords(string $domain): string
-    {
-        try {
-            return collect([
-                'A',
-                'AAAA',
-                'NS',
-                'SOA',
-                'MX',
-                'TXT',
-                'DNSKEY',
-            ])
-                ->map(function (string $recordType) use ($domain) {
-                    $command = 'dig +nocmd ' . escapeshellarg($domain) . " {$recordType} +multiline +noall +answer";
-
-                    $process = new Process($command);
-
-                    $process->run();
-
-                    if (! $process->isSuccessful()) {
-                        throw DnsRecordsCouldNotBeFetched::processFailed($process, $domain);
-                    }
-
-                    return $process->getOutput();
-                })->implode('');
-        } catch (Exception $e) {
-            return '';
-        }
-
-    }
-
-    protected function sanitizeInput(string $input = ''): string
-    {
-        $input = str_replace(['http://', 'https://'], '', $input);
-
-        $input = parse_url("http://{$input}", PHP_URL_HOST);
-
-        $input = idn_to_ascii($input);
-
-        $input = str_before($input, '/');
-
-        return strtolower($input);
     }
 }
