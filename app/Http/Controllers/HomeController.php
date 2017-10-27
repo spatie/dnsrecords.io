@@ -55,9 +55,7 @@ class HomeController extends Controller
 
         $dnsRecordsRetriever = new DnsRecordsRetriever();
 
-        $dnsRecords = cache()->remember(md5($input), 1, function () use ($dnsRecordsRetriever, $input) {
-            return $dnsRecordsRetriever->retrieveDnsRecords($input);
-        });
+        $dnsRecords = $dnsRecordsRetriever->retrieveDnsRecords($input);
 
         if ($dnsRecords === "") {
             flash()->error("Could not fetch dns records for <span class='text-break'>'{$dnsRecordsRetriever->getSanitizedDomain($input)}'.</span>");

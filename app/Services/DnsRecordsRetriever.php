@@ -11,6 +11,28 @@ class DnsRecordsRetriever
     {
         $domain = $this->getSanitizedDomain($domain);
 
+        return cache()->remember(md5($domain), 1, function () use ($domain) {
+            return $this->retrieveRawDnsRecords($domain);
+        });
+    }
+
+    public function getSanitizedDomain(string $domain): string
+    {
+        $domain = str_replace(['http://', 'https://'], '', $domain);
+
+        $domain = parse_url("http://{$domain}", PHP_URL_HOST);
+
+        if (function_exists('idn_to_ascii')) {
+            $domain = idn_to_ascii($domain);
+        }
+
+        $domain = str_before($domain, '/');
+
+        return strtolower($domain);
+    }
+
+    protected function retrieveRawDnsRecords(string $domain): string
+    {
         try {
             return collect([
                 'A',
@@ -37,20 +59,5 @@ class DnsRecordsRetriever
         } catch (Exception $e) {
             return '';
         }
-    }
-
-    public function getSanitizedDomain(string $domain): string
-    {
-        $domain = str_replace(['http://', 'https://'], '', $domain);
-
-        $domain = parse_url("http://{$domain}", PHP_URL_HOST);
-
-        if (function_exists('idn_to_ascii')) {
-            $domain = idn_to_ascii($domain);
-        }
-
-        $domain = str_before($domain, '/');
-
-        return strtolower($domain);
     }
 }
