@@ -23,13 +23,13 @@ class HomeController extends Controller
         $input = $this->sanitizeInput($attributes['input']);
 
         if ($input === 'localhost') {
-            flash()->error("Please try someone else's domain");
+            flash()->error("Please try someone else's domain.");
 
             return back();
         }
 
         if ($input === 'ip') {
-            $request->session()->flash('output', "Your ip address is {$request->ip()}");
+            $request->session()->flash('output', "Your ip address is {$request->ip()}.");
 
             return back();
         }
