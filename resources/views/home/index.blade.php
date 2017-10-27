@@ -32,6 +32,7 @@
             autocomplete="off"
             autocorrect="off"
             autocapitalize="off"
+            autofocus="autofocus"
             spellcheck="false"
         />
 
