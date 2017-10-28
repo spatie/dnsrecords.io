@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Commands\Command;
+namespace App\Services\Commands\Commands;
 
 use App\Services\Commands\Command;
 use App\Services\DnsRecordsRetriever;

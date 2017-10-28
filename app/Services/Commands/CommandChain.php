@@ -2,12 +2,12 @@
 
 namespace App\Services\Commands;
 
-use App\Services\Commands\Command\Clear;
-use App\Services\Commands\Command\DnsLookup;
-use App\Services\Commands\Command\Doom;
-use App\Services\Commands\Command\Ip;
-use App\Services\Commands\Command\Localhost;
-use App\Services\Commands\Command\Manual;
+use App\Services\Commands\Commands\Clear;
+use App\Services\Commands\Commands\DnsLookup;
+use App\Services\Commands\Commands\Doom;
+use App\Services\Commands\Commands\Ip;
+use App\Services\Commands\Commands\Localhost;
+use App\Services\Commands\Commands\Manual;
 
 class CommandChain
 {
