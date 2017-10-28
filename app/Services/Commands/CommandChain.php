@@ -8,6 +8,7 @@ use App\Services\Commands\Commands\Doom;
 use App\Services\Commands\Commands\Ip;
 use App\Services\Commands\Commands\Localhost;
 use App\Services\Commands\Commands\Manual;
+use Symfony\Component\HttpFoundation\Response;
 
 class CommandChain
 {
@@ -20,7 +21,7 @@ class CommandChain
         DnsLookup::class,
     ];
 
-    public function perform(string $command)
+    public function perform(string $command): Response
     {
         return collect($this->commands)
                 ->map(function (string $commandClassName) {
