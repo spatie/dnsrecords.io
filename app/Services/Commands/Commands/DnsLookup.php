@@ -26,11 +26,9 @@ class DnsLookup implements Command
 
             flash()->error($errorText);
 
-            return back();
+            return redirect('/');
         }
 
-        request()->session()->flash('output', htmlentities($dnsRecords));
-
-        return back();
+        return response()->view('home.index', ['output' => htmlentities($dnsRecords)]);
     }
 }

@@ -9,8 +9,8 @@
     </h1>
 </header>
 <main class="main">
-    @if(session('output'))
-        <pre class="main__results" id="results">{{ session('output') }}</pre>
+    @if(isset($output))
+        <pre class="main__results" id="results">{{ $output }}</pre>
     @endif
 
     @if($errors->has('input'))
@@ -20,9 +20,9 @@
     @endif
     @include('layout._partials.flash')
 
-    <form method="post" action="/">
+    <form id="form" method="post" action="/">
         {{ csrf_field() }}
-        
+
         <span class="carret -green">&rarr;</span>
         <input
             id="url"
@@ -35,11 +35,11 @@
             spellcheck="false"
         />
 
-    </form>  
-</main>   
- 
+    </form>
+</main>
+
 <footer class="footer">
-    © <a href='https://spatie.be/en/opensource'>spatie</a> {{ date('Y') }} — '<kbd>?</kbd>' for help
+    © <a href='https://spatie.be/en/opensource'>spatie</a> {{ date('Y') }} — stuck? type '<kbd>help</kbd>'
 </footer>
 
 @endsection

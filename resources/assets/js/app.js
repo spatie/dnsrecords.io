@@ -1,4 +1,12 @@
+const form = document.getElementById('form');
 const input = document.getElementById('url');
+
+form.addEventListener('submit', event => {
+    event.preventDefault();
+
+    form.action = input.value;
+    form.submit();
+});
 
 window.addEventListener('click', event => {
     event.stopPropagation();
@@ -18,7 +26,7 @@ window.addEventListener('click', event => {
 
 function isResultTextSelected() {
 
-    if (typeof window.getSelection !== 'undefined' && window.getSelection().toString() !== '') { 
+    if (typeof window.getSelection !== 'undefined' && window.getSelection().toString() !== '') {
         return true;
     }
 

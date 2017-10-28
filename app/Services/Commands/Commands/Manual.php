@@ -9,7 +9,7 @@ class Manual implements Command
 {
     public function canPerform(string $command): bool
     {
-        return $command === '?';
+        return $command === 'help';
     }
 
     public function perform(string $command): Response
@@ -23,6 +23,6 @@ class Manual implements Command
 
         flash()->message($manualText, 'info');
 
-        return back();
+        return redirect('/');
     }
 }
