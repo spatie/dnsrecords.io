@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\DnsRecordsRetriever;
+use App\Services\Commands\CommandChain;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -15,60 +15,9 @@ class HomeController extends Controller
     public function submit(Request $request)
     {
         $attributes = $request->validate([
-            'input' => 'required',
+            'command' => 'required',
         ]);
 
-        if ($attributes['input'] === '?') {
-            $manualText = collect([
-                'Enter a domain name to retrieve all DNS records.',
-                "Enter 'ip' to check your own address.",
-                "Enter 'clear' to wipe the screen.",
-                "Enter 'doom' to play Doom.",
-            ])->implode('<br>');
-
-            flash()->message($manualText);
-
-            return back();
-        }
-
-        $input = $attributes['input'];
-
-        if ($input === 'doom') {
-            return redirect('https://js-dos.com/games/doom.exe.html');
-        }
-
-        if ($input === 'localhost') {
-            flash()->error("Please try someone else's domain.");
-
-            return back();
-        }
-
-        if ($input === 'ip') {
-            $request->session()->flash('output', "Your ip address is {$request->ip()}.");
-
-            return back();
-        }
-
-        if ($input === 'clear') {
-            return back();
-        }
-
-        $dnsRecordsRetriever = new DnsRecordsRetriever();
-
-        $dnsRecords = $dnsRecordsRetriever->retrieveDnsRecords($input);
-
-        if ($dnsRecords === '') {
-            $domain = $dnsRecordsRetriever->getSanitizedDomain($input);
-
-            $errorText = __('errors.noDnsRecordsFound', compact('domain'));
-
-            flash()->error($errorText);
-
-            return back();
-        }
-
-        $request->session()->flash('output', $dnsRecords);
-
-        return back();
+        return (new CommandChain())->perform($attributes['command']);
     }
 }

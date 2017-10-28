@@ -26,7 +26,7 @@
         <span class="carret -green">&rarr;</span>
         <input
             id="url"
-            name="input"
+            name="command"
             placeholder="Enter a domain"
             autocomplete="off"
             autocorrect="off"
