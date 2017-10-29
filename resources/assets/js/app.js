@@ -1,8 +1,13 @@
-const form = document.getElementById('form');
+import History from './History.js';
 const input = document.getElementById('url');
+const form = document.getElementById('form');
+const history = new History();
+
 
 form.addEventListener('submit', event => {
     event.preventDefault();
+
+    history.add(event.target.url.value);
 
     form.action = input.value.toLowerCase();
 
@@ -24,6 +29,17 @@ window.addEventListener('click', event => {
         }
     }, 200);
 });
+
+input.addEventListener('keydown', event => {
+    if (event.keyCode === 38) {
+        return input.value = history.getPrevious();
+    }
+
+    if (event.keyCode === 40) {
+        return input.value = history.getNext();
+    }
+});
+
 
 function isResultTextSelected() {
 
