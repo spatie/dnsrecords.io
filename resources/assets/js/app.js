@@ -7,6 +7,8 @@ const history = new History();
 form.addEventListener('submit', event => {
     event.preventDefault();
 
+    history.add(event.target.url.value);
+
     form.action = input.value.toLowerCase();
 
     form.submit();
@@ -34,10 +36,7 @@ input.addEventListener('keydown', event => {
     } else if (event.keyCode === 40) {
         input.value = history.getNext();
     }
-});
 
-form.addEventListener('submit', event => {
-    history.add(event.target.url.value);
 });
 
 
