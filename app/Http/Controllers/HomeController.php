@@ -13,6 +13,11 @@ class HomeController extends Controller
 
     public function submit($command)
     {
+        if(request()->header('Accept') !== 'application/json')
+        {
+            return redirect()->to('/#'.$command);
+        }
+
         return (new CommandChain())->perform(strtolower($command));
     }
 
