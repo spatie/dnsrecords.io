@@ -51,7 +51,7 @@ class DnsRecordsRetriever
                     $process->run();
 
                     if (!$process->isSuccessful()) {
-                        throw DnsRecordsCouldNotBeFetched::processFailed($process, $domain);
+                        throw new Exception('Dns records could not be fetched.');
                     }
 
                     return $process->getOutput();
