@@ -1,9 +1,16 @@
 import History from './History.js';
-
 const input = document.getElementById('url');
 const form = document.getElementById('form');
 const history = new History();
 
+
+form.addEventListener('submit', event => {
+    event.preventDefault();
+
+    form.action = input.value.toLowerCase();
+
+    form.submit();
+});
 
 window.addEventListener('click', event => {
     event.stopPropagation();
@@ -36,7 +43,7 @@ form.addEventListener('submit', event => {
 
 function isResultTextSelected() {
 
-    if (typeof window.getSelection !== 'undefined' && window.getSelection().toString() !== '') { 
+    if (typeof window.getSelection !== 'undefined' && window.getSelection().toString() !== '') {
         return true;
     }
 
