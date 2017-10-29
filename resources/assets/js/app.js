@@ -32,11 +32,12 @@ window.addEventListener('click', event => {
 
 input.addEventListener('keydown', event => {
     if (event.keyCode === 38) {
-        input.value = history.getPrevious();
-    } else if (event.keyCode === 40) {
-        input.value = history.getNext();
+        return input.value = history.getPrevious();
     }
 
+    if (event.keyCode === 40) {
+        return input.value = history.getNext();
+    }
 });
 
 
