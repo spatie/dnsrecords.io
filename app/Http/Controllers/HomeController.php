@@ -15,4 +15,5 @@ class HomeController extends Controller
     {
         return (new CommandChain())->perform(strtolower($command));
     }
+
 }

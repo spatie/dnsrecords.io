@@ -21,8 +21,9 @@ class Manual implements Command
             "Enter 'doom' to play Doom.",
         ])->implode('<br>');
 
-        flash()->message($manualText, 'info');
-
-        return redirect('/');
+        return response([
+            'message'   => $manualText,
+            'type'      => 'info'
+        ]);
     }
 }

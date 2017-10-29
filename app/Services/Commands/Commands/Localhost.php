@@ -14,8 +14,9 @@ class Localhost implements Command
 
     public function perform(string $command): Response
     {
-        flash()->error("Please try someone else's domain.");
-
-        return back();
+        return response([
+            'message'   => 'Please try someone else\'s domain.',
+            'type'      => 'danger',
+        ]);
     }
 }

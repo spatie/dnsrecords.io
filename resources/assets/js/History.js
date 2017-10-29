@@ -39,6 +39,11 @@ class History {
 
         return '';
     }
+
+    clear() {
+        this.items = [];
+        this.save();
+    }
 }
 
 export default History;

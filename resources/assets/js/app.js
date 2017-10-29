@@ -1,18 +1,14 @@
-import History from './History.js';
-const input = document.getElementById('url');
-const form = document.getElementById('form');
-const history = new History();
+require('./bootstrap');
+const Vue = require('vue');
 
+Vue.component('terminal', require('./components/terminal.vue'));
 
-form.addEventListener('submit', event => {
-    event.preventDefault();
-
-    history.add(event.target.url.value);
-
-    form.action = input.value.toLowerCase();
-
-    form.submit();
+const app = new Vue({
+    el: '#main',
 });
+
+
+const input = document.getElementById('url');
 
 window.addEventListener('click', event => {
     event.stopPropagation();
@@ -29,17 +25,6 @@ window.addEventListener('click', event => {
         }
     }, 200);
 });
-
-input.addEventListener('keydown', event => {
-    if (event.keyCode === 38) {
-        return input.value = history.getPrevious();
-    }
-
-    if (event.keyCode === 40) {
-        return input.value = history.getNext();
-    }
-});
-
 
 function isResultTextSelected() {
 
