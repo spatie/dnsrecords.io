@@ -14,8 +14,8 @@ class Ip implements Command
 
     public function perform(string $command): Response
     {
-        request()->session()->flash('output', 'Your ip address is ' . request()->ip() . '.');
+        $output = 'Your ip address is ' . request()->ip() . '.';
 
-        return back();
+        return response()->view('home.index', ['output'=> $output]);
     }
 }

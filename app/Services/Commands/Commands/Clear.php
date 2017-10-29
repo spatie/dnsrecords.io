@@ -14,6 +14,6 @@ class Clear implements Command
 
     public function perform(string $command): Response
     {
-        return back();
+        return redirect('/');
     }
 }
