@@ -13,6 +13,6 @@ class HomeController extends Controller
 
     public function submit($command)
     {
-        return (new CommandChain())->perform($command);
+        return (new CommandChain())->perform(strtolower($command));
     }
 }

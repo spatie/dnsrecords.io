@@ -4,7 +4,8 @@ const input = document.getElementById('url');
 form.addEventListener('submit', event => {
     event.preventDefault();
 
-    form.action = input.value;
+    form.action = input.value.toLowerCase();
+
     form.submit();
 });
 
