@@ -6,6 +6,11 @@ class History {
     }
 
     add(value) {
+
+        if (this.items.length > 1000) {
+            this.items.pop();
+        }
+
         this.items.unshift(value);
         this.save();
     }
