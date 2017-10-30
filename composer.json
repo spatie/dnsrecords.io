@@ -11,7 +11,7 @@
     "require": {
         "php": ">=7.1.0",
         "barryvdh/laravel-debugbar": "^2.4",
-        "bugsnag/bugsnag-laravel": "^2.6",
+        "bugsnag/bugsnag-laravel": "^2.0",
         "doctrine/dbal": "^2.6",
         "fideloper/proxy": "~3.3",
         "laracasts/flash": "^3.0",
