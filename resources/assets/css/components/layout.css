@@ -3,6 +3,8 @@
     flex-direction: column;
     padding: 0 var(--gutter);
     min-height: 100%;
+    background-color: var(--gray-dark);
+    color: var(--gray-light);
     user-select: none;
 
     /* Fade out overflow content on the right */
@@ -14,5 +16,13 @@
         height: 100%;
         background-image: linear-gradient(to right, color(var(--gray-dark) a(0)), var(--gray-dark));
         content: '';
+    }
+
+    &.-error {
+        background-color: var(--blue);
+
+        &:after {
+            background-image: linear-gradient(to right, color(var(--blue) a(0)), var(--blue));
+        }
     }
 }

@@ -1,8 +1,6 @@
 html {
     box-sizing: border-box;
     height: 100%;
-    background-color: var(--gray-dark);
-    color: var(--gray-light);
     font-weight: 400;
     font-size: 16px;
     font-family: 'Fira Mono', monospace;
@@ -12,4 +10,5 @@ html {
     @media (min-width: 1066px) {
         font-size: 1.5vw;
     }
+
 }

@@ -17,12 +17,6 @@ form.addEventListener('submit', event => {
 window.addEventListener('click', event => {
     event.stopPropagation();
 
-    const source = event.srcElement || event.originalTarget;
-
-    if (source.id !== 'results') {
-        input.focus();
-    }
-
     setTimeout(() => {
         if (! isResultTextSelected()) {
             input.focus();

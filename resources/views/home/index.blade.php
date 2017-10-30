@@ -10,11 +10,11 @@
 </header>
 <main class="main">
     @if(isset($output))
-        <pre class="main__results" id="results">{{ $output }}</pre>
+        <pre class="main__results">{{ $output }}</pre>
     @endif
 
     @if($errors->has('input'))
-        <p class="alert alert--danger">
+        <p id="results" class="alert alert--danger">
             {{ $errors->first('input') }}
         </p>
     @endif

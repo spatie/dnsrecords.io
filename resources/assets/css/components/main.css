@@ -1,10 +1,10 @@
 .main {
     flex-grow: 1;
+    user-select: text;
 }
 
 .main__results {
     /* Give the pre a width and some room to scroll horizontally */
     display: inline-block;
     padding-right: var(--gutter);
-    user-select: text;
 }
