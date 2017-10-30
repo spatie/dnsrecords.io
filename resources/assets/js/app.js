@@ -1,13 +1,14 @@
-const form = document.getElementById('form');
-const input = document.getElementById('url');
+require('./bootstrap');
+const Vue = require('vue');
 
-form.addEventListener('submit', event => {
-    event.preventDefault();
+Vue.component('terminal', require('./components/terminal.vue'));
 
-    form.action = input.value.toLowerCase();
-
-    form.submit();
+const app = new Vue({
+    el: '#main',
 });
+
+
+const input = document.getElementById('url');
 
 window.addEventListener('click', event => {
     event.stopPropagation();

@@ -24,11 +24,15 @@ class DnsLookup implements Command
 
             $errorText = __('errors.noDnsRecordsFound', compact('domain'));
 
-            flash()->error($errorText);
-
-            return redirect('/');
+            return response([
+                'message'   => $errorText,
+                'type'      => 'danger',
+            ]);
         }
 
-        return response()->view('home.index', ['output' => htmlentities($dnsRecords)]);
+        return response([
+            'message'   => htmlentities($dnsRecords),
+            'type'      => 'default',
+        ]);
     }
 }

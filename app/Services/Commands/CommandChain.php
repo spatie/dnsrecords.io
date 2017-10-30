@@ -15,9 +15,7 @@ class CommandChain
     protected $commands = [
         Manual::class,
         Localhost::class,
-        Clear::class,
         Ip::class,
-        Doom::class,
         DnsLookup::class,
     ];
 
