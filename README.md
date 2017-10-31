@@ -23,7 +23,7 @@ We publish all received postcards [on our company website](https://spatie.be/en/
 ## Credits
 
 - [Sebastian De Deyne](https://github.com/sebdeyne)
-- [Willem Van Bockstal](https://github.com/willemvanbockstal)
+- [Willem Van Bockstal](https://github.com/willemvb)
 - [Freek Van der Herten](https://github.com/freekmurze)
 - [All Contributors](../../contributors)
 
