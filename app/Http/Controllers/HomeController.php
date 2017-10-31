@@ -11,8 +11,12 @@ class HomeController extends Controller
         return view('home.index');
     }
 
-    public function submit($command)
+    public function submit($command = null)
     {
+        if (!$command) {
+            return $this->index();
+        }
+
         return (new CommandChain())->perform(strtolower($command));
     }
 }
