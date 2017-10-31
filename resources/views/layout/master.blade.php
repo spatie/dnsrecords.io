@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
 
-    <title>DNS records lookup ~ dnsrecords.io</title>
+    <title>{{ isset($domain) ? $domain . ' DNS records' : 'DNS records lookup' }} ~ dnsrecords.io</title>
     <meta name="description" content="DNS record lookups just as you like 'em" />
 
     <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">

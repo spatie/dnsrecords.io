@@ -19,9 +19,9 @@ class DnsLookup implements Command
         $dnsRecordsRetriever = app(DnsRecordsRetriever::class);
 
         $dnsRecords = $dnsRecordsRetriever->retrieveDnsRecords($command);
+        $domain = $dnsRecordsRetriever->getSanitizedDomain($command);
 
-        if ($dnsRecords === '') {
-            $domain = $dnsRecordsRetriever->getSanitizedDomain($command);
+        if ($dnsRecords === '') {   
 
             $errorText = __('errors.noDnsRecordsFound', compact('domain'));
 
@@ -30,6 +30,6 @@ class DnsLookup implements Command
             return redirect('/');
         }
 
-        return response()->view('home.index', ['output' => htmlentities($dnsRecords)]);
+        return response()->view('home.index', ['output' => htmlentities($dnsRecords), 'domain' => $domain ]);
     }
 }
