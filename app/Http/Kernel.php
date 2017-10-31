@@ -58,5 +58,6 @@ class Kernel extends HttpKernel
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'logRequest' => \Spatie\HttpLogger\Middlewares\HttpLogger::class,
+        'sanitizeDnsLookup' => \App\Http\Middleware\SanitizeDnsLookup::class,
     ];
 }

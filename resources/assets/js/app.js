@@ -4,12 +4,9 @@ const input = document.getElementById('url');
 form.addEventListener('submit', event => {
     event.preventDefault();
 
-    const command = input.value
-        .toLowerCase()
-        .replace('http://', '')
-        .replace('https://', '');
+    const command = input.value.toLowerCase();
 
-    form.action = command;
+    form.action = window.location.origin + '/' + command;
 
     form.submit();
 });

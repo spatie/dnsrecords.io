@@ -15,7 +15,8 @@ class DnsLookup implements Command
 
     public function perform(string $command): Response
     {
-        $dnsRecordsRetriever = new DnsRecordsRetriever();
+        /** @var DnsRecordsRetriever $dnsRecordsRetriever */
+        $dnsRecordsRetriever = app(DnsRecordsRetriever::class);
 
         $dnsRecords = $dnsRecordsRetriever->retrieveDnsRecords($command);
 
