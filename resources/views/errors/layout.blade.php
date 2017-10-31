@@ -23,7 +23,7 @@
 <body class="layout -error">
     <header class="header">
         <h1 class="title -error">
-            dnsrecords.io
+            <a href="https://dnsrecords.io">dnsrecords.io</a>
         </h1>
     </header>
     <main class="main">

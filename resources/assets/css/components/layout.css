@@ -5,7 +5,6 @@
     min-height: 100%;
     background-color: var(--gray-dark);
     color: var(--gray-light);
-    user-select: none;
 
     /* Fade out overflow content on the right */
     &:after {
@@ -19,10 +18,10 @@
     }
 
     &.-error {
-        background-color: var(--blue);
+        background-color: var(--blue-bright);
 
         &:after {
-            background-image: linear-gradient(to right, color(var(--blue) a(0)), var(--blue));
+            background-image: linear-gradient(to right, color(var(--blue-bright) a(0)), var(--blue-bright));
         }
     }
 }

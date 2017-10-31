@@ -1,6 +1,5 @@
 .main {
     flex-grow: 1;
-    user-select: text;
 }
 
 .main__results {
