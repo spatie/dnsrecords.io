@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use App\Services\DnsRecordsRetriever;
 use Illuminate\Http\Request;
 
-class SanitizeDnsLookup
+class SanitizeCommand
 {
     public function handle(Request $request, \Closure $next)
     {
