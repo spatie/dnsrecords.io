@@ -21,8 +21,7 @@ class DnsLookup implements Command
         $dnsRecords = $dnsRecordsRetriever->retrieveDnsRecords($command);
         $domain = $dnsRecordsRetriever->getSanitizedDomain($command);
 
-        if ($dnsRecords === '') {   
-
+        if ($dnsRecords === '') {
             $errorText = __('errors.noDnsRecordsFound', compact('domain'));
 
             flash()->error($errorText);
