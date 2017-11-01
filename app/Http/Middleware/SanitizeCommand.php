@@ -3,30 +3,28 @@
 namespace App\Http\Middleware;
 
 use App\Services\DnsRecordsRetriever;
+use Closure;
 use Illuminate\Http\Request;
 
 class SanitizeCommand
 {
-    public function handle(Request $request, \Closure $next)
+    public function handle(Request $request, Closure $next)
     {
-        $command = $request->route('command');
-dd($command);
-        if (!$command) {
-            $command = $request['command'];
-        }
+        $command = $request->command ?? $request->route('command');
 
-        if (!$command) {
-            return $next($request);
-        }
+        $sanitizedCommand = $this->sanitizeCommand($command);
 
-        /** @var DnsRecordsRetriever $dnsRecordsRetriever */
-        $dnsRecordsRetriever = app(DnsRecordsRetriever::class);
-        $domain = $dnsRecordsRetriever->getSanitizedDomain($command);
-
-        if ($domain !== $command) {
-            return redirect()->action('HomeController@submit', ['command' => $domain]);
+        if ($command !== $sanitizedCommand) {
+            return redirect()->action('HomeController@submit', ['command' => $sanitizedCommand]);
         }
 
         return $next($request);
+    }
+
+    protected function sanitizeCommand(string $command = ''): string
+    {
+        $dnsRecordsRetriever = app(DnsRecordsRetriever::class);
+
+        return $dnsRecordsRetriever->getSanitizedDomain($command);
     }
 }
