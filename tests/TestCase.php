@@ -13,8 +13,6 @@ abstract class TestCase extends BaseTestCase
 
     protected function sendCommand(string $command): TestResponse
     {
-        return $this->post("{$this->baseUrl}/{$command}", [
-            'command' => $command,
-        ]);
+        return $this->post("{$this->baseUrl}/{$command}", compact('command'));
     }
 }
