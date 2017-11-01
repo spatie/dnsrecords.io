@@ -19,6 +19,7 @@ class Manual implements Command
             "Enter 'ip' to check your own address.",
             "Enter 'clear' to wipe the screen.",
             "Enter 'doom' to play Doom.",
+            "Drag this bookmarklet to your toolbar to <a class=\"bookmarklet\" href=\"javascript:location.href='https://dnsrecords.io/'+location.hostname;\">lookup DNS records</a> for sites you're visiting."
         ])->implode('<br>');
 
         flash()->message($manualText, 'info');

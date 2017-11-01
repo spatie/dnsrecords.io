@@ -39,7 +39,7 @@
 </main>
 
 <footer class="footer">
-    © <a href='https://spatie.be/en/opensource'>spatie</a> {{ date('Y') }} — stuck? type '<kbd>help</kbd>'
+    © <a href='https://spatie.be/en/opensource'>spatie</a> {{ date('Y') }} — type '<kbd>help</kbd>'
 </footer>
 
 @endsection
