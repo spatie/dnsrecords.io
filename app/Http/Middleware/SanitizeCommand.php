@@ -10,7 +10,7 @@ class SanitizeCommand
     public function handle(Request $request, \Closure $next)
     {
         $command = $request->route('command');
-
+dd($command);
         if (!$command) {
             $command = $request['command'];
         }
