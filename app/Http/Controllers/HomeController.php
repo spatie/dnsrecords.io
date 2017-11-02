@@ -14,7 +14,9 @@ class HomeController extends Controller
 
     public function submit($command = null, Request $request)
     {
-        if (!$command && !$command = $request['command']) {
+        $command = $request['command'] ?? $command;
+
+        if (!$command) {
             return $this->index();
         }
 
