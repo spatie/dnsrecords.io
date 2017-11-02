@@ -101,7 +101,6 @@ ln -nfs {{ $baseDir }}/.env .env;
 {{ logMessage("✨  Optimizing installation...") }}
 cd {{ $newReleaseDir }};
 php artisan clear-compiled;
-php artisan optimize;
 @endtask
 
 @task('blessNewRelease', ['on' => 'remote'])
