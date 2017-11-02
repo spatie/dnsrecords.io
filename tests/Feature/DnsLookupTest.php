@@ -20,6 +20,10 @@ class DnsLookupTest extends TestCase
         $this
             ->sendCommand('.')
             ->assertSuccessful();
+
+        $this
+            ->post('/', ['command' => '.'])
+            ->assertSee('root-servers.net');
     }
 
     /** @test */
