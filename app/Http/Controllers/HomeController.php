@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Commands\CommandChain;
+use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
@@ -11,9 +12,9 @@ class HomeController extends Controller
         return view('home.index');
     }
 
-    public function submit($command = null)
+    public function submit($command = null, Request $request)
     {
-        if (!$command) {
+        if (!$command && !$command = $request['command']) {
             return $this->index();
         }
 
