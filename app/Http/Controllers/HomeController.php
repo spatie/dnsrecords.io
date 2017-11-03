@@ -14,6 +14,8 @@ class HomeController extends Controller
 
     public function submit($command = null, Request $request)
     {
+        $command = htmlentities($command);
+
         $command = $request['command'] ?? $command;
 
         if (!$command) {
