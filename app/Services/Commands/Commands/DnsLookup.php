@@ -4,6 +4,7 @@ namespace App\Services\Commands\Commands;
 
 use App\Services\Commands\Command;
 use App\Services\DnsRecordsRetriever;
+use Spatie\Dns\Dns;
 use Symfony\Component\HttpFoundation\Response;
 
 class DnsLookup implements Command
@@ -15,11 +16,11 @@ class DnsLookup implements Command
 
     public function perform(string $command): Response
     {
-        /** @var DnsRecordsRetriever $dnsRecordsRetriever */
-        $dnsRecordsRetriever = app(DnsRecordsRetriever::class);
+        $dns = new Dns($command);
 
-        $dnsRecords = $dnsRecordsRetriever->retrieveDnsRecords($command);
-        $domain = $dnsRecordsRetriever->getSanitizedDomain($command);
+        $dnsRecords = $dns->getRecords();
+
+        $domain = $dns->getDomain($command);
 
         if ($dnsRecords === '') {
             $errorText = __('errors.noDnsRecordsFound', compact('domain'));

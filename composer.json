@@ -19,6 +19,7 @@
         "laravel/tinker": "~1.0",
         "pda/pheanstalk": "^3.1",
         "predis/predis": "^1.1",
+        "spatie/dns": "^1.1.0",
         "spatie/laravel-backup": "^5.0",
         "spatie/laravel-googletagmanager": "^2.4",
         "spatie/laravel-http-logger": "^1.0",

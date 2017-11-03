@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Services\DnsRecordsRetriever;
 use Closure;
 use Illuminate\Http\Request;
+use Spatie\Dns\Dns;
 
 class SanitizeCommand
 {
@@ -23,8 +24,6 @@ class SanitizeCommand
 
     protected function sanitizeCommand(string $command = ''): string
     {
-        $dnsRecordsRetriever = app(DnsRecordsRetriever::class);
-
-        return $dnsRecordsRetriever->getSanitizedDomain($command);
+        return (new Dns($command))->getDomain();
     }
 }
