@@ -15,6 +15,8 @@ class SanitizeCommand
 
         $sanitizedCommand = $this->sanitizeCommand($command);
 
+        $sanitizedCommand = str_replace('...', '', $sanitizedCommand);
+
         if ($command !== $sanitizedCommand) {
             return redirect()->action('HomeController@submit', ['command' => $sanitizedCommand]);
         }
