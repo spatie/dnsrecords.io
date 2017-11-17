@@ -24,8 +24,14 @@ class SanitizeCommand
         return $next($request);
     }
 
-    protected function sanitizeCommand(string $command = ''): string
+    protected function sanitizeCommand(string $command = ''): ?string
     {
-        return (new Dns($command))->getDomain();
+        $cleanCommand = strip_tags($command);
+
+        if (!$cleanCommand) {
+            return null;
+        }
+
+        return (new Dns(strip_tags($cleanCommand)))->getDomain();
     }
 }

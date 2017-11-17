@@ -57,4 +57,12 @@ class DnsLookupTest extends TestCase
             ->sendCommand('https://spatie.be/en/vacancies')
             ->assertRedirect('/spatie.be');
     }
+
+    /** @test */
+    public function it_filters_out_html()
+    {
+        $this
+            ->sendCommand('<iframe>')
+            ->assertRedirect('/');
+    }
 }
