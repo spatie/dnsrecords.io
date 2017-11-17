@@ -18,9 +18,13 @@ class DnsLookup implements Command
     {
         $dns = new Dns($command);
 
-        $dnsRecords = $dns->getRecords();
+        try {
+            $dnsRecords = $dns->getRecords();
 
-        $domain = $dns->getDomain($command);
+            $domain = $dns->getDomain($command);
+        } catch (\Exception $e) {
+            $dnsRecords = '';
+        }
 
         if ($dnsRecords === '') {
             $errorText = __('errors.noDnsRecordsFound', compact('domain'));
