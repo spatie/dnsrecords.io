@@ -24,7 +24,7 @@ class SanitizeCommand
         return $next($request);
     }
 
-    protected function sanitizeCommand(string $command = ''): ?string
+    protected function sanitizeCommand(?string $command = ''): ?string
     {
         $cleanCommand = strip_tags($command);
 
