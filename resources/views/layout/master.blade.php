@@ -8,7 +8,7 @@
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
 
     <title>{{ isset($domain) ? $domain . ' DNS records' : 'DNS records lookup' }} ~ dnsrecords.io</title>
-    <meta name="description" content="{{ isset($output)? preg_replace("/[\n\r]+/"," | ",$output) : 'DNS record lookups just as you like \'em' }}" />
+    <meta name="description" content="{{ isset($output) ? formatOutput($output) : 'DNS record lookups just as you like \'em' }}" />
 
     <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
     <link rel="stylesheet" href="{{ mix('/css/app.css') }}">
