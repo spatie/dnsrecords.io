@@ -10,7 +10,7 @@
     "type": "project",
     "require": {
         "php": ">=7.1.0",
-        "barryvdh/laravel-debugbar": "^2.4",
+        "barryvdh/laravel-debugbar": "^3.0",
         "bugsnag/bugsnag-laravel": "^2.0",
         "doctrine/dbal": "^2.6",
         "fideloper/proxy": "~4.0",
@@ -23,7 +23,7 @@
         "spatie/laravel-backup": "^5.0",
         "spatie/laravel-googletagmanager": "^2.4",
         "spatie/laravel-http-logger": "^1.0",
-        "spatie/laravel-tail": "^2.0"
+        "spatie/laravel-tail": "^3.0"
     },
     "require-dev": {
         "filp/whoops": "~2.0",
@@ -77,7 +77,7 @@
         "sort-packages": true,
         "optimize-autoloader": true,
         "platform": {
-            "php": "7.1"
+            "php": "7.1.10"
         }
     },
     "extra": {
