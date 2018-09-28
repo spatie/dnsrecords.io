@@ -35,6 +35,6 @@ class DnsLookup implements Command
             return redirect('/');
         }
 
-        return response()->view('home.index', ['output' => htmlentities($dnsRecords), 'domain' => $domain ]);
+        return response()->view('home.index', ['output' => $dnsRecords, 'domain' => $domain ]);
     }
 }
