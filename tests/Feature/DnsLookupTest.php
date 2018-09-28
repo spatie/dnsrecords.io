@@ -65,4 +65,11 @@ class DnsLookupTest extends TestCase
             ->sendCommand('<iframe>')
             ->assertRedirect('/');
     }
+
+    public function it_does_not_encode_quotes()
+    {
+        $this
+            ->sendCommand('spatie.be')
+            ->assertDontSeeText('&quot;');
+    }
 }

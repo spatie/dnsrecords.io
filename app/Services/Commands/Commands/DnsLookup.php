@@ -23,6 +23,7 @@ class DnsLookup implements Command
             $dnsRecords = $dns->getRecords();
 
             $domain = $dns->getDomain($command);
+
         } catch (Exception $e) {
             $dnsRecords = '';
         }
@@ -35,6 +36,6 @@ class DnsLookup implements Command
             return redirect('/');
         }
 
-        return response()->view('home.index', ['output' => htmlentities($dnsRecords), 'domain' => $domain ]);
+        return response()->view('home.index', ['output' => htmlentities($dnsRecords, ENT_NOQUOTES), 'domain' => $domain ]);
     }
 }
