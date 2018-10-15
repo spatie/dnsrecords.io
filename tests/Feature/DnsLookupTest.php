@@ -11,7 +11,42 @@ class DnsLookupTest extends TestCase
     {
         $this
             ->sendCommand('spatie.be')
-            ->assertSee('<pre class="main__results">');
+            ->assertSee('<pre class="main__results">')
+            ->assertSee('IN A')
+            ->assertSee('IN NS');
+    }
+
+    /** @test */
+    public function it_can_lookup_a_normal_domain_with_filtering_rules_applied()
+    {
+        $this
+            ->sendCommand('spatie.be a soa')
+            ->assertSee('<pre class="main__results">')
+            ->assertSee('IN A')
+            ->assertSee('IN SOA')
+            ->assertDontSee('IN NS');
+    }
+
+    /** @test */
+    public function it_can_lookup_a_normal_domain_with_a_single_applied()
+    {
+        $this
+            ->sendCommand('spatie.be a')
+            ->assertSee('<pre class="main__results">')
+            ->assertSee('IN A')
+            ->assertDontSee('IN SOA')
+            ->assertDontSee('IN NS');
+    }
+
+    /** @test */
+    public function it_doesnt_fail_on_invalid_filtering_rules()
+    {
+        $this
+            ->sendCommand('spatie.be a b c')
+            ->assertSee('<pre class="main__results">')
+            ->assertSee('IN A')
+            ->assertDontSee('IN SOA')
+            ->assertDontSee('IN NS');
     }
 
     /** @test */

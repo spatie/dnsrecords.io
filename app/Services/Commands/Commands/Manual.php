@@ -16,6 +16,7 @@ class Manual implements Command
     {
         $manualText = collect([
             'Enter a domain name to retrieve all DNS records.',
+            "Enter '[domain name] [record type]*' to filter by type. Supported types are ".implode(', ', DnsLookup::SUPPORTED_RECORD_TYPES).'.',
             "Enter 'ip' to check your own address.",
             "Enter 'clear' to wipe the screen.",
             "Enter 'doom' to play Doom.",
