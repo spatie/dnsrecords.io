@@ -6,12 +6,43 @@ html {
     font-family: 'Fira Mono', monospace;
     line-height: 2;
 
-    /* 16px up to 1066, then grow */
-    @media (min-width: 1066px) {
-        font-size: 1.5vw;
+    @media (min-width: 1134px) {
+        font-size: 17px;
     }
 
-    @media (min-width: 2100px) {
-        font-size: 0.9vw;
+    @media (min-width: 1200px) {
+        font-size: 18px;
+    }
+
+    @media (min-width: 1333px) {
+        font-size: 20px;
+    }
+
+    @media (min-width: 1466px) {
+        font-size: 22px;
+    }
+
+    @media (min-width: 1600px) {
+        font-size: 24px;
+    }
+
+    @media (min-width: 1733px) {
+        font-size: 26px;
+    }
+
+    @media (min-width: 1866px) {
+        font-size: 28px;
+    }
+
+    @media (min-width: 2000px) {
+        font-size: 30px;
+    }
+
+    @media (min-width: 2133px) {
+        font-size: 32px;
+    }
+
+    @media (min-width: 2400px) {
+        font-size: 36px;
     }
 }
