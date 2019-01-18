@@ -1,6 +1,5 @@
 const mix = require('laravel-mix');
 
-mix.config.uglify.compress.drop_console = false;
 mix.config.postCss = require('./postcss.config').plugins;
 
 /*
