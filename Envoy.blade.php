@@ -1,7 +1,4 @@
 @setup
-require __DIR__.'/vendor/autoload.php';
-(new \Dotenv\Dotenv(__DIR__, '.env'))->load();
-
 $server = "dnsrecords.io";
 $userAndServer = 'forge@'. $server;
 $repository = "spatie/{$server}";
