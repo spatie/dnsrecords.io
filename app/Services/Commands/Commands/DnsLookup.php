@@ -28,7 +28,7 @@ class DnsLookup implements Command
         }
 
         if ($dnsRecords === '') {
-            $errorText = __('errors.noDnsRecordsFound', compact('domain'));
+            $errorText = __('errors.noDnsRecordsFound', ['domain' => $domain ?? null]);
 
             flash()->error($errorText);
 

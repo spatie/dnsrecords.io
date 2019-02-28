@@ -13,10 +13,10 @@ class ManualTest extends TestCase
 
         $flashMessage = $this->getFlashMessage();
 
-        $this->assertContains('domain name', $flashMessage);
-        $this->assertContains('ip', $flashMessage);
-        $this->assertContains('clear', $flashMessage);
-        $this->assertContains('doom', $flashMessage);
-        $this->assertContains('bookmarklet', $flashMessage);
+        $this->assertStringContainsString('domain name', $flashMessage);
+        $this->assertStringContainsString('ip', $flashMessage);
+        $this->assertStringContainsString('clear', $flashMessage);
+        $this->assertStringContainsString('doom', $flashMessage);
+        $this->assertStringContainsString('bookmarklet', $flashMessage);
     }
 }

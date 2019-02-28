@@ -29,6 +29,8 @@ class DnsLookupTest extends TestCase
     /** @test */
     public function it_redirects_to_home_when_the_domain_lookup_is_invalid()
     {
+        $this->withoutExceptionHandling();
+
         $this
             ->sendCommand('..')
             ->assertRedirect('/');
