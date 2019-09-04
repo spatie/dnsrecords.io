@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Services\DnsRecordsRetriever;
 use Closure;
 use Illuminate\Http\Request;
 use Spatie\Dns\Dns;
