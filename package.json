@@ -18,7 +18,7 @@
     "eslint-config-spatie": "^2.0.1",
     "jest": "^20.0.4",
     "laravel-mix": "^1.4",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.19",
     "postcss-cli": "^4.1.0",
     "postcss-cssnext": "^3.0.2",
     "postcss-easy-import": "^2.1.0",
