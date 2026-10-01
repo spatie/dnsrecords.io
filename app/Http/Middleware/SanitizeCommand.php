@@ -14,7 +14,7 @@ class SanitizeCommand
 
         $sanitizedCommand = $this->sanitizeCommand($command);
 
-        $sanitizedCommand = str_replace('...', '', $sanitizedCommand);
+        $sanitizedCommand = str_replace('...', '', $sanitizedCommand ?? '');
 
         if ($command !== $sanitizedCommand) {
             return $sanitizedCommand
