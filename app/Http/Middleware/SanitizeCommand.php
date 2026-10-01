@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Spatie\Dns\Dns;
+use App\Services\Dns\Dns;
 
 class SanitizeCommand
 {
