@@ -17,7 +17,9 @@ class SanitizeCommand
         $sanitizedCommand = str_replace('...', '', $sanitizedCommand);
 
         if ($command !== $sanitizedCommand) {
-            return redirect()->action('HomeController@submit', ['command' => $sanitizedCommand]);
+            return $sanitizedCommand
+                ? redirect()->route('command', ['command' => $sanitizedCommand])
+                : redirect('/');
         }
 
         return $next($request);
@@ -25,7 +27,7 @@ class SanitizeCommand
 
     protected function sanitizeCommand(?string $command = ''): ?string
     {
-        $cleanCommand = strip_tags($command);
+        $cleanCommand = strip_tags($command ?? '');
 
         if (!$cleanCommand) {
             return null;

@@ -12,7 +12,7 @@ class HomeController extends Controller
         return view('home.index');
     }
 
-    public function submit($command = null, Request $request)
+    public function submit(Request $request, $command = null)
     {
         $command = $request['command'] ?? $command;
 
