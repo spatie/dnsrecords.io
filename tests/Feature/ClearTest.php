@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ClearTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_clears_the_output()
     {
         $this

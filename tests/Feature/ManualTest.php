@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ManualTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_shows_the_manual()
     {
         $this->sendCommand('help');

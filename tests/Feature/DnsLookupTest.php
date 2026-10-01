@@ -1,20 +1,21 @@
 <?php
 
-namespace Test\Feature;
+namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DnsLookupTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_can_lookup_a_normal_domain()
     {
         $this
             ->sendCommand('spatie.be')
-            ->assertSee('<pre class="main__results">');
+            ->assertSee('<pre class="main__results">', false);
     }
 
-    /** @test */
+    #[Test]
     public function it_doesnt_fail_with_a_dot_as_search_query()
     {
         $this
@@ -26,7 +27,7 @@ class DnsLookupTest extends TestCase
             ->assertSee('root-servers.net');
     }
 
-    /** @test */
+    #[Test]
     public function it_redirects_to_home_when_the_domain_lookup_is_invalid()
     {
         $this->withoutExceptionHandling();
@@ -40,7 +41,7 @@ class DnsLookupTest extends TestCase
             ->assertRedirect('/');
     }
 
-    /** @test */
+    #[Test]
     public function it_sanitizes_the_domain_lookup_when_it_has_a_scheme()
     {
         $this
@@ -52,7 +53,7 @@ class DnsLookupTest extends TestCase
             ->assertRedirect('/spatie.be');
     }
 
-    /** @test */
+    #[Test]
     public function it_sanitizes_the_domain_lookup_when_it_has_a_path()
     {
         $this
@@ -60,7 +61,7 @@ class DnsLookupTest extends TestCase
             ->assertRedirect('/spatie.be');
     }
 
-    /** @test */
+    #[Test]
     public function it_filters_out_html()
     {
         $this

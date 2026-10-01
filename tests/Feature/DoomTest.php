@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DoomTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_redirects_to_doom()
     {
         $this
