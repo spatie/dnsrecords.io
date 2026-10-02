@@ -10,10 +10,9 @@ class IpTest extends TestCase
     #[Test]
     public function it_shows_your_ip_address()
     {
-        $content = $this->sendCommand('ip')->content();
-
-        $isIpAddress = '/(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/';
-
-        $this->assertMatchesRegularExpression($isIpAddress, $content);
+        $this
+            ->withServerVariables(['REMOTE_ADDR' => '203.0.113.7'])
+            ->sendCommand('ip')
+            ->assertSee('Your ip address is 203.0.113.7.');
     }
 }
