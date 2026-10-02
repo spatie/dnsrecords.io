@@ -2,7 +2,7 @@
 
 namespace App\Services\Dns;
 
-use Symfony\Component\Process\Process;
+use Illuminate\Support\Facades\Process;
 use App\Services\Dns\Exceptions\InvalidArgument;
 use App\Services\Dns\Exceptions\CouldNotFetchDns;
 
@@ -114,15 +114,13 @@ class Dns
             '+answer',
         ]);
 
-        $process = new Process($command);
+        $result = Process::run($command);
 
-        $process->run();
-
-        if (! $process->isSuccessful()) {
-            throw CouldNotFetchDns::digReturnedWithError(trim($process->getErrorOutput()));
+        if ($result->failed()) {
+            throw CouldNotFetchDns::digReturnedWithError(trim($result->errorOutput()));
         }
 
-        return $process->getOutput();
+        return $result->output();
     }
 
     protected function getSpecificNameserverPart(): ?string
