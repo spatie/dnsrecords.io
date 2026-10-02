@@ -8,6 +8,7 @@
         "laracasts/flash": "^3.2",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
+        "spatie/laravel-flare": "^3.6",
         "spatie/laravel-googletagmanager": "^3.1",
         "spatie/laravel-http-logger": "^1.12"
     },
