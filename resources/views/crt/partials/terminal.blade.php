@@ -2,10 +2,13 @@
     $isIdle = ! $terminalOutput && ! $errors->any() && ! session()->has('flash_notification');
 @endphp
 
-<div class="screen__content" id="screen-content" data-title="{{ $domain ?? 'dnsrecords.io' }}">
-    <div class="terminal" id="terminal">
+<div class="screen__content" id="screen-content">
+    <main class="terminal" id="terminal">
         @if($isIdle)
-            <p class="welcome">Ready. Type a domain to see every record it has.</p>
+            <div class="welcome">
+                <p class="welcome__title">DNS record lookups just as you like 'em.</p>
+                <p>Type a domain and press enter. Type <button type="button" class="inline-command" data-command="help">help</button> for commands.</p>
+            </div>
         @endif
 
         @if($terminalOutput)
@@ -25,7 +28,7 @@
             {{ csrf_field() }}
 
             <label for="url" class="prompt__label">
-                <span aria-hidden="true"><span class="prompt__path">~</span> <span class="prompt__symbol">&#10095;</span></span>
+                <span aria-hidden="true">~ $</span>
                 <span class="visually-hidden">Domain or command</span>
             </label>
 
@@ -45,23 +48,17 @@
 
         <p class="resolving" id="resolving" aria-live="polite"></p>
 
-
-        @unless($terminalOutput)
-            <div class="suggestions" aria-label="Try one of these">
-                @foreach(['spatie.be', 'github.com', 'ip', 'help'] as $suggestion)
-                    <button type="button" class="suggestion" data-command="{{ $suggestion }}">{{ $suggestion }}</button>
-                @endforeach
-            </div>
-        @endunless
-
         @if($isIdle)
-            <dl class="commands">
-                <div><dt>&lt;domain&gt;</dt><dd>every record for that domain</dd></div>
-                <div><dt>ip</dt><dd>your own IP address</dd></div>
-                <div><dt>green, amber, white</dt><dd>change the terminal colour</dd></div>
-                <div><dt>degauss</dt><dd>give the window a wiggle</dd></div>
-                <div><dt>fx off</dt><dd>calm the glow and motion</dd></div>
-            </dl>
+            <p class="suggestions">
+                <span class="suggestions__label">try</span>
+                @foreach(['spatie.be', 'github.com', 'ip'] as $suggestion)
+                    <button type="button" class="inline-command" data-command="{{ $suggestion }}">{{ $suggestion }}</button>
+                @endforeach
+            </p>
         @endif
-    </div>
+    </main>
+
+    <footer class="terminal-footer">
+        <p>(c) <a href="https://spatie.be/open-source">spatie</a> {{ date('Y') }}. Miss the old look? <a href="{{ route('old.home') }}">/old</a></p>
+    </footer>
 </div>

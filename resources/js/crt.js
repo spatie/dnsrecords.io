@@ -2,10 +2,10 @@ import { fetchScreen, lookupUrl } from './crt/lookup.js';
 
 const root = document.documentElement;
 const announcer = document.getElementById('announcer');
-const windowElement = document.getElementById('window');
-const windowTitle = document.getElementById('window-title');
+const screenElement = document.getElementById('screen');
 const fxToggle = document.getElementById('fx-toggle');
-const phosphorOptions = Array.prototype.slice.call(document.querySelectorAll('[data-phosphor-option]'));
+const phosphorToggle = document.getElementById('phosphor-toggle');
+const clock = document.getElementById('clock');
 
 const phosphors = ['white', 'green', 'amber'];
 
@@ -17,8 +17,6 @@ const element = {
     results: () => document.getElementById('results'),
 };
 
-const copyIcon = '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M7 6.5V4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75v6.5A1.75 1.75 0 0 1 15.25 13H13.5M4.75 7h6.5A1.75 1.75 0 0 1 13 8.75v6.5A1.75 1.75 0 0 1 11.25 17h-6.5A1.75 1.75 0 0 1 3 15.25v-6.5A1.75 1.75 0 0 1 4.75 7z"/></svg>';
-const checkIcon = '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="#30d158"/></svg>';
 
 let isAwake = true;
 let lookupInProgress = null;
@@ -79,6 +77,7 @@ function focusInput() {
 function setFx(isEnabled) {
     root.setAttribute('data-fx', isEnabled ? 'on' : 'off');
     fxToggle.setAttribute('aria-pressed', String(isEnabled));
+    fxToggle.textContent = isEnabled ? 'fx on' : 'fx off';
 
     remember('crt-fx', isEnabled ? 'on' : 'off');
 }
@@ -88,12 +87,10 @@ function setPhosphor(phosphor, { shouldAnnounce = false } = {}) {
 
     remember('crt-phosphor', phosphor);
 
-    phosphorOptions.forEach(option => {
-        option.setAttribute('aria-checked', String(option.getAttribute('data-phosphor-option') === phosphor));
-    });
+    phosphorToggle.textContent = phosphor;
 
     if (shouldAnnounce) {
-        announce(`Terminal colour switched to ${phosphor}.`);
+        announce(`Phosphor switched to ${phosphor}.`);
     }
 }
 
@@ -103,7 +100,7 @@ function setPhosphor(phosphor, { shouldAnnounce = false } = {}) {
  */
 function degauss() {
     if (prefersReducedMotion() || ! isFxEnabled()) {
-        windowElement.animate([{ filter: 'none' }, { filter: 'hue-rotate(40deg) saturate(1.4)' }, { filter: 'none' }], { duration: 900, easing: 'ease-in-out' });
+        screenElement.animate([{ filter: 'none' }, { filter: 'brightness(1.4)' }, { filter: 'none' }], { duration: 900, easing: 'ease-in-out' });
         announce('Degaussed.');
 
         return;
@@ -117,12 +114,12 @@ function degauss() {
         const amplitude = Math.exp(-4.2 * progress) * (1 - Math.exp(-progress * 30));
 
         keyframes.push({
-            transform: `rotate(${(Math.sin(progress * Math.PI * 7) * .6 * amplitude).toFixed(3)}deg) scale(${(1 + Math.sin(progress * Math.PI * 5) * .008 * amplitude).toFixed(4)})`,
-            filter: `hue-rotate(${(Math.sin(progress * Math.PI * 6) * 60 * amplitude).toFixed(1)}deg)`,
+            transform: `skewX(${(Math.sin(progress * Math.PI * 7) * 1.4 * amplitude).toFixed(3)}deg) scale(${(1 + Math.sin(progress * Math.PI * 5) * .006 * amplitude).toFixed(4)})`,
+            filter: `brightness(${(1 + Math.abs(Math.sin(progress * Math.PI * 6)) * .5 * amplitude).toFixed(3)})`,
         });
     }
 
-    windowElement.animate(keyframes, { duration: 1600, easing: 'linear' });
+    screenElement.animate(keyframes, { duration: 1600, easing: 'linear' });
     announce('Degaussed.');
 }
 
@@ -151,11 +148,11 @@ const localCommands = {
     white: () => setPhosphor('white', { shouldAnnounce: true }),
     'fx on': () => {
         setFx(true);
-        report('Glow and motion are on.');
+        report('Effects on.');
     },
     'fx off': () => {
         setFx(false);
-        report('Glow and motion are off.');
+        report('Effects off.');
     },
     fx: () => localCommands[isFxEnabled() ? 'fx off' : 'fx on'](),
     'power off': () => setAwake(false),
@@ -170,7 +167,7 @@ function runLocalCommand(command) {
     localCommands[command]();
 
     if (phosphors.indexOf(command) !== -1) {
-        report(`Terminal colour switched to ${command}.`);
+        report(`Phosphor switched to ${command}.`);
     }
 
     return true;
@@ -316,9 +313,9 @@ document.addEventListener('click', event => {
         const value = copyLine.parentNode.querySelector('.line__value');
 
         copyText(value ? value.textContent.trim() : '', copyLine, () => {
-            copyLine.innerHTML = checkIcon;
+            copyLine.setAttribute('data-label', 'copied');
             setTimeout(() => {
-                copyLine.innerHTML = copyIcon;
+                copyLine.setAttribute('data-label', 'copy');
                 copyLine.classList.remove('is-copied');
             }, 1400);
         });
@@ -365,11 +362,11 @@ function copyResults(button) {
     const label = button.querySelector('.action__label');
 
     copyText(results.textContent.replace(/\n$/, ''), button, () => {
-        label.textContent = 'Copied';
+        label.textContent = 'copied';
 
         setTimeout(() => {
             button.classList.remove('is-copied');
-            label.textContent = 'Copy all';
+            label.textContent = 'copy all';
         }, 1600);
     });
 }
@@ -413,27 +410,21 @@ document.addEventListener('keydown', event => {
 
 fxToggle.addEventListener('click', () => {
     setFx(! isFxEnabled());
-    announce(isFxEnabled() ? 'Glow and motion are on.' : 'Glow and motion are off.');
+    announce(isFxEnabled() ? 'Effects on.' : 'Effects off.');
 });
 
-phosphorOptions.forEach(option => {
-    option.addEventListener('click', () => setPhosphor(option.getAttribute('data-phosphor-option'), { shouldAnnounce: true }));
+phosphorToggle.addEventListener('click', () => {
+    const current = phosphors.indexOf(root.getAttribute('data-phosphor'));
 
-    option.addEventListener('keydown', event => {
-        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
-
-        if (! step) {
-            return;
-        }
-
-        event.preventDefault();
-
-        const next = phosphorOptions[(phosphorOptions.indexOf(option) + step + phosphorOptions.length) % phosphorOptions.length];
-
-        next.focus();
-        setPhosphor(next.getAttribute('data-phosphor-option'), { shouldAnnounce: true });
-    });
+    setPhosphor(phosphors[(current + 1) % phosphors.length], { shouldAnnounce: true });
 });
+
+function tickClock() {
+    const date = new Date();
+    const pad = value => String(value).padStart(2, '0');
+
+    clock.textContent = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
 
 function mountContent() {
     const content = element.content();
@@ -453,14 +444,9 @@ function mountContent() {
         button.type = 'button';
         button.className = 'line__copy';
         button.setAttribute('aria-label', `Copy ${line.querySelector('.line__type').textContent} record value`);
-        button.innerHTML = copyIcon;
+        button.setAttribute('data-label', 'copy');
         line.appendChild(button);
     });
-
-    if (windowTitle) {
-        windowTitle.textContent = content.getAttribute('data-title') || 'dnsrecords.io';
-        fadeIn(windowTitle, 400);
-    }
 
     content.scrollTop = 0;
     focusInput();
@@ -472,8 +458,12 @@ function init() {
     root.setAttribute('data-power', 'on');
     setPhosphor(phosphors.indexOf(phosphor) === -1 ? 'white' : phosphor);
     fxToggle.setAttribute('aria-pressed', String(isFxEnabled()));
+    fxToggle.textContent = isFxEnabled() ? 'fx on' : 'fx off';
 
     history.replaceState({ crt: true }, '', window.location.href);
+
+    tickClock();
+    setInterval(tickClock, 10000);
 
     mountContent();
 }

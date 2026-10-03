@@ -9,21 +9,16 @@
 <section class="results" aria-labelledby="results-title" style="--name-width: {{ $nameWidth }}ch">
     <div class="results__header">
         <h2 class="results__title" id="results-title">
-            <span class="results__domain">{{ $domain ?? 'Your IP address' }}</span>
+            <span class="results__prefix" aria-hidden="true">;; dig</span>
+            <span class="results__domain">{{ $domain ?? 'ip' }}</span>
             @if($recordCount)
                 <span class="results__count">{{ $recordCount }} {{ Str::plural('record', $recordCount) }}</span>
             @endif
         </h2>
 
         <div class="results__actions">
-            <button type="button" class="action" id="copy-results" hidden>
-                <svg class="action__icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-                    <path class="action__copy" d="M7 6.5V4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75v6.5A1.75 1.75 0 0 1 15.25 13H13.5M4.75 7h6.5A1.75 1.75 0 0 1 13 8.75v6.5A1.75 1.75 0 0 1 11.25 17h-6.5A1.75 1.75 0 0 1 3 15.25v-6.5A1.75 1.75 0 0 1 4.75 7z"/>
-                    <path class="action__check" d="M4.5 10.5l3.5 3.5 7.5-8"/>
-                </svg>
-                <span class="action__label">Copy all</span>
-            </button>
-            <a class="action" href="{{ route('home') }}">Clear</a>
+            <button type="button" class="text-action" id="copy-results" hidden><span class="action__label">copy all</span></button>
+            <a class="text-action" href="{{ route('home') }}">clear</a>
         </div>
     </div>
 

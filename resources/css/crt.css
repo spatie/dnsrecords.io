@@ -1,8 +1,5 @@
 @import 'crt/tokens.css';
 @import 'crt/base.css';
-@import 'crt/ambient.css';
-@import 'crt/layout.css';
-@import 'crt/window.css';
 @import 'crt/terminal.css';
 @import 'crt/results.css';
 @import 'crt/motion.css';
