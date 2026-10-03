@@ -2,6 +2,7 @@
 
 namespace App\Services\Commands\Commands;
 
+use App\Enums\Theme;
 use App\Services\Commands\Command;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -14,6 +15,6 @@ class Clear implements Command
 
     public function perform(string $command): Response
     {
-        return redirect('/');
+        return Theme::current()->redirectHome();
     }
 }

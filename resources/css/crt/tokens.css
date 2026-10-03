@@ -1,0 +1,36 @@
+:root {
+    --room: #1b1713;
+    --room-light: #2a241d;
+    --plastic: #cfc6af;
+    --plastic-light: #e6dfcd;
+    --plastic-dark: #a0957c;
+    --plastic-deep: #6e654f;
+    --plastic-ink: #4a4334;
+    --glass: #0a0c0b;
+
+    --phosphor: #ffb43c;
+    --phosphor-dim: #b07a24;
+    --phosphor-faint: rgba(255, 180, 60, .14);
+    --phosphor-glow: rgba(255, 150, 30, .5);
+    --screen-bg: #130d05;
+
+    --screen-font: 'VT323', 'Cascadia Mono', 'Consolas', monospace;
+    --panel-font: 'Helvetica Neue', 'Arial', sans-serif;
+    --screen-size: clamp(19px, .9vw + 12px, 27px);
+}
+
+[data-phosphor='green'] {
+    --phosphor: #5bff8f;
+    --phosphor-dim: #2a9c4f;
+    --phosphor-faint: rgba(91, 255, 143, .13);
+    --phosphor-glow: rgba(40, 255, 110, .45);
+    --screen-bg: #04110a;
+}
+
+[data-phosphor='white'] {
+    --phosphor: #e8efff;
+    --phosphor-dim: #8994a8;
+    --phosphor-faint: rgba(232, 239, 255, .12);
+    --phosphor-glow: rgba(190, 210, 255, .4);
+    --screen-bg: #0a0c12;
+}

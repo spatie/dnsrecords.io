@@ -2,6 +2,7 @@
 
 namespace App\Services\Commands\Commands;
 
+use App\Enums\Theme;
 use App\Services\Commands\Command;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -14,16 +15,27 @@ class Manual implements Command
 
     public function perform(string $command): Response
     {
+        $theme = Theme::current();
+
+        $oldHomeUrl = Theme::Classic->homeUrl();
+
         $manualText = collect([
             'Enter a domain name to retrieve all DNS records.',
             "Enter 'ip' to check your own address.",
             "Enter 'clear' to wipe the screen.",
             "Enter 'doom' to play Doom.",
-            "Drag this bookmarklet to your toolbar to <a class=\"bookmarklet\" href=\"javascript:location.href='https://dnsrecords.io/'+location.hostname;\">lookup DNS records</a> for sites you're visiting."
-        ])->implode('<br>');
+        ])
+            ->when($theme === Theme::Crt, fn ($lines) => $lines->push(
+                "Enter 'degauss' to fix the wobbly colors.",
+                "Enter 'green', 'amber' or 'white' to swap the phosphor.",
+                "Enter 'fx off' to calm the screen down, 'fx on' to bring the noise back.",
+                "Enter 'old' to go back to the <a href=\"{$oldHomeUrl}\">old interface</a>.",
+            ))
+            ->push("Drag this bookmarklet to your toolbar to <a class=\"bookmarklet\" href=\"javascript:location.href='https://dnsrecords.io/'+location.hostname;\">lookup DNS records</a> for sites you're visiting.")
+            ->implode('<br>');
 
         flash()->message($manualText, 'info');
 
-        return redirect('/');
+        return $theme->redirectHome();
     }
 }

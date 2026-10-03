@@ -2,6 +2,7 @@
 
 namespace App\Services\Commands\Commands;
 
+use App\Enums\Theme;
 use App\Services\Commands\Command;
 use Exception;
 use App\Services\Dns\Dns;
@@ -16,6 +17,8 @@ class DnsLookup implements Command
 
     public function perform(string $command): Response
     {
+        $theme = Theme::current();
+
         $dns = new Dns($command);
 
         try {
@@ -32,10 +35,10 @@ class DnsLookup implements Command
             flash()->error($errorText);
 
             return request()->isMethod('GET')
-                ? response()->view('home.index', [], 404)
-                : redirect('/');
+                ? response()->view($theme->view(), [], 404)
+                : $theme->redirectHome();
         }
 
-        return response()->view('home.index', ['output' => $dnsRecords, 'domain' => $domain ]);
+        return response()->view($theme->view(), ['output' => $dnsRecords, 'domain' => $domain ]);
     }
 }

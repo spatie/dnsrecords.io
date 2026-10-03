@@ -1,0 +1,9 @@
+@import 'crt/fonts.css';
+@import 'crt/tokens.css';
+@import 'crt/base.css';
+@import 'crt/monitor.css';
+@import 'crt/panel.css';
+@import 'crt/screen.css';
+@import 'crt/terminal.css';
+@import 'crt/boot.css';
+@import 'crt/effects.css';
