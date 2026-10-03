@@ -35,6 +35,8 @@ uniform float uSurge;
 uniform float uDisturb;
 uniform vec2 uHum;
 uniform vec3 uGlitch;
+uniform float uDirtSeed;
+uniform vec2 uSyncRoll;
 
 ${noise}
 
@@ -73,8 +75,18 @@ void main() {
     darkness += grille * 0.035;
 
     float grain = hash12(floor(pixel / max(uScale, 0.5)) + fract(uSeed * 31.7) * 400.0);
-    light += phosphor * grain * 0.02 * uMotion;
-    darkness += (1.0 - grain) * 0.02 * uMotion;
+    light += phosphor * grain * 0.026 * uMotion;
+    darkness += (1.0 - grain) * 0.026 * uMotion;
+
+    vec2 cssPoint = screenUv * cssPixels;
+    float smudge = smoothstep(0.55, 0.88, valueFbm(cssPoint / 280.0 + uDirtSeed * 7.0));
+    float specks = dust(cssPoint, uDirtSeed * 97.0, 80.0, 0.18) + dust(cssPoint + 31.0, uDirtSeed * 53.0, 170.0, 0.25) * 1.3;
+    light += vec3(0.9, 0.95, 0.92) * (smudge * 0.016 + specks * 0.028);
+    darkness += smudge * 0.02 + specks * 0.08;
+    darkness += (valueFbm(screenUv * vec2(2.0, 1.5) + uDirtSeed * 3.0) - 0.5) * 0.05;
+
+    float syncDistance = screenUv.y - uSyncRoll.x;
+    darkness += exp(-syncDistance * syncDistance / 0.003) * uSyncRoll.y * 0.18 * uMotion;
 
     float glowField = fbm(vec3(screenUv * vec2(1.6, 2.2), time * 0.02 + 3.0)) * 0.5 + 0.5;
     float centreGlow = smoothstep(1.25, 0.0, length(centered * vec2(0.85, 1.0)));
@@ -200,6 +212,9 @@ export function createMotherGlass(screen, picture) {
         disturb: 0,
         disturbTarget: 0,
         hum: Math.random(),
+        dirtSeed: Math.random(),
+        syncRoll: { y: -1, strength: 0, speed: 0 },
+        hold: { shift: 0, startedAt: 0, duration: 1 },
         humStrength: 1,
         glitch: { strength: 0, y: .5, height: .01 },
         surges: [],
@@ -209,6 +224,8 @@ export function createMotherGlass(screen, picture) {
         flicker: now() + exponential(3, .5),
         glitch: now() + exponential(40, 15),
         jolt: now() + exponential(45, 20),
+        syncRoll: now() + exponential(70, 25),
+        hold: now() + exponential(60, 20),
     };
 
     let joltUntil = 0;
@@ -260,6 +277,16 @@ export function createMotherGlass(screen, picture) {
             schedule.glitch = time + exponential(40, 15);
         }
 
+        if (time > schedule.syncRoll) {
+            state.syncRoll = { y: -.15, strength: between(.4, .8), speed: between(1, 1.6) };
+            schedule.syncRoll = time + exponential(70, 25);
+        }
+
+        if (time > schedule.hold) {
+            state.hold = { shift: (Math.random() < .5 ? -1 : 1) * Math.round(between(2, 6)), startedAt: time, duration: between(.16, .28) };
+            schedule.hold = time + exponential(60, 20);
+        }
+
         if (time > schedule.jolt) {
             joltUntil = time + between(.12, .25);
             addSurge(.02, .35);
@@ -274,6 +301,14 @@ export function createMotherGlass(screen, picture) {
         state.disturb = approach(state.disturb, state.disturbTarget, state.disturbTarget > state.disturb ? 6 : 1.6, delta);
         state.glitch.strength = state.glitch.strength < .01 ? 0 : approach(state.glitch.strength, 0, 14, delta);
         state.hum = (state.hum + delta * .045) % 1;
+
+        if (state.syncRoll.strength > 0) {
+            state.syncRoll.y += state.syncRoll.speed * delta;
+
+            if (state.syncRoll.y > 1.2) {
+                state.syncRoll.strength = 0;
+            }
+        }
 
         if (animated) {
             runEvents(time);
@@ -295,12 +330,17 @@ export function createMotherGlass(screen, picture) {
         gl.uniform1f(uniforms.uDisturb, state.disturb);
         gl.uniform2f(uniforms.uHum, 1 - state.hum, state.humStrength);
         gl.uniform3f(uniforms.uGlitch, state.glitch.strength, 1 - state.glitch.y, state.glitch.height);
+        gl.uniform1f(uniforms.uDirtSeed, state.dirtSeed);
+        gl.uniform2f(uniforms.uSyncRoll, 1 - state.syncRoll.y, state.syncRoll.strength);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
 
         const isJolting = animated && time < joltUntil;
         const shift = (isJolting ? Math.round((Math.random() - .5) * 4) : 0) + (state.disturb > .05 ? Math.round((Math.random() - .5) * 2 * state.disturb) : 0);
 
-        picture.style.transform = shift ? `translate3d(${shift}px, 0, 0)` : '';
+        const holdProgress = (time - state.hold.startedAt) / state.hold.duration;
+        const hold = animated && holdProgress >= 0 && holdProgress < 1 ? Math.round(state.hold.shift * Math.pow(1 - holdProgress, 2)) : 0;
+
+        picture.style.transform = shift || hold ? `translate3d(${shift}px, ${hold}px, 0)` : '';
         picture.style.opacity = animated ? Math.min(.999, 1 - .03 * (.5 + .5 * Math.sin(time * .9)) + surgeLevel(time) * 1.5).toFixed(3) : '';
 
         if (curvedText) {

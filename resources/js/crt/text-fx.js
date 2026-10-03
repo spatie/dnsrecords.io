@@ -184,6 +184,88 @@ function between(min, max) {
 
 const lineSelector = '.line, .brand, .prompt, .resolving, .results__header, .message, .terminal-footer p';
 
+const echoSelector = '.line, .brand, .results__header, .message, .terminal-footer p';
+
+const corruptGlyphs = '░▒▓█▀▄▌▐■▚▞╳┼╬#%&@$';
+
+const copiedStyles = ['--name-width', '--type-width', '--ttl-width', '--copy-width', '--line-padding'];
+
+/**
+ * A layer over the picture for glitches that draw over the text. It is not
+ * part of the text, so selecting and copying never pick it up.
+ */
+function createOverlay(picture) {
+    const overlay = document.createElement('div');
+
+    overlay.className = 'screen__overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    picture.appendChild(overlay);
+
+    return overlay;
+}
+
+function textNodesOf(line) {
+    const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+
+    while (walker.nextNode()) {
+        const node = walker.currentNode;
+
+        if (node.nodeValue.trim() === '' || node.parentNode.closest('button, input, .line__gap, .visually-hidden')) {
+            continue;
+        }
+
+        nodes.push(node);
+    }
+
+    return nodes;
+}
+
+/**
+ * A faint image of the brand and the prompt burnt into the phosphor where
+ * they sit on the first screen, seen whenever something else is there.
+ */
+export function createBurnIn(picture) {
+    const brand = picture.querySelector('.brand');
+    const prompt = picture.querySelector('.prompt');
+
+    if (! brand || ! prompt) {
+        return;
+    }
+
+    const burn = document.createElement('div');
+    const brandGhost = brand.cloneNode(true);
+    const promptGhost = document.createElement('p');
+    const promptLabel = prompt.querySelector('.prompt__label');
+    const placeholder = document.createElement('span');
+
+    brandGhost.querySelectorAll('.visually-hidden').forEach(node => node.remove());
+    brandGhost.querySelectorAll('a').forEach(link => link.replaceWith(link.textContent));
+    promptGhost.className = 'prompt';
+    promptGhost.appendChild(promptLabel ? promptLabel.cloneNode(true) : document.createTextNode(''));
+    promptGhost.querySelectorAll('.visually-hidden').forEach(node => node.remove());
+    placeholder.textContent = prompt.querySelector('input')?.getAttribute('placeholder') || '';
+    promptGhost.appendChild(placeholder);
+
+    burn.className = 'screen__burn';
+    burn.setAttribute('aria-hidden', 'true');
+    burn.append(brandGhost, promptGhost);
+    picture.appendChild(burn);
+
+    function place() {
+        const currentBrand = picture.querySelector('.brand') || brand;
+        const brandBox = currentBrand.getBoundingClientRect();
+        const pictureBox = picture.getBoundingClientRect();
+
+        burn.style.left = `${brandBox.left - pictureBox.left}px`;
+        burn.style.top = `${brandBox.top - pictureBox.top + (picture.querySelector('.screen__content')?.scrollTop || 0)}px`;
+        burn.style.width = `${brandBox.width}px`;
+    }
+
+    place();
+    new ResizeObserver(place).observe(picture);
+}
+
 /**
  * Small lives of individual lines: a slightly uneven brightness, a line that
  * jitters sideways now and then, and tears where a few lines slip with an
@@ -192,10 +274,13 @@ const lineSelector = '.line, .brand, .prompt, .resolving, .results__header, .mes
  */
 export function createTextLife(picture) {
     const screen = picture.parentNode;
+    const overlay = createOverlay(picture);
 
     let nextJitter = 0;
     let nextDrift = 0;
     let nextBurst = 0;
+    let nextCorruption = 0;
+    let nextEcho = 0;
     let lastOpacity = 1;
 
     function visibleLines() {
@@ -249,6 +334,116 @@ export function createTextLife(picture) {
         });
     }
 
+    /**
+     * A line loses the signal for a frame or two. Returns where it is, as a
+     * share of the screen height, so the glass can fill it with noise.
+     */
+    function dropout(duration) {
+        const lines = visibleLines();
+        const line = lines[Math.floor(Math.random() * lines.length)];
+
+        if (! line) {
+            return null;
+        }
+
+        const screenBox = screen.getBoundingClientRect();
+        const box = line.getBoundingClientRect();
+
+        line.animate([{ opacity: .12 }, { opacity: .3 }], { duration, easing: 'steps(2, end)' });
+
+        return {
+            y: (box.top + box.height / 2 - screenBox.top) / screenBox.height,
+            halfHeight: box.height / 2 / screenBox.height,
+        };
+    }
+
+    /**
+     * A few glyphs of a line turn into garbage for a moment. Drawn on the
+     * overlay over the real text, which stays as it is.
+     */
+    function corrupt() {
+        const lines = visibleLines();
+        const line = lines[Math.floor(Math.random() * lines.length)];
+        const nodes = line ? textNodesOf(line) : [];
+        const node = nodes[Math.floor(Math.random() * nodes.length)];
+
+        if (! node) {
+            return;
+        }
+
+        const text = node.nodeValue;
+        const start = Math.floor(Math.random() * text.length);
+        const length = Math.min(text.length - start, 1 + Math.floor(Math.random() * 3));
+
+        if (text.slice(start, start + length).trim() === '') {
+            return;
+        }
+
+        const range = document.createRange();
+
+        range.setStart(node, start);
+        range.setEnd(node, start + length);
+
+        const box = range.getClientRects()[0];
+
+        if (! box || box.width === 0) {
+            return;
+        }
+
+        const overlayBox = overlay.getBoundingClientRect();
+        const style = getComputedStyle(node.parentNode);
+        const glyphs = document.createElement('span');
+
+        glyphs.className = 'screen__glyphs';
+        glyphs.textContent = Array.from({ length }, () => corruptGlyphs[Math.floor(Math.random() * corruptGlyphs.length)]).join('');
+        glyphs.style.cssText = `left:${box.left - overlayBox.left}px;top:${box.top - overlayBox.top}px;width:${box.width}px;height:${box.height}px;line-height:${box.height}px;font:${style.fontWeight} ${style.fontSize} ${style.fontFamily};color:${style.color};`;
+        overlay.appendChild(glyphs);
+
+        setTimeout(() => glyphs.remove(), between(60, 150));
+    }
+
+    /**
+     * A faint echo of a line a few pixels to the side, as from a reflection
+     * in the cable, fading out quickly.
+     */
+    function echo() {
+        const lines = visibleLines().filter(line => line.matches(echoSelector));
+        const line = lines[Math.floor(Math.random() * lines.length)];
+
+        if (! line) {
+            return;
+        }
+
+        const box = line.getBoundingClientRect();
+        const overlayBox = overlay.getBoundingClientRect();
+        const style = getComputedStyle(line);
+        const ghost = line.cloneNode(true);
+
+        ghost.removeAttribute('id');
+        ghost.querySelectorAll('button, .visually-hidden').forEach(node => node.remove());
+        ghost.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+        ghost.classList.remove('is-torn');
+        ghost.classList.add('screen__echo');
+        copiedStyles.forEach(property => ghost.style.setProperty(property, style.getPropertyValue(property)));
+        ghost.style.left = `${box.left - overlayBox.left}px`;
+        ghost.style.top = `${box.top - overlayBox.top}px`;
+        ghost.style.width = `${box.width}px`;
+        ghost.style.font = style.font;
+        ghost.style.whiteSpace = style.whiteSpace;
+        ghost.style.color = style.color;
+        overlay.appendChild(ghost);
+
+        const shift = (Math.random() < .5 ? -1 : 1) * between(3, 6);
+
+        ghost.animate([
+            { opacity: .2, transform: `translate3d(${shift}px, 0, 0)` },
+            { opacity: 0, transform: `translate3d(${shift * 1.4}px, 0, 0)` },
+        ], { duration: between(300, 480), easing: 'cubic-bezier(.2, .6, .3, 1)', fill: 'forwards' })
+            .finished
+            .catch(() => {})
+            .then(() => ghost.remove());
+    }
+
     function drift() {
         const lines = visibleLines();
         const line = lines[Math.floor(Math.random() * lines.length)];
@@ -270,6 +465,7 @@ export function createTextLife(picture) {
 
     return {
         tear,
+        dropout,
         frame(time, { flicker, breath, surge, disturb, motion }) {
             const opacity = Math.max(.82, Math.min(.999, 1 - breath * 1.6 + flicker * 2.5 + surge * 2 - disturb * .06));
 
@@ -296,6 +492,16 @@ export function createTextLife(picture) {
             if (time > nextDrift) {
                 drift();
                 nextDrift = time + exponential(1.8, .3);
+            }
+
+            if (time > nextCorruption) {
+                corrupt();
+                nextCorruption = time + exponential(4.5, 1);
+            }
+
+            if (time > nextEcho) {
+                echo();
+                nextEcho = time + exponential(10, 3);
             }
 
             if (disturb > .35 && time > nextBurst) {

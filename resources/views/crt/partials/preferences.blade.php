@@ -12,6 +12,6 @@
 
         root.className = root.className.replace('no-js', 'js');
         root.setAttribute('data-motion', prefersReducedMotion ? 'calm' : 'full');
-        root.setAttribute('data-phosphor', ['white', 'green', 'amber'].indexOf(storedPhosphor) === -1 ? 'white' : storedPhosphor);
+        root.setAttribute('data-phosphor', ['white', 'green', 'amber'].indexOf(storedPhosphor) === -1 ? 'green' : storedPhosphor);
     })();
 </script>

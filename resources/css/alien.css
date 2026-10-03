@@ -643,3 +643,7 @@ button {
         transition: none;
     }
 }
+
+[data-crt='gl'] .screen__picture {
+    transform: translate3d(0, 0, 0);
+}
