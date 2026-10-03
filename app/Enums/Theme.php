@@ -9,12 +9,15 @@ enum Theme
 {
     case Crt;
     case Classic;
+    case Startrek;
 
     public static function fromRequest(Request $request): self
     {
-        return $request->routeIs('old.*')
-            ? self::Classic
-            : self::Crt;
+        return match (true) {
+            $request->routeIs('old.*') => self::Classic,
+            $request->routeIs('startrek.*') => self::Startrek,
+            default => self::Crt,
+        };
     }
 
     public static function current(): self
@@ -27,6 +30,7 @@ enum Theme
         return match ($this) {
             self::Crt => 'crt.index',
             self::Classic => 'home.index',
+            self::Startrek => 'startrek.index',
         };
     }
 
@@ -35,6 +39,7 @@ enum Theme
         return match ($this) {
             self::Crt => route('home'),
             self::Classic => route('old.home'),
+            self::Startrek => route('startrek.home'),
         };
     }
 
@@ -43,6 +48,7 @@ enum Theme
         return match ($this) {
             self::Crt => route('command', ['command' => $command]),
             self::Classic => route('old.command', ['command' => $command]),
+            self::Startrek => route('startrek.command', ['command' => $command]),
         };
     }
 
