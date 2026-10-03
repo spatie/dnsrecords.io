@@ -15,8 +15,10 @@ class Ip implements Command
 
     public function perform(string $command): Response
     {
-        $output = 'Your ip address is ' . request()->ip() . '.';
+        $ip = request()->ip();
 
-        return response()->view(Theme::current()->view(), ['output'=> $output]);
+        $output = "Your ip address is {$ip}.";
+
+        return response()->view(Theme::current()->view(), ['output' => $output]);
     }
 }

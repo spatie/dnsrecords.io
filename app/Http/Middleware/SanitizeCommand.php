@@ -2,17 +2,17 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
-use Illuminate\Http\Request;
 use App\Enums\Theme;
 use App\Services\Dns\Dns;
+use Closure;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class SanitizeCommand
 {
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
-        $command = $request->command ?? $request->route('command');
+        $command = $request->input('command') ?? $request->route('command');
 
         $sanitizedCommand = $this->sanitizeCommand($command);
 
@@ -48,11 +48,11 @@ class SanitizeCommand
         return $next($request);
     }
 
-    protected function sanitizeCommand(?string $command = ''): ?string
+    protected function sanitizeCommand(?string $command): ?string
     {
         $cleanCommand = strip_tags($command ?? '');
 
-        if (!$cleanCommand) {
+        if (! $cleanCommand) {
             return null;
         }
 

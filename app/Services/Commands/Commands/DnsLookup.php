@@ -4,8 +4,8 @@ namespace App\Services\Commands\Commands;
 
 use App\Enums\Theme;
 use App\Services\Commands\Command;
-use Exception;
 use App\Services\Dns\Dns;
+use Exception;
 use Symfony\Component\HttpFoundation\Response;
 
 class DnsLookup implements Command
@@ -24,8 +24,8 @@ class DnsLookup implements Command
         try {
             $dnsRecords = $dns->getRecords();
 
-            $domain = $dns->getDomain($command);
-        } catch (Exception $e) {
+            $domain = $dns->getDomain();
+        } catch (Exception) {
             $dnsRecords = '';
         }
 
@@ -39,6 +39,6 @@ class DnsLookup implements Command
                 : $theme->redirectHome();
         }
 
-        return response()->view($theme->view(), ['output' => $dnsRecords, 'domain' => $domain ]);
+        return response()->view($theme->view(), ['output' => $dnsRecords, 'domain' => $domain]);
     }
 }
