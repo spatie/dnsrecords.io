@@ -4,7 +4,7 @@
     $terminalOutput = isset($output) ? new TerminalOutput($output) : null;
 @endphp
 <!DOCTYPE html>
-<html lang="en" class="no-js" data-page="{{ $terminalOutput ? 'result' : 'home' }}" data-fx="on" data-phosphor="white">
+<html lang="en" class="no-js" data-page="{{ $terminalOutput ? 'result' : 'home' }}" data-motion="full" data-phosphor="white">
 
 <head>
     <meta charset="utf-8">
@@ -39,7 +39,6 @@
 
                 <p class="status-bar__state">
                     <button type="button" class="status-bar__toggle" id="phosphor-toggle" aria-label="Phosphor colour">white</button>
-                    <button type="button" class="status-bar__toggle" id="fx-toggle" aria-pressed="true" aria-label="Effects">fx on</button>
                     <span class="status-bar__clock" id="clock" aria-hidden="true"></span>
                 </p>
             </header>

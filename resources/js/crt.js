@@ -3,7 +3,6 @@ import { fetchScreen, lookupUrl } from './crt/lookup.js';
 const root = document.documentElement;
 const announcer = document.getElementById('announcer');
 const screenElement = document.getElementById('screen');
-const fxToggle = document.getElementById('fx-toggle');
 const phosphorToggle = document.getElementById('phosphor-toggle');
 const clock = document.getElementById('clock');
 
@@ -40,8 +39,8 @@ function prefersReducedMotion() {
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function isFxEnabled() {
-    return root.getAttribute('data-fx') === 'on';
+function hasFullMotion() {
+    return ! prefersReducedMotion();
 }
 
 function remember(key, value) {
@@ -89,14 +88,6 @@ function focusInput() {
     }
 }
 
-function setFx(isEnabled) {
-    root.setAttribute('data-fx', isEnabled ? 'on' : 'off');
-    fxToggle.setAttribute('aria-pressed', String(isEnabled));
-    fxToggle.textContent = isEnabled ? 'fx on' : 'fx off';
-
-    remember('crt-fx', isEnabled ? 'on' : 'off');
-}
-
 function setPhosphor(phosphor, { shouldAnnounce = false } = {}) {
     root.setAttribute('data-phosphor', phosphor);
 
@@ -116,7 +107,7 @@ function setPhosphor(phosphor, { shouldAnnounce = false } = {}) {
 function degauss() {
     signal('degauss');
 
-    if (prefersReducedMotion() || ! isFxEnabled()) {
+    if (prefersReducedMotion() || ! hasFullMotion()) {
         screenElement.animate([{ filter: 'none' }, { filter: 'brightness(1.4)' }, { filter: 'none' }], { duration: 900, easing: 'ease-in-out' });
         announce('Degaussed.');
 
@@ -174,15 +165,6 @@ const localCommands = {
     green: () => setPhosphor('green', { shouldAnnounce: true }),
     amber: () => setPhosphor('amber', { shouldAnnounce: true }),
     white: () => setPhosphor('white', { shouldAnnounce: true }),
-    'fx on': () => {
-        setFx(true);
-        report('Effects on.');
-    },
-    'fx off': () => {
-        setFx(false);
-        report('Effects off.');
-    },
-    fx: () => localCommands[isFxEnabled() ? 'fx off' : 'fx on'](),
     'power off': () => setAwake(false),
     sleep: () => setAwake(false),
 };
@@ -231,7 +213,7 @@ async function swapScreen(screenPage) {
         description.setAttribute('content', screenPage.description);
     }
 
-    const decay = isFxEnabled() && ! prefersReducedMotion()
+    const decay = hasFullMotion() && ! prefersReducedMotion()
         ? [
             { opacity: 1, filter: 'brightness(1) blur(0px)' },
             { opacity: .55, filter: 'brightness(1.5) blur(.4px)', offset: .25 },
@@ -239,7 +221,7 @@ async function swapScreen(screenPage) {
         ]
         : [{ opacity: 1 }, { opacity: 0 }];
 
-    await content.animate(decay, { duration: isFxEnabled() ? 320 : 180, easing: 'cubic-bezier(.3, 0, .6, 1)', fill: 'forwards' }).finished.catch(() => {});
+    await content.animate(decay, { duration: hasFullMotion() ? 320 : 180, easing: 'cubic-bezier(.3, 0, .6, 1)', fill: 'forwards' }).finished.catch(() => {});
 
     root.setAttribute('data-page', screenPage.page);
 
@@ -447,11 +429,6 @@ document.addEventListener('keydown', event => {
     }
 });
 
-fxToggle.addEventListener('click', () => {
-    setFx(! isFxEnabled());
-    announce(isFxEnabled() ? 'Effects on.' : 'Effects off.');
-});
-
 phosphorToggle.addEventListener('click', () => {
     const current = phosphors.indexOf(root.getAttribute('data-phosphor'));
 
@@ -496,8 +473,9 @@ function init() {
 
     root.setAttribute('data-power', 'on');
     setPhosphor(phosphors.indexOf(phosphor) === -1 ? 'white' : phosphor);
-    fxToggle.setAttribute('aria-pressed', String(isFxEnabled()));
-    fxToggle.textContent = isFxEnabled() ? 'fx on' : 'fx off';
+    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', event => {
+        root.setAttribute('data-motion', event.matches ? 'calm' : 'full');
+    });
 
     history.replaceState({ crt: true }, '', window.location.href);
 

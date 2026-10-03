@@ -19,7 +19,7 @@ class CrtInterfaceTest extends TestCase
             ->assertSee('action="https://dnsrecords.io.dev"', false)
             ->assertSee('name="_token"', false)
             ->assertSee('data-page="home"', false)
-            ->assertSee('id="fx-toggle"', false)
+            ->assertDontSee('id="fx-toggle"', false)
             ->assertSee('prefers-reduced-motion', false)
             ->assertSee('href="https://dnsrecords.io.dev/old"', false);
     }
@@ -34,8 +34,8 @@ class CrtInterfaceTest extends TestCase
             ->assertSee('<title>spatie.be DNS records ~ dnsrecords.io</title>', false)
             ->assertSee('<meta name="description" content="A 103.133.1.1 | MX 10 mx.spatie.be." />', false)
             ->assertSee('2 records')
-            ->assertSee('<span class="line__type line__type--a">A</span>', false)
-            ->assertSee('<span class="line__type line__type--mx">MX</span>', false)
+            ->assertSee('<span class="line__type line__type--a" title="A: IPv4 address">A</span>', false)
+            ->assertSee('<span class="line__type line__type--mx" title="MX: mail server">MX</span>', false)
             ->assertSee('103.133.1.1');
     }
 
@@ -76,7 +76,8 @@ class CrtInterfaceTest extends TestCase
         $flashMessage = $this->getFlashMessage();
 
         $this->assertStringContainsString('degauss', $flashMessage);
-        $this->assertStringContainsString('fx off', $flashMessage);
+        $this->assertStringNotContainsString('fx off', $flashMessage);
+        $this->assertStringContainsString('legend--mx', $flashMessage);
         $this->assertStringContainsString('/old', $flashMessage);
     }
 
@@ -115,7 +116,7 @@ class CrtInterfaceTest extends TestCase
             ->get("{$this->baseUrl}/")
             ->assertSuccessful()
             ->assertSee('id="phosphor-toggle"', false)
-            ->assertSee('id="fx-toggle" aria-pressed="true"', false);
+            ->assertSee('data-motion="full"', false);
     }
 
     #[Test]

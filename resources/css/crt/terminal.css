@@ -146,13 +146,35 @@
     transition: opacity .6s var(--ease-in-out), filter .6s var(--ease-in-out), text-shadow .7s var(--ease-in-out);
 }
 
-[data-fx='on'] .screen__content,
-[data-fx='on'] .status-bar {
+.screen__content,
+.status-bar {
     text-shadow:
-        -.45px 0 rgba(255, 40, 90, .2),
-        .45px 0 rgba(40, 210, 255, .2),
         0 0 1px var(--glow),
-        0 0 12px var(--glow);
+        0 0 5px var(--glow),
+        0 0 16px color-mix(in srgb, var(--glow) 60%, transparent);
+}
+
+.results__domain,
+.welcome__title,
+.prompt__input,
+.line__value {
+    text-shadow:
+        0 0 1px var(--glow),
+        0 0 6px var(--glow),
+        0 0 20px var(--glow);
+}
+
+.is-torn,
+.is-torn * {
+    text-shadow:
+        -2px 0 rgba(255, 40, 90, .7),
+        2px 0 rgba(40, 210, 255, .7),
+        0 0 8px var(--glow) !important;
+}
+
+[data-motion='calm'] .screen__content,
+[data-motion='calm'] .status-bar {
+    text-shadow: 0 0 1px var(--glow), 0 0 8px color-mix(in srgb, var(--glow) 60%, transparent);
 }
 
 .terminal {
@@ -293,11 +315,16 @@
     line-height: 1.7;
 }
 
+.message--danger {
+    color: var(--red);
+}
+
 .message__label {
     display: inline-block;
     margin-right: 1ch;
     padding: 0 .6ch;
-    background: var(--fg);
+    background: var(--red);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--red) 40%, transparent);
     color: var(--bg);
     font-weight: 700;
     text-shadow: none;
@@ -429,4 +456,9 @@
     .prompt {
         font-size: 16px;
     }
+}
+
+.screen__picture.is-curved {
+    background: var(--bg);
+    filter: url(#crt-curve);
 }

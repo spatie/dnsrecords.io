@@ -1,4 +1,5 @@
 import { noise } from './glsl.js';
+import { createCurvedText, createTextLife } from './text-fx.js';
 
 /*
  * The CRT glass over the terminal: curvature, bezel, scanlines, grain,
@@ -279,7 +280,7 @@ export function createGlass(screen, picture) {
     const surges = [];
 
     function isAnimated() {
-        return root.getAttribute('data-fx') === 'on' && ! reducedMotion.matches;
+        return ! reducedMotion.matches;
     }
 
     function resize() {
@@ -379,9 +380,13 @@ export function createGlass(screen, picture) {
     }
 
     let glitchUntil = 0;
+    let curvedText = null;
+
+    const textLife = createTextLife(picture);
 
     function glitch(strength) {
         state.glitch = { strength, y: Math.random(), height: between(.004, .02) };
+        textLife.tear(state.glitch.y, strength);
         glitchUntil = now() + between(.12, .26);
         addSurge(.012 * strength, .3);
     }
@@ -483,6 +488,18 @@ export function createGlass(screen, picture) {
             picture.style.transform = '';
         }
 
+        textLife.frame(time, {
+            flicker: Math.max(0, flicker),
+            breath: Math.max(0, breath),
+            surge: surgeLevel(time) * state.motion,
+            disturb: state.disturb,
+            motion: state.motion,
+        });
+
+        if (curvedText) {
+            curvedText.setFringe(.035 + state.glitch.strength * .1 + state.disturb * .04);
+        }
+
         return animated || Math.abs(state.motion) > .002 || Math.abs(state.signal - (isOn ? 1 : 0)) > .002 || state.disturb > .002;
     }
 
@@ -498,9 +515,20 @@ export function createGlass(screen, picture) {
 
         frameTimes = [];
 
-        if (median > 1 / 45 && quality < qualityScales.length - 1) {
+        if (median <= 1 / 45) {
+            return;
+        }
+
+        if (quality < qualityScales.length - 1) {
             quality++;
             resize();
+
+            return;
+        }
+
+        if (curvedText) {
+            curvedText.disable();
+            curvedText = null;
         }
     }
 
@@ -546,7 +574,7 @@ export function createGlass(screen, picture) {
         wake();
     });
 
-    new MutationObserver(wake).observe(root, { attributes: true, attributeFilter: ['data-fx', 'data-phosphor', 'data-power', 'data-page'] });
+    new MutationObserver(wake).observe(root, { attributes: true, attributeFilter: ['data-motion', 'data-phosphor', 'data-power', 'data-page'] });
     new ResizeObserver(() => {
         resize();
         wake();
@@ -590,6 +618,8 @@ export function createGlass(screen, picture) {
 
     resize();
     wake();
+
+    curvedText = createCurvedText(picture, { curve: Math.min(window.innerWidth, 900) < 640 ? .02 : .034 });
 
     requestAnimationFrame(() => root.setAttribute('data-crt', 'gl'));
 

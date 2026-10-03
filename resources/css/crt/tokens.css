@@ -40,6 +40,20 @@
     --line: color-mix(in srgb, var(--fg) 13%, var(--bg));
     --hover: color-mix(in srgb, var(--fg) 6%, var(--bg));
 
+    /*
+     * A few extra phosphors, only for information: record types and errors.
+     * Each is pulled a little towards the active phosphor so it belongs to
+     * the same screen in every theme.
+     */
+    --accent-mix: 78%;
+    --cyan: color-mix(in oklab, #62d8ff var(--accent-mix), var(--fg));
+    --mint: color-mix(in oklab, #62f0a0 var(--accent-mix), var(--fg));
+    --gold: color-mix(in oklab, #ffcf4d var(--accent-mix), var(--fg));
+    --magenta: color-mix(in oklab, #ff7ad9 var(--accent-mix), var(--fg));
+    --violet: color-mix(in oklab, #b49cff var(--accent-mix), var(--fg));
+    --orange: color-mix(in oklab, #ff9f5a var(--accent-mix), var(--fg));
+    --red: color-mix(in oklab, #ff6b6b 85%, var(--fg));
+
     --ease-out: cubic-bezier(.22, 1, .36, 1);
     --ease-in-out: cubic-bezier(.65, 0, .35, 1);
 
