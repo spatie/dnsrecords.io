@@ -216,51 +216,6 @@ function textNodesOf(line) {
 }
 
 /**
- * A faint image of the brand and the prompt burnt into the phosphor where
- * they sit on the first screen, seen whenever something else is there.
- */
-export function createBurnIn(picture) {
-    const brand = picture.querySelector('.brand');
-    const prompt = picture.querySelector('.prompt');
-
-    if (! brand || ! prompt) {
-        return;
-    }
-
-    const burn = document.createElement('div');
-    const brandGhost = brand.cloneNode(true);
-    const promptGhost = document.createElement('p');
-    const promptLabel = prompt.querySelector('.prompt__label');
-    const placeholder = document.createElement('span');
-
-    brandGhost.querySelectorAll('.visually-hidden').forEach(node => node.remove());
-    brandGhost.querySelectorAll('a').forEach(link => link.replaceWith(link.textContent));
-    promptGhost.className = 'prompt';
-    promptGhost.appendChild(promptLabel ? promptLabel.cloneNode(true) : document.createTextNode(''));
-    promptGhost.querySelectorAll('.visually-hidden').forEach(node => node.remove());
-    placeholder.textContent = prompt.querySelector('input')?.getAttribute('placeholder') || '';
-    promptGhost.appendChild(placeholder);
-
-    burn.className = 'screen__burn';
-    burn.setAttribute('aria-hidden', 'true');
-    burn.append(brandGhost, promptGhost);
-    picture.appendChild(burn);
-
-    function place() {
-        const currentBrand = picture.querySelector('.brand') || brand;
-        const brandBox = currentBrand.getBoundingClientRect();
-        const pictureBox = picture.getBoundingClientRect();
-
-        burn.style.left = `${brandBox.left - pictureBox.left}px`;
-        burn.style.top = `${brandBox.top - pictureBox.top + (picture.querySelector('.screen__content')?.scrollTop || 0)}px`;
-        burn.style.width = `${brandBox.width}px`;
-    }
-
-    place();
-    new ResizeObserver(place).observe(picture);
-}
-
-/**
  * Small lives of individual lines: a slightly uneven brightness, a line that
  * jitters sideways now and then, and tears where a few lines slip with an
  * RGB split and snap back. Also dims and lifts the whole picture in step
@@ -506,6 +461,175 @@ export function createTextLife(picture, { lines: lineSelector = terminalLines, e
         },
         reset() {
             picture.style.opacity = '';
+        },
+    };
+}
+
+/**
+ * The small lives of the lines, for text painted by the glass shader: the
+ * same jitters, tears, dropouts, echoes and corrupted glyphs as above, but
+ * as effects the shader applies to bands of the picture, so the DOM text
+ * underneath never changes.
+ */
+export function createShaderTextLife(layer, { maximumEffects }) {
+    let effects = [];
+    let nextJitter = 0;
+    let nextBurst = 0;
+    let nextCorruption = 0;
+    let nextEcho = 0;
+
+    const now = () => performance.now() / 1000;
+
+    function randomLine() {
+        const lines = layer.visibleLines();
+
+        return lines[Math.floor(Math.random() * lines.length)] || null;
+    }
+
+    function add(line, kind, duration, values = {}, delay = 0) {
+        effects.push({ top: line.top, bottom: line.bottom, kind, startedAt: now() + delay, duration, ...values });
+    }
+
+    function interpolate(stops, progress) {
+        for (let index = 1; index < stops.length; index++) {
+            const [from, fromValue] = stops[index - 1];
+            const [to, toValue] = stops[index];
+
+            if (progress <= to) {
+                return fromValue + (toValue - fromValue) * ((progress - from) / (to - from));
+            }
+        }
+
+        return stops[stops.length - 1][1];
+    }
+
+    function tear(position, strength) {
+        const lines = layer.visibleLines();
+
+        if (! lines.length) {
+            return;
+        }
+
+        const box = layer.size;
+        const targetY = position * box.height;
+        const count = 1 + Math.floor(Math.random() * 3);
+
+        lines
+            .slice()
+            .sort((a, b) => Math.abs(a.top - targetY) - Math.abs(b.top - targetY))
+            .slice(0, count)
+            .forEach((line, index) => {
+                add(line, 'tear', between(.18, .32), { shift: (Math.random() < .5 ? -1 : 1) * between(4, 18) * strength, split: 2 * strength }, index * .03);
+            });
+    }
+
+    function dropout(duration) {
+        const line = randomLine();
+
+        if (! line) {
+            return null;
+        }
+
+        add(line, 'dropout', duration / 1000);
+
+        return {
+            y: (line.top + line.bottom) / 2 / layer.size.height,
+            halfHeight: (line.bottom - line.top) / 2 / layer.size.height,
+        };
+    }
+
+    function effectValues(effect, time) {
+        const progress = (time - effect.startedAt) / effect.duration;
+
+        if (effect.kind === 'jitter') {
+            return { shift: interpolate([[0, 0], [.2, effect.shift], [.55, -effect.shift * .4], [1, 0]], progress), alpha: 1, split: 0, echoShift: 0, echoAlpha: 0 };
+        }
+
+        if (effect.kind === 'tear') {
+            return { shift: interpolate([[0, effect.shift], [.45, -effect.shift * .35], [1, 0]], progress), alpha: 1, split: effect.split * (1 - progress), echoShift: 0, echoAlpha: 0 };
+        }
+
+        if (effect.kind === 'dropout') {
+            return { shift: 0, alpha: progress < .5 ? .12 : .3, split: 0, echoShift: 0, echoAlpha: 0 };
+        }
+
+        const eased = 1 - Math.pow(1 - progress, 2);
+
+        return { shift: 0, alpha: 1, split: 0, echoShift: effect.shift * (1 + .4 * eased), echoAlpha: .2 * (1 - eased) };
+    }
+
+    return {
+        tear,
+        dropout,
+
+        /**
+         * Schedules the next small lives and returns the overall brightness
+         * of the text, which flickers along with the glass.
+         */
+        frame(time, { flicker, breath, surge, disturb, motion }) {
+            const opacity = Math.max(.82, Math.min(1, 1 - breath * 1.6 + flicker * 2.5 + surge * 2 - disturb * .06));
+
+            if (motion < .5) {
+                effects = [];
+
+                return opacity;
+            }
+
+            if (time > nextJitter) {
+                const line = randomLine();
+
+                if (line) {
+                    add(line, 'jitter', between(.09, .18), { shift: (Math.random() < .5 ? -1 : 1) * between(.8, 2.2) });
+                }
+
+                nextJitter = time + exponential(2.4, .4);
+            }
+
+            if (time > nextCorruption) {
+                layer.corrupt(between(60, 150));
+                nextCorruption = time + exponential(4.5, 1);
+            }
+
+            if (time > nextEcho) {
+                const line = randomLine();
+
+                if (line) {
+                    add(line, 'echo', between(.3, .48), { shift: (Math.random() < .5 ? -1 : 1) * between(3, 6) });
+                }
+
+                nextEcho = time + exponential(10, 3);
+            }
+
+            if (disturb > .35 && time > nextBurst) {
+                tear(Math.random(), .5 + disturb * .5);
+                nextBurst = time + exponential(.35, .15);
+            }
+
+            return opacity;
+        },
+
+        /**
+         * The line effects running now, as two arrays of vec4 for the shader:
+         * top, bottom, shift and alpha, then colour split, echo shift and echo alpha.
+         */
+        lineEffects() {
+            const time = now();
+            const lineA = new Float32Array(maximumEffects * 4);
+            const lineB = new Float32Array(maximumEffects * 4);
+
+            effects = effects.filter(effect => time < effect.startedAt + effect.duration);
+
+            effects
+                .filter(effect => time >= effect.startedAt)
+                .slice(0, maximumEffects)
+                .forEach((effect, index) => {
+                    const values = effectValues(effect, time);
+
+                    lineA.set([effect.top, effect.bottom, values.shift, values.alpha], index * 4);
+                    lineB.set([values.split, values.echoShift, values.echoAlpha, 0], index * 4);
+                });
+
+            return { lineA, lineB };
         },
     };
 }
