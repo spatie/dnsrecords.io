@@ -25,8 +25,11 @@ class Manual implements Command
             "Enter 'clear' to wipe the screen.",
             "Enter 'doom' to play Doom.",
         ])
+            ->when(in_array($theme, [Theme::Classic, Theme::Lcars]), fn ($lines) => $lines->push(
+                'Enter \'exit\' to return to the <a href="'.Theme::Crt->homeUrl().'">regular terminal</a>.',
+            ))
             ->when($theme === Theme::Crt, fn ($lines) => $lines->push(
-                "Enter 'green', 'amber' or 'white' to swap the phosphor.",
+                "Enter 'green', 'amber' or 'white' to swap the phosphor, 'default' to go back to green.",
                 "Enter 'time' to see the time.",
                 "Enter 'power off' to put the screen to sleep.",
                 'Record colours: <span class="legend legend--a">A</span> <span class="legend legend--aaaa">AAAA</span> addresses, <span class="legend legend--ns">NS</span> name servers, <span class="legend legend--mx">MX</span> mail, <span class="legend legend--txt">TXT</span> text, <span class="legend legend--cname">CNAME</span> aliases, <span class="legend legend--soa">SOA</span> zone authority.',

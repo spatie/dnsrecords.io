@@ -1,3 +1,4 @@
+import { followOutput } from './crt/follow-output.js';
 import { fetchScreen, lookupUrl } from './crt/lookup.js';
 
 const root = document.documentElement;
@@ -16,6 +17,8 @@ const element = {
 
 
 let isAwake = true;
+
+const output = followOutput(() => document.getElementById('screen-content'), () => document.getElementById('terminal'));
 let powerTimer = null;
 
 function signal(type) {
@@ -46,6 +49,14 @@ function remember(key, value) {
         localStorage.setItem(key, value);
     } catch (error) {
         // Storage can be unavailable in private browsing, preferences then last for this page only.
+    }
+}
+
+function forget(key) {
+    try {
+        localStorage.removeItem(key);
+    } catch (error) {
+        // Storage can be unavailable in private browsing, there is nothing to forget then.
     }
 }
 
@@ -187,6 +198,12 @@ const localCommands = {
     green: () => setPhosphor('green', { shouldAnnounce: true }),
     amber: () => setPhosphor('amber', { shouldAnnounce: true }),
     white: () => setPhosphor('white', { shouldAnnounce: true }),
+    default: () => {
+        setPhosphor('green');
+        forget('crt-phosphor');
+        report('Back to the default green phosphor.');
+        announce('Back to the default green phosphor.');
+    },
     time: () => {
         const date = new Date();
         const pad = value => String(value).padStart(2, '0');
@@ -497,7 +514,7 @@ function mountContent() {
         line.appendChild(button);
     });
 
-    content.scrollTop = 0;
+    output.follow();
     focusInput();
 }
 
