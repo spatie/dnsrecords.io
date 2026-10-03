@@ -6,12 +6,13 @@ use InvalidArgumentException;
 
 class InvalidArgument extends InvalidArgumentException
 {
-    public static function domainIsMissing()
+    public static function domainIsMissing(): static
     {
         return new static('A domain name is required');
     }
 
-    public static function filterIsNotAValidRecordType($filter, $validRecordTypes)
+    /** @param array<int, string> $validRecordTypes */
+    public static function filterIsNotAValidRecordType(string $filter, array $validRecordTypes): static
     {
         $recordTypeString = implode(', ', $validRecordTypes);
 

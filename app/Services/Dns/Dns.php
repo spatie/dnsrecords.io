@@ -2,18 +2,17 @@
 
 namespace App\Services\Dns;
 
+use App\Services\Dns\Exceptions\CouldNotFetchDns;
+use App\Services\Dns\Exceptions\InvalidArgument;
 use Illuminate\Process\Pool;
 use Illuminate\Support\Facades\Process;
-use App\Services\Dns\Exceptions\InvalidArgument;
-use App\Services\Dns\Exceptions\CouldNotFetchDns;
 
 class Dns
 {
-    protected $domain = '';
+    protected string $domain;
 
-    protected $nameserver = '';
-
-    protected $recordTypes = [
+    /** @var array<int, string> */
+    protected array $recordTypes = [
         'A',
         'AAAA',
         'CNAME',
@@ -27,22 +26,13 @@ class Dns
         'NAPTR',
     ];
 
-    public function __construct(string $domain, string $nameserver = '')
+    public function __construct(string $domain)
     {
         if (empty($domain)) {
             throw InvalidArgument::domainIsMissing();
         }
 
-        $this->nameserver = $nameserver;
-
         $this->domain = $this->sanitizeDomainName($domain);
-    }
-
-    public function useNameserver(string $nameserver)
-    {
-        $this->nameserver = $nameserver;
-
-        return $this;
     }
 
     public function getDomain(): string
@@ -50,18 +40,15 @@ class Dns
         return $this->domain;
     }
 
-    public function getNameserver(): string
-    {
-        return $this->nameserver;
-    }
-
     /**
      * Queries all record types at the same time, one dig process per type,
      * and returns their answers in the order of the types.
      *
+     * @param array<int, string>|string ...$types
+     *
      * @throws CouldNotFetchDns
      */
-    public function getRecords(...$types): string
+    public function getRecords(array|string ...$types): string
     {
         $types = $this->determineTypes($types);
 
@@ -88,6 +75,11 @@ class Dns
         return implode('', array_filter($dnsRecords));
     }
 
+    /**
+     * @param array<int, array<int, string>|string> $types
+     *
+     * @return array<int, string>
+     */
     protected function determineTypes(array $types): array
     {
         $types = is_array($types[0] ?? null)
@@ -120,21 +112,11 @@ class Dns
         return array_values(array_filter([
             'dig',
             '+nocmd',
-            $this->getSpecificNameserverPart(),
             $this->domain,
             $type,
             '+multiline',
             '+noall',
             '+answer',
         ]));
-    }
-
-    protected function getSpecificNameserverPart(): ?string
-    {
-        if ($this->nameserver === '') {
-            return null;
-        }
-
-        return '@'.$this->nameserver;
     }
 }
