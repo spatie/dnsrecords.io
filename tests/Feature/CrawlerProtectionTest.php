@@ -111,6 +111,7 @@ class CrawlerProtectionTest extends TestCase
 
         $this->assertStringContainsString("User-agent: *\n", $robotsTxt);
         $this->assertStringContainsString("Allow: /$\n", $robotsTxt);
+        $this->assertStringContainsString("Allow: /build/\n", $robotsTxt);
         $this->assertStringContainsString("Disallow: /\n", $robotsTxt);
     }
 
