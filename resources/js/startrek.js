@@ -1,11 +1,8 @@
-import { followOutput } from './crt/follow-output.js';
-
 /**
  * The LCARS console swaps scan results into the lower deck without a page
  * load. Anything that is not an LCARS page falls back to normal navigation.
  */
 const root = document.documentElement;
-const output = followOutput(() => null, () => null);
 const body = document.body;
 const form = document.getElementById('scan-form');
 const input = document.getElementById('domain');
@@ -159,10 +156,6 @@ async function scan(command, { push = true } = {}) {
     }
 
     announce(summarize(result.page));
-
-    if (push) {
-        output.follow();
-    }
 }
 
 function copyText(text, onCopied) {

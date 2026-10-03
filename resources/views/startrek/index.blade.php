@@ -81,7 +81,7 @@
                         id="domain"
                         name="command"
                         class="scan__input"
-                        placeholder="spatie.be"
+                        placeholder="yourdomain.com"
                         value="{{ $domain ?? '' }}"
                         autocomplete="off"
                         autocorrect="off"
