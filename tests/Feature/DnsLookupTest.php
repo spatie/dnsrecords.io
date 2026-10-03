@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Process\PendingProcess;
+use Illuminate\Support\Facades\Process;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -95,5 +97,20 @@ class DnsLookupTest extends TestCase
         $this
             ->sendCommand('<iframe>')
             ->assertRedirect('/');
+    }
+
+    #[Test]
+    public function it_queries_every_record_type_and_keeps_their_order()
+    {
+        $this->fakeDnsRecords['spatie.be TXT'] = "spatie.be.\t\t3600 IN TXT \"v=spf1 -all\"\n";
+        $this->fakeDnsRecords['spatie.be NS'] = "spatie.be.\t\t3600 IN NS ns1.digitalocean.com.\n";
+
+        $this
+            ->sendCommand('spatie.be')
+            ->assertSeeInOrder(['103.133.1.1', 'ns1.digitalocean.com.', 'mx.spatie.be.', 'v=spf1 -all']);
+
+        foreach (['A', 'AAAA', 'CNAME', 'NS', 'SOA', 'MX', 'SRV', 'TXT', 'DNSKEY', 'CAA', 'NAPTR'] as $type) {
+            Process::assertRan(fn (PendingProcess $process) => array_slice($process->command, -5, 2) === ['spatie.be', $type]);
+        }
     }
 }

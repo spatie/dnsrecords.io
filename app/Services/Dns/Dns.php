@@ -2,6 +2,7 @@
 
 namespace App\Services\Dns;
 
+use Illuminate\Process\Pool;
 use Illuminate\Support\Facades\Process;
 use App\Services\Dns\Exceptions\InvalidArgument;
 use App\Services\Dns\Exceptions\CouldNotFetchDns;
@@ -55,6 +56,9 @@ class Dns
     }
 
     /**
+     * Queries all record types at the same time, one dig process per type,
+     * and returns their answers in the order of the types.
+     *
      * @throws CouldNotFetchDns
      */
     public function getRecords(...$types): string
@@ -65,7 +69,21 @@ class Dns
             ? $types
             : $this->recordTypes;
 
-        $dnsRecords = array_map([$this, 'getRecordsOfType'], $types);
+        $results = Process::pool(function (Pool $pool) use ($types) {
+            foreach ($types as $type) {
+                $pool->as($type)->command($this->digCommand($type));
+            }
+        })->start()->wait();
+
+        $dnsRecords = array_map(function (string $type) use ($results) {
+            $result = $results[$type];
+
+            if ($result->failed()) {
+                throw CouldNotFetchDns::digReturnedWithError(trim($result->errorOutput()));
+            }
+
+            return $result->output();
+        }, $types);
 
         return implode('', array_filter($dnsRecords));
     }
@@ -96,31 +114,19 @@ class Dns
         return strtolower($domain);
     }
 
-    /**
-     * @throws CouldNotFetchDns
-     */
-    protected function getRecordsOfType(string $type): string
+    /** @return array<int, string> */
+    protected function digCommand(string $type): array
     {
-        $nameserverPart = $this->getSpecificNameserverPart();
-
-        $command = array_filter([
+        return array_values(array_filter([
             'dig',
             '+nocmd',
-            $nameserverPart,
+            $this->getSpecificNameserverPart(),
             $this->domain,
             $type,
             '+multiline',
             '+noall',
             '+answer',
-        ]);
-
-        $result = Process::run($command);
-
-        if ($result->failed()) {
-            throw CouldNotFetchDns::digReturnedWithError(trim($result->errorOutput()));
-        }
-
-        return $result->output();
+        ]));
     }
 
     protected function getSpecificNameserverPart(): ?string
