@@ -98,33 +98,60 @@ function setPhosphor(phosphor, { shouldAnnounce = false } = {}) {
 
 /**
  * A springy wobble with a brief shimmer of colour, a wink at the degauss
- * button of old monitors.
+ * coil of old monitors, which kicked in on its own now and then. The glass
+ * adds the shimmer; the brightness filter on the whole screen only runs
+ * where the curve runs on the GPU, as it is slow to paint in Safari.
  */
 function degauss() {
     signal('degauss');
 
-    if (prefersReducedMotion() || ! hasFullMotion()) {
-        screenElement.animate([{ filter: 'none' }, { filter: 'brightness(1.4)' }, { filter: 'none' }], { duration: 900, easing: 'ease-in-out' });
-        announce('Degaussed.');
-
-        return;
-    }
-
     const keyframes = [];
     const frames = 40;
+    const hasGpuCurve = root.getAttribute('data-curve') === 'full';
 
     for (let frame = 0; frame <= frames; frame++) {
         const progress = frame / frames;
         const amplitude = Math.exp(-4.2 * progress) * (1 - Math.exp(-progress * 30));
-
-        keyframes.push({
+        const keyframe = {
             transform: `skewX(${(Math.sin(progress * Math.PI * 7) * 1.4 * amplitude).toFixed(3)}deg) scale(${(1 + Math.sin(progress * Math.PI * 5) * .006 * amplitude).toFixed(4)})`,
-            filter: `brightness(${(1 + Math.abs(Math.sin(progress * Math.PI * 6)) * .5 * amplitude).toFixed(3)})`,
-        });
+        };
+
+        if (hasGpuCurve) {
+            keyframe.filter = `brightness(${(1 + Math.abs(Math.sin(progress * Math.PI * 6)) * .5 * amplitude).toFixed(3)})`;
+        }
+
+        keyframes.push(keyframe);
     }
 
     screenElement.animate(keyframes, { duration: 1600, easing: 'linear' });
-    announce('Degaussed.');
+}
+
+let lastKeyAt = 0;
+let isSwapping = false;
+
+/**
+ * Degausses at random moments, a few minutes apart, but never while someone
+ * types, a lookup runs or its answer is drawn, and never with reduced motion.
+ */
+function scheduleDegauss(delay = 150000 + -Math.log(1 - Math.random()) * 150000) {
+    setTimeout(() => {
+        const isBusy = document.hidden || ! isAwake || lookupInProgress !== null || isSwapping || performance.now() - lastKeyAt < 4000;
+
+        if (prefersReducedMotion()) {
+            scheduleDegauss();
+
+            return;
+        }
+
+        if (isBusy) {
+            scheduleDegauss(5000 + Math.random() * 10000);
+
+            return;
+        }
+
+        degauss();
+        scheduleDegauss();
+    }, delay);
 }
 
 function setAwake(isOn) {
@@ -157,7 +184,6 @@ function setAwake(isOn) {
 }
 
 const localCommands = {
-    degauss: () => degauss(),
     green: () => setPhosphor('green', { shouldAnnounce: true }),
     amber: () => setPhosphor('amber', { shouldAnnounce: true }),
     white: () => setPhosphor('white', { shouldAnnounce: true }),
@@ -216,6 +242,8 @@ function decayFilter(brightness, blur) {
 }
 
 async function swapScreen(screenPage) {
+    isSwapping = true;
+
     const content = element.content();
 
     document.title = screenPage.title;
@@ -245,6 +273,9 @@ async function swapScreen(screenPage) {
 
     mountContent();
     signal('lookup-end');
+    setTimeout(() => {
+        isSwapping = false;
+    }, 1500);
 
     if (screenPage.announcement) {
         announce(screenPage.announcement);
@@ -422,6 +453,8 @@ document.getElementById('screen').addEventListener('click', event => {
 });
 
 document.addEventListener('keydown', event => {
+    lastKeyAt = performance.now();
+
     const input = element.input();
 
     if (! isAwake && ['Tab', 'Shift', 'Alt', 'Control', 'Meta'].indexOf(event.key) === -1) {
@@ -472,7 +505,7 @@ function init() {
     const phosphor = root.getAttribute('data-phosphor');
 
     root.setAttribute('data-power', 'on');
-    setPhosphor(phosphors.indexOf(phosphor) === -1 ? 'white' : phosphor);
+    setPhosphor(phosphors.indexOf(phosphor) === -1 ? 'green' : phosphor);
     window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', event => {
         root.setAttribute('data-motion', event.matches ? 'calm' : 'full');
     });
@@ -482,6 +515,7 @@ function init() {
 
     mountContent();
     loadGlass();
+    scheduleDegauss();
 }
 
 function loadGlass() {

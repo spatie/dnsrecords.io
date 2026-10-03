@@ -1,6 +1,6 @@
 import { noise } from './glsl.js';
 import { createCurveWatch, initialCurveQuality, tuneCurve } from './curve-quality.js';
-import { createCurvedText, createTextLife } from './text-fx.js';
+import { createBurnIn, createCurvedText, createTextLife } from './text-fx.js';
 
 /*
  * The CRT glass over the terminal: curvature, bezel, scanlines, grain,
@@ -40,8 +40,18 @@ uniform float uDisturb;
 uniform vec4 uBand;
 uniform vec4 uRoll;
 uniform vec3 uGlitch;
+uniform float uDirtSeed;
+uniform vec2 uSyncRoll;
+uniform vec2 uCrawl;
+uniform vec3 uDropout;
+uniform float uStatic;
+uniform float uBanding;
 
 ${noise}
+
+float bloomShimmer(vec2 screenUv, float time) {
+    return valueNoise(screenUv * vec2(5.0, 9.0) + time * 0.05) * 0.004;
+}
 
 float roundedBox(vec2 point, vec2 halfSize, float radius) {
     vec2 d = abs(point) - halfSize + radius;
@@ -91,9 +101,23 @@ void main() {
     float scan = 0.5 + 0.5 * cos(screenUv.y * rowsPerPixel * 6.28318 / 3.0);
     darkness += scan * 0.1;
 
+    float grille = 0.5 + 0.5 * cos(screenUv.x * cssPixels.x * 6.28318 / 3.0);
+    darkness += grille * 0.03;
+
     float grain = hash12(floor(pixel / max(uScale, 0.5)) + fract(uSeed * 31.7) * 400.0);
-    light += tint * grain * 0.026 * uMotion * effectWeight * uSignal;
-    darkness += (1.0 - grain) * 0.018 * uMotion;
+    light += tint * grain * 0.036 * uMotion * effectWeight * uSignal;
+    darkness += (1.0 - grain) * 0.03 * uMotion;
+
+    vec2 cssPoint = screenUv * cssPixels;
+    float smudge = smoothstep(0.52, 0.86, valueFbm(cssPoint / 260.0 + uDirtSeed * 7.0));
+    float specks = dust(cssPoint, uDirtSeed * 97.0, 64.0, 0.22) + dust(cssPoint + 31.0, uDirtSeed * 53.0, 151.0, 0.3) * 1.4;
+    light += vec3(0.92, 0.94, 1.0) * (smudge * 0.02 + specks * 0.035) * uSignal;
+    darkness += smudge * 0.025 + specks * 0.1;
+
+    float phosphorWear = valueFbm(screenUv * vec2(2.2, 1.6) + uDirtSeed * 3.0) - 0.5;
+    darkness += phosphorWear * 0.07;
+    light += tint * smoothstep(1.1, 0.0, length(centered * vec2(0.8, 1.0))) * 0.012 * uSignal;
+    light += tint * overText * (0.004 + bloomShimmer(screenUv, time)) * uSignal;
 
     float haze = fbm(vec3(screenUv * vec2(2.0, 3.0), time * 0.03 + uSeed)) * 0.5 + 0.5;
     light += tint * (0.006 + uFlicker + haze * 0.008) * uSignal;
@@ -120,6 +144,30 @@ void main() {
     float tearShimmer = 0.55 + 0.45 * snoise(vec3(screenUv.x * 3.0, uGlitch.y * 20.0, time * 6.0));
     light += tint * tear * tearShimmer * 0.05 * uMotion * effectWeight;
 
+    float syncDistance = screenUv.y - uSyncRoll.x;
+    float syncBar = exp(-syncDistance * syncDistance / 0.003) * uSyncRoll.y;
+    float syncEdge = exp(-(syncDistance + 0.045) * (syncDistance + 0.045) / 0.00004) * uSyncRoll.y;
+    darkness += syncBar * 0.22 * uMotion;
+    light += tint * syncEdge * 0.035 * uMotion * uSignal;
+
+    float crawlDistance = screenUv.y - uCrawl.x;
+    float crawl = exp(-crawlDistance * crawlDistance / 0.002) * uCrawl.y;
+    float crawlStripes = 0.5 + 0.5 * sin(screenUv.y * cssPixels.y * 0.9 + screenUv.x * 14.0 - time * 11.0);
+    light += tint * crawl * crawlStripes * 0.03 * uMotion * effectWeight * uSignal;
+    darkness += crawl * 0.03 * uMotion;
+
+    float dropoutDistance = abs(screenUv.y - uDropout.x);
+    float dropout = smoothstep(uDropout.y, uDropout.y * 0.55, dropoutDistance) * uDropout.z * uMotion;
+    float dropoutNoise = hash12(floor(pixel / max(uScale * 2.0, 1.0)) + fract(uSeed * 17.3) * 300.0);
+    darkness += dropout * 0.3;
+    light += tint * dropout * dropoutNoise * 0.05 * uSignal;
+
+    float staticNoise = hash12(floor(pixel / max(uScale * 1.5, 0.75)) + fract(uSeed * 7.1) * 500.0);
+    light += tint * staticNoise * uStatic * 0.06 * uMotion * uSignal;
+    darkness += (1.0 - staticNoise) * uStatic * 0.05 * uMotion;
+
+    darkness += uBanding * 0.035 * (0.5 + 0.5 * sin(screenUv.y * 31.0 + time * 0.6)) * uMotion;
+
     float surgeShape = 0.7 + 0.3 * fbm(vec3(screenUv * 1.5, time * 0.4));
     light += tint * uSurge * surgeShape * uSignal;
 
@@ -130,7 +178,10 @@ void main() {
     light += vec3(1.0) * sheen * 0.012;
 
     float rim = smoothstep(0.55, 1.35, length(centered * vec2(0.92, 1.0)));
-    darkness += rim * 0.42;
+    darkness += rim * 0.47;
+
+    vec2 edgeFringe = max(vec2(-centered.x, centered.x), 0.0);
+    light += vec3(edgeFringe.x * edgeFringe.x * 0.022, 0.0, edgeFringe.y * edgeFringe.y * 0.028) * uSignal;
     darkness += bezelShadow * 0.55;
 
     light += vec3(maskRed - mask, 0.0, maskBlue - mask) * 0.5 * uSignal;
@@ -267,6 +318,12 @@ export function createGlass(screen, picture) {
         roll: { y: Math.random(), width: .06, speed: .03 },
         glitch: { strength: 0, y: .5, height: .01 },
         wobbleUntil: 0,
+        dirtSeed: Math.random(),
+        syncRoll: { y: -1, strength: 0, speed: 0 },
+        crawl: { y: -1, strength: 0, speed: 0 },
+        dropout: { y: -1, halfHeight: 0, strength: 0, until: 0 },
+        staticBurst: { strength: 0, startedAt: 0, duration: 1 },
+        hold: { shift: 0, startedAt: 0, duration: 1 },
     };
 
     const now = () => performance.now() / 1000 - startedAt;
@@ -278,6 +335,11 @@ export function createGlass(screen, picture) {
         bigSurge: now() + exponential(70, 30),
         wobble: now() + exponential(28, 10),
         flicker: now() + exponential(4, .4),
+        syncRoll: now() + exponential(45, 15),
+        crawl: now() + exponential(20, 8),
+        dropout: now() + exponential(7, 2),
+        staticBurst: now() + exponential(60, 25),
+        hold: now() + exponential(35, 12),
     };
 
     const surges = [];
@@ -380,6 +442,82 @@ export function createGlass(screen, picture) {
             state.wobbleUntil = time + between(.35, .7);
             schedule.wobble = time + exponential(30, 9);
         }
+
+        if (time > schedule.syncRoll) {
+            state.syncRoll = { y: -.15, strength: between(.5, 1), speed: between(1.2, 2) };
+            schedule.syncRoll = time + exponential(50, 18);
+        }
+
+        if (time > schedule.crawl && state.crawl.strength === 0) {
+            state.crawl = { y: 1.15, strength: between(.4, 1), speed: between(.05, .12) };
+            schedule.crawl = time + exponential(24, 8);
+        }
+
+        if (time > schedule.dropout) {
+            const line = textLife.dropout(between(50, 110));
+
+            if (line) {
+                state.dropout = { ...line, strength: 1, until: time + between(.04, .09) };
+            }
+
+            schedule.dropout = time + exponential(7, 2);
+        }
+
+        if (time > schedule.staticBurst) {
+            state.staticBurst = { strength: between(.5, 1), startedAt: time, duration: between(.12, .22) };
+            schedule.staticBurst = time + exponential(70, 25);
+        }
+
+        if (time > schedule.hold) {
+            state.hold = { shift: (Math.random() < .5 ? -1 : 1) * Math.round(between(3, 8)), startedAt: time, duration: between(.14, .26) };
+            schedule.hold = time + exponential(38, 12);
+        }
+    }
+
+    function moveGlitches(time, delta) {
+        if (state.syncRoll.strength > 0) {
+            state.syncRoll.y += state.syncRoll.speed * delta;
+
+            if (state.syncRoll.y > 1.2) {
+                state.syncRoll.strength = 0;
+            }
+        }
+
+        if (state.crawl.strength > 0) {
+            state.crawl.y -= state.crawl.speed * delta;
+
+            if (state.crawl.y < -.15) {
+                state.crawl.strength = 0;
+            }
+        }
+
+        if (time > state.dropout.until) {
+            state.dropout.strength = 0;
+        }
+    }
+
+    function staticLevel(time) {
+        const progress = (time - state.staticBurst.startedAt) / state.staticBurst.duration;
+
+        if (progress < 0 || progress >= 1) {
+            return 0;
+        }
+
+        return state.staticBurst.strength * (1 - progress);
+    }
+
+    /**
+     * A slip of the horizontal hold: the picture jumps a few pixels up or
+     * down and settles back.
+     */
+    function holdOffset(time) {
+        const progress = (time - state.hold.startedAt) / state.hold.duration;
+
+        if (progress < 0 || progress >= 1) {
+            return 0;
+        }
+
+        return Math.round(state.hold.shift * Math.pow(1 - progress, 2));
     }
 
     let glitchUntil = 0;
@@ -387,6 +525,8 @@ export function createGlass(screen, picture) {
     let curveWatch = null;
 
     const textLife = createTextLife(picture);
+
+    createBurnIn(picture);
 
     function glitch(strength) {
         state.glitch = { strength, y: Math.random(), height: between(.004, .02) };
@@ -399,8 +539,9 @@ export function createGlass(screen, picture) {
         const isGlitching = time < glitchUntil;
         const isWobbling = time < state.wobbleUntil;
         const disturb = state.disturb;
+        const hold = holdOffset(time);
 
-        if (! isGlitching && ! isWobbling && disturb < .02) {
+        if (! isGlitching && ! isWobbling && disturb < .02 && hold === 0) {
             if (picture.style.transform) {
                 picture.style.transform = '';
             }
@@ -421,7 +562,7 @@ export function createGlass(screen, picture) {
 
         shift += Math.round(fast(time * 25) * 2 * disturb);
 
-        picture.style.transform = `translate3d(${shift}px, 0, 0) skewX(${skew.toFixed(3)}deg)`;
+        picture.style.transform = `translate3d(${shift}px, ${hold}px, 0) skewX(${skew.toFixed(3)}deg)`;
     }
 
     function render(time, delta) {
@@ -439,6 +580,8 @@ export function createGlass(screen, picture) {
         if (animated) {
             runEvents(time);
         }
+
+        moveGlitches(time, delta);
 
         const rollSpeed = .02 + .025 * (slow(time * .05) + 1);
 
@@ -461,7 +604,7 @@ export function createGlass(screen, picture) {
         }
 
         const flicker = (.004 + .004 * slow(time * .9 + 11) + .003 * fast(time * 7.3)) * state.motion;
-        const curve = Math.min(window.innerWidth, 900) < 640 ? .02 : .034;
+        const curve = (Math.min(window.innerWidth, 900) < 640 ? .02 : .034) * (1 + .05 * slow(time * .11 + 20) * state.motion);
         const breath = (.02 + .015 * slow(time * .07) + .01 * slow(time * .021 + 40)) * state.motion;
 
         gl.viewport(0, 0, width, height);
@@ -484,6 +627,12 @@ export function createGlass(screen, picture) {
         gl.uniform4f(uniforms.uBand, 1 - state.band.y, state.band.width, state.band.strength, state.band.seed);
         gl.uniform4f(uniforms.uRoll, 1 - state.roll.y, state.roll.width, .35 + .3 * slow(time * .11 + 3), 0);
         gl.uniform3f(uniforms.uGlitch, state.glitch.strength, 1 - state.glitch.y, state.glitch.height);
+        gl.uniform1f(uniforms.uDirtSeed, state.dirtSeed);
+        gl.uniform2f(uniforms.uSyncRoll, 1 - state.syncRoll.y, state.syncRoll.strength);
+        gl.uniform2f(uniforms.uCrawl, 1 - state.crawl.y, state.crawl.strength);
+        gl.uniform3f(uniforms.uDropout, 1 - state.dropout.y, state.dropout.halfHeight, state.dropout.strength);
+        gl.uniform1f(uniforms.uStatic, staticLevel(time));
+        gl.uniform1f(uniforms.uBanding, Math.max(0, slow(time * .045 + 70) - .2) * state.motion);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
 
         if (animated) {

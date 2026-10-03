@@ -19,6 +19,7 @@ class CrtInterfaceTest extends TestCase
             ->assertSee('action="https://dnsrecords.io.dev"', false)
             ->assertSee('name="_token"', false)
             ->assertSee('data-page="home"', false)
+            ->assertSee('data-phosphor="green"', false)
             ->assertDontSee('id="fx-toggle"', false)
             ->assertSee('prefers-reduced-motion', false)
             ->assertSee('href="https://dnsrecords.io.dev/old"', false);
@@ -75,7 +76,8 @@ class CrtInterfaceTest extends TestCase
 
         $flashMessage = $this->getFlashMessage();
 
-        $this->assertStringContainsString('degauss', $flashMessage);
+        $this->assertStringNotContainsString('degauss', $flashMessage);
+        $this->assertStringContainsString("'green', 'amber' or 'white'", $flashMessage);
         $this->assertStringNotContainsString('fx off', $flashMessage);
         $this->assertStringContainsString('legend--mx', $flashMessage);
         $this->assertStringContainsString('/old', $flashMessage);

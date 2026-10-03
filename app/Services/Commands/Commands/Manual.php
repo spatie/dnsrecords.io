@@ -26,7 +26,6 @@ class Manual implements Command
             "Enter 'doom' to play Doom.",
         ])
             ->when($theme === Theme::Crt, fn ($lines) => $lines->push(
-                "Enter 'degauss' to give the screen a wobble.",
                 "Enter 'green', 'amber' or 'white' to swap the phosphor.",
                 "Enter 'time' to see the time.",
                 "Enter 'power off' to put the screen to sleep.",

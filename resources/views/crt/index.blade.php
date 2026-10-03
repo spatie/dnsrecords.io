@@ -4,7 +4,7 @@
     $terminalOutput = isset($output) ? new TerminalOutput($output) : null;
 @endphp
 <!DOCTYPE html>
-<html lang="en" class="no-js" data-interface="terminal" data-page="{{ $terminalOutput ? 'result' : 'home' }}" data-motion="full" data-phosphor="white">
+<html lang="en" class="no-js" data-interface="terminal" data-page="{{ $terminalOutput ? 'result' : 'home' }}" data-motion="full" data-phosphor="green">
 
 <head>
     <meta charset="utf-8">
@@ -26,7 +26,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/manifest.json">
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#151d21">
-    <meta name="theme-color" content="#0b0b0c">
+    <meta name="theme-color" content="#050a07">
 </head>
 
 <body class="terminal-page">

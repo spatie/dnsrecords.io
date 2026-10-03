@@ -1,6 +1,7 @@
 /**
  * Shared GLSL helpers: hashing and 3D simplex noise (after Ashima Arts and
- * Stefan Gustavson), plus fractal brownian motion on top of it.
+ * Stefan Gustavson), fractal brownian motion on top of it, and a cheap 2D
+ * value noise for the dirt on the glass, which never moves.
  */
 export const noise = `
 float hash12(vec2 point) {
@@ -87,5 +88,40 @@ float fbm(vec3 point) {
     }
 
     return sum;
+}
+
+float valueNoise(vec2 point) {
+    vec2 cell = floor(point);
+    vec2 fraction = fract(point);
+    vec2 smoothed = fraction * fraction * (3.0 - 2.0 * fraction);
+
+    float a = hash12(cell);
+    float b = hash12(cell + vec2(1.0, 0.0));
+    float c = hash12(cell + vec2(0.0, 1.0));
+    float d = hash12(cell + vec2(1.0, 1.0));
+
+    return mix(mix(a, b, smoothed.x), mix(c, d, smoothed.x), smoothed.y);
+}
+
+float valueFbm(vec2 point) {
+    return valueNoise(point) * 0.55 + valueNoise(point * 2.1 + 13.7) * 0.3 + valueNoise(point * 4.3 + 41.3) * 0.15;
+}
+
+/*
+ * Dust specks on the glass: at most one per cell of the grid, in css pixels,
+ * at a random spot and of a random size.
+ */
+float dust(vec2 cssPoint, float seed, float cellSize, float chance) {
+    vec2 cell = floor(cssPoint / cellSize);
+    float pick = hash12(cell + seed);
+
+    if (pick > chance) {
+        return 0.0;
+    }
+
+    vec2 centre = (cell + 0.15 + 0.7 * vec2(hash12(cell + seed + 17.0), hash12(cell + seed + 31.0))) * cellSize;
+    float radius = mix(0.45, 1.5, hash12(cell + seed + 53.0));
+
+    return smoothstep(radius + 0.9, radius * 0.25, length(cssPoint - centre)) * mix(0.35, 1.0, pick / chance);
 }
 `;

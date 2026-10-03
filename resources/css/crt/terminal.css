@@ -8,6 +8,7 @@
 }
 
 .screen__picture {
+    position: relative;
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
@@ -404,4 +405,61 @@
 .line,
 .terminal-footer p {
     isolation: isolate;
+}
+
+/* Glitches drawn over the text, never part of it. */
+.screen__overlay,
+.screen__burn {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.screen__overlay {
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.screen__glyphs {
+    position: absolute;
+    overflow: hidden;
+    background: var(--bg);
+    white-space: pre;
+}
+
+.screen__echo {
+    position: absolute;
+    margin: 0;
+    animation: none;
+    will-change: transform, opacity;
+}
+
+.screen__echo * {
+    text-shadow: none !important;
+}
+
+/* The brand and the prompt of the first screen, burnt into the phosphor. */
+.screen__burn {
+    z-index: -1;
+    color: var(--fg);
+    opacity: .045;
+    isolation: isolate;
+}
+
+.screen__burn,
+.screen__burn * {
+    color: var(--fg) !important;
+    text-shadow: none !important;
+    animation: none !important;
+}
+
+.screen__burn .prompt {
+    font-weight: 400;
+}
+
+[data-crt='gl'] .screen__picture {
+    transform: translate3d(0, 0, 0);
 }
