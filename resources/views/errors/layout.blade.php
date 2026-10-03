@@ -10,7 +10,7 @@
     <title>@yield('title') ~ dnsrecords.io</title>
 
     <link href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" rel="stylesheet">
-    <link rel="stylesheet" href="{{ mix('/css/app.css') }}">
+    @vite('resources/css/app.css')
 
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">

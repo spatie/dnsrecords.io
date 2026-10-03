@@ -23,6 +23,5 @@ input:not([type=range]),
 label,
 select,
 textarea {
-    -ms-touch-action: manipulation;
     touch-action: manipulation;
 }
