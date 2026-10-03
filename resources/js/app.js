@@ -6,7 +6,7 @@ form.addEventListener('submit', event => {
 
     const lookupBaseUrl = form.getAttribute('action').replace(/\/$/, '');
 
-    form.action = lookupBaseUrl + '/' + input.value;
+    form.action = `${lookupBaseUrl}/${input.value}`;
 
     form.submit();
 });
@@ -22,7 +22,6 @@ window.addEventListener('click', event => {
 });
 
 function isResultTextSelected() {
-
     if (typeof window.getSelection !== 'undefined' && window.getSelection().toString() !== '') {
         return true;
     }

@@ -8,7 +8,7 @@ use Tests\TestCase;
 class DoomTest extends TestCase
 {
     #[Test]
-    public function it_redirects_to_doom()
+    public function it_redirects_to_doom(): void
     {
         $this
             ->sendCommand('doom')

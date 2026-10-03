@@ -8,13 +8,11 @@ use Tests\TestCase;
 
 class CrawlerProtectionTest extends TestCase
 {
-    protected string $browserUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
-
     #[Test]
-    public function it_allows_browsers_to_lookup_a_domain()
+    public function it_allows_browsers_to_lookup_a_domain(): void
     {
         $this
-            ->withHeader('User-Agent', $this->browserUserAgent)
+            ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
             ->get("{$this->baseUrl}/spatie.be")
             ->assertSuccessful()
             ->assertSee('103.133.1.1')
@@ -22,10 +20,10 @@ class CrawlerProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_allows_browsers_to_submit_a_lookup()
+    public function it_allows_browsers_to_submit_a_lookup(): void
     {
         $this
-            ->withHeader('User-Agent', $this->browserUserAgent)
+            ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
             ->sendCommand('spatie.be')
             ->assertSuccessful()
             ->assertSee('103.133.1.1');
@@ -33,7 +31,7 @@ class CrawlerProtectionTest extends TestCase
 
     #[Test]
     #[DataProvider('crawlerUserAgents')]
-    public function it_blocks_crawlers_from_lookups(string $userAgent)
+    public function it_blocks_crawlers_from_lookups(string $userAgent): void
     {
         $this
             ->withHeader('User-Agent', $userAgent)
@@ -44,7 +42,7 @@ class CrawlerProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_blocks_crawlers_before_redirecting_unsanitized_lookups()
+    public function it_blocks_crawlers_before_redirecting_unsanitized_lookups(): void
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)')
@@ -53,7 +51,7 @@ class CrawlerProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_blocks_requests_without_a_user_agent_from_lookups()
+    public function it_blocks_requests_without_a_user_agent_from_lookups(): void
     {
         $this
             ->withHeader('User-Agent', '')
@@ -62,7 +60,7 @@ class CrawlerProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_allows_crawlers_on_the_homepage()
+    public function it_allows_crawlers_on_the_homepage(): void
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)')
@@ -72,40 +70,40 @@ class CrawlerProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_rate_limits_lookups_per_ip()
+    public function it_rate_limits_lookups_per_ip(): void
     {
         foreach (range(1, 20) as $attempt) {
             $this
-                ->withHeader('User-Agent', $this->browserUserAgent)
+                ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
                 ->get("{$this->baseUrl}/spatie.be")
                 ->assertSuccessful();
         }
 
         $this
-            ->withHeader('User-Agent', $this->browserUserAgent)
+            ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
             ->get("{$this->baseUrl}/spatie.be")
             ->assertTooManyRequests();
 
         $this
-            ->withHeader('User-Agent', $this->browserUserAgent)
+            ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
             ->withServerVariables(['REMOTE_ADDR' => '10.0.0.2'])
             ->get("{$this->baseUrl}/spatie.be")
             ->assertSuccessful();
     }
 
     #[Test]
-    public function it_does_not_rate_limit_the_homepage()
+    public function it_does_not_rate_limit_the_homepage(): void
     {
         foreach (range(1, 25) as $attempt) {
             $this
-                ->withHeader('User-Agent', $this->browserUserAgent)
+                ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
                 ->get("{$this->baseUrl}/")
                 ->assertSuccessful();
         }
     }
 
     #[Test]
-    public function it_disallows_crawling_lookups_in_robots_txt()
+    public function it_disallows_crawling_lookups_in_robots_txt(): void
     {
         $robotsTxt = file_get_contents(public_path('robots.txt'));
 

@@ -8,7 +8,7 @@ use Tests\TestCase;
 class CrtInterfaceTest extends TestCase
 {
     #[Test]
-    public function it_shows_the_terminal_on_the_homepage()
+    public function it_shows_the_terminal_on_the_homepage(): void
     {
         $this
             ->get("{$this->baseUrl}/")
@@ -26,7 +26,7 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_renders_lookup_results_as_terminal_lines()
+    public function it_renders_lookup_results_as_terminal_lines(): void
     {
         $this
             ->sendCommand('spatie.be')
@@ -41,7 +41,7 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_the_raw_dig_output_copyable()
+    public function it_keeps_the_raw_dig_output_copyable(): void
     {
         $content = $this->sendCommand('spatie.be')->getContent();
 
@@ -56,7 +56,7 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_answers_failed_get_lookups_on_the_crt_screen()
+    public function it_answers_failed_get_lookups_on_the_crt_screen(): void
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36')
@@ -68,7 +68,7 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_mentions_the_crt_commands_in_the_manual()
+    public function it_mentions_the_crt_commands_in_the_manual(): void
     {
         $this
             ->sendCommand('help')
@@ -84,7 +84,7 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_shows_the_manual_instead_of_the_banner()
+    public function it_shows_the_manual_instead_of_the_banner(): void
     {
         $this
             ->followingRedirects()
@@ -94,7 +94,7 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_can_switch_to_the_old_interface_with_a_command()
+    public function it_can_switch_to_the_old_interface_with_a_command(): void
     {
         $this
             ->sendCommand('old')
@@ -102,7 +102,7 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_shows_the_ip_address_on_the_crt_screen()
+    public function it_shows_the_ip_address_on_the_crt_screen(): void
     {
         $this
             ->sendCommand('ip')
@@ -112,7 +112,7 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_the_first_screen_minimal()
+    public function it_keeps_the_first_screen_minimal(): void
     {
         $this
             ->get("{$this->baseUrl}/")
@@ -126,7 +126,7 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_does_not_link_to_lookup_pages_from_the_homepage()
+    public function it_does_not_link_to_lookup_pages_from_the_homepage(): void
     {
         $this
             ->get("{$this->baseUrl}/")
@@ -137,7 +137,7 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_shows_the_record_count_and_copy_action_with_results()
+    public function it_shows_the_record_count_and_copy_action_with_results(): void
     {
         $this
             ->sendCommand('spatie.be')

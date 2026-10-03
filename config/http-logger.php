@@ -1,11 +1,14 @@
 <?php
 
+use Spatie\HttpLogger\DefaultLogWriter;
+use Spatie\HttpLogger\LogNonGetRequests;
+
 return [
     'enabled' => env('HTTP_LOGGER_ENABLED', true),
 
-    'log_profile' => \Spatie\HttpLogger\LogNonGetRequests::class,
+    'log_profile' => LogNonGetRequests::class,
 
-    'log_writer' => \Spatie\HttpLogger\DefaultLogWriter::class,
+    'log_writer' => DefaultLogWriter::class,
 
     'log_channel' => env('LOG_CHANNEL', 'stack'),
 

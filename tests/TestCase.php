@@ -9,7 +9,7 @@ use Illuminate\Testing\TestResponse;
 
 abstract class TestCase extends BaseTestCase
 {
-    protected $baseUrl = 'https://dnsrecords.io.dev';
+    protected string $baseUrl = 'https://dnsrecords.io.dev';
 
     /**
      * Fake dig answers, keyed by "<domain> <record type>".
@@ -53,16 +53,17 @@ abstract class TestCase extends BaseTestCase
 
     protected function sendCommand(string $command, ?string $url = null): TestResponse
     {
-        $url = $url ? $this->baseUrl . $url : "{$this->baseUrl}/{$command}";
+        $url = $url
+            ? "{$this->baseUrl}{$url}"
+            : "{$this->baseUrl}/{$command}";
 
-        return $this->post($url, compact('command'));
+        return $this->post($url, ['command' => $command]);
     }
 
     protected function getFlashMessage(): ?string
     {
-        $flash = app('session.store')
-            ->get('flash_notification');
+        $flashNotifications = session('flash_notification');
 
-        return $flash ? $flash->first()->message : null;
+        return $flashNotifications?->first()->message;
     }
 }

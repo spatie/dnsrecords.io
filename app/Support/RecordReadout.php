@@ -59,7 +59,7 @@ class RecordReadout
         }
 
         if ($this->continuesPreviousRecord($line)) {
-            $this->records->last()->value .= "\n" . trim($line->text);
+            $this->records->last()->value .= "\n".trim($line->text);
 
             return;
         }
