@@ -109,11 +109,12 @@ function setPhosphor(phosphor, { shouldAnnounce = false } = {}) {
 }
 
 /**
- * The degauss: the glass adds a shimmer, the screen wobbles.
+ * The degauss: the glass adds a shimmer, the screen wobbles. The brightness
+ * filter only runs for DOM text, as the shader paints the text otherwise.
  */
 function degauss() {
     signal('degauss');
-    degaussWobble(screenElement, { brighten: root.getAttribute('data-curve') === 'full' });
+    degaussWobble(screenElement, { brighten: root.getAttribute('data-text') !== 'gl' });
 }
 
 let lastKeyAt = 0;
@@ -227,14 +228,16 @@ function showResolving(command) {
 }
 
 /**
- * A blur over the whole picture is slow in browsers that paint the curve on
- * the CPU or leave the text flat (Safari), so there the picture only dims
- * and brightens as it decays.
+ * Once the glass shader paints the text, the DOM text is transparent and
+ * only its opacity matters, so the decay skips the filter, which would
+ * still be painted (slowly in Safari) for nothing.
  */
-function decayFilter(brightness, blur) {
-    const isBlurSlow = ['steady', 'lite', 'off'].includes(root.getAttribute('data-curve'));
+function decayFrame(opacity, brightness, blur) {
+    if (root.getAttribute('data-text') === 'gl') {
+        return { opacity };
+    }
 
-    return isBlurSlow ? `brightness(${brightness})` : `brightness(${brightness}) blur(${blur}px)`;
+    return { opacity, filter: `brightness(${brightness}) blur(${blur}px)` };
 }
 
 async function swapScreen(screenPage) {
@@ -252,9 +255,9 @@ async function swapScreen(screenPage) {
 
     const decay = hasFullMotion() && ! prefersReducedMotion()
         ? [
-            { opacity: 1, filter: decayFilter(1, 0) },
-            { opacity: .55, filter: decayFilter(1.5, .4), offset: .25 },
-            { opacity: 0, filter: decayFilter(1.1, 1.5) },
+            decayFrame(1, 1, 0),
+            { ...decayFrame(.55, 1.5, .4), offset: .25 },
+            decayFrame(0, 1.1, 1.5),
         ]
         : [{ opacity: 1 }, { opacity: 0 }];
 

@@ -1,7 +1,8 @@
 import { noise } from './glsl.js';
 import { approach, between, exponential, noise1d } from './random.js';
-import { createCurveWatch, initialCurveQuality, tuneCurve } from './curve-quality.js';
-import { createBurnIn, createCurvedText, createTextLife } from './text-fx.js';
+import { createShaderTextLife, createTextLife } from './text-fx.js';
+import { createTextLayer } from './text-layer.js';
+import { createTextPass, maximumLineEffects } from './text-pass.js';
 
 /*
  * The CRT glass over the terminal: curvature, bezel, scanlines, grain,
@@ -209,6 +210,8 @@ function compile(gl, type, source) {
 
 const restingFringe = .035;
 
+const textLineSelector = '.line, .brand, .prompt, .resolving, .results__header, .message, .terminal-footer p';
+
 const phosphorColors = {
     white: [.89, .89, .91],
     green: [.49, 1, .65],
@@ -253,6 +256,14 @@ export function createGlass(screen, picture) {
         uniforms[name] = gl.getUniformLocation(program, name);
     }
 
+    let textPass = null;
+
+    try {
+        textPass = createTextPass(gl);
+    } catch (error) {
+        textPass = null;
+    }
+
     canvas.className = 'crt-glass';
     canvas.setAttribute('aria-hidden', 'true');
     screen.appendChild(canvas);
@@ -274,7 +285,14 @@ export function createGlass(screen, picture) {
     let isLost = false;
     let width = 0;
     let height = 0;
+    let outputWidth = 0;
+    let outputHeight = 0;
     let textBox = [0, 0, 1, 1];
+    let pictureBox = [0, 0, 1, 1];
+    let textLayer = null;
+    let shaderTextLife = null;
+    let isTextReady = false;
+    let reveal = { startedAt: -1, longestDelay: 1, box: [0, 0, 1, 1] };
     let frameTimes = [];
 
     const state = {
@@ -328,9 +346,20 @@ export function createGlass(screen, picture) {
         width = Math.max(1, Math.round(cssWidth * scale));
         height = Math.max(1, Math.round(cssHeight * scale));
 
-        if (canvas.width !== width || canvas.height !== height) {
-            canvas.width = width;
-            canvas.height = height;
+        const outputScale = Math.min(Math.min(2, window.devicePixelRatio || 1), Math.sqrt(8000000 / Math.max(1, cssWidth * cssHeight))) * (quality === qualityScales.length - 1 ? .75 : 1);
+
+        outputWidth = isTextReady ? Math.max(1, Math.round(cssWidth * outputScale)) : width;
+        outputHeight = isTextReady ? Math.max(1, Math.round(cssHeight * outputScale)) : height;
+
+        if (canvas.width !== outputWidth || canvas.height !== outputHeight) {
+            canvas.width = outputWidth;
+            canvas.height = outputHeight;
+        }
+
+        pictureBox = [picture.offsetLeft, picture.offsetTop, picture.offsetWidth, picture.offsetHeight];
+
+        if (textLayer) {
+            textLayer.invalidate();
         }
 
         const content = document.getElementById('screen-content');
@@ -424,7 +453,7 @@ export function createGlass(screen, picture) {
         }
 
         if (time > schedule.dropout) {
-            const line = textLife.dropout(between(50, 110));
+            const line = (isTextReady ? shaderTextLife : textLife).dropout(between(50, 110));
 
             if (line) {
                 state.dropout = { ...line, strength: 1, until: time + between(.04, .09) };
@@ -491,16 +520,12 @@ export function createGlass(screen, picture) {
     }
 
     let glitchUntil = 0;
-    let curvedText = null;
-    let curveWatch = null;
 
     const textLife = createTextLife(picture);
 
-    createBurnIn(picture);
-
     function glitch(strength) {
         state.glitch = { strength, y: Math.random(), height: between(.004, .02) };
-        textLife.tear(state.glitch.y, strength);
+        (isTextReady ? shaderTextLife : textLife).tear(state.glitch.y, strength);
         glitchUntil = now() + between(.12, .26);
         addSurge(.012 * strength, .3);
     }
@@ -516,7 +541,7 @@ export function createGlass(screen, picture) {
                 picture.style.transform = '';
             }
 
-            return;
+            return [0, 0, 0];
         }
 
         let shift = 0;
@@ -533,6 +558,8 @@ export function createGlass(screen, picture) {
         shift += Math.round(fast(time * 25) * 2 * disturb);
 
         picture.style.transform = `translate3d(${shift}px, ${hold}px, 0) skewX(${skew.toFixed(3)}deg)`;
+
+        return [shift, hold, Math.tan(skew * Math.PI / 180)];
     }
 
     function render(time, delta) {
@@ -577,6 +604,11 @@ export function createGlass(screen, picture) {
         const curve = (Math.min(window.innerWidth, 900) < 640 ? .02 : .034) * (1 + .05 * slow(time * .11 + 20) * state.motion);
         const breath = (.02 + .015 * slow(time * .07) + .01 * slow(time * .021 + 40)) * state.motion;
 
+        if (isTextReady) {
+            textPass.bindGlass(width, height);
+        }
+
+        gl.useProgram(program);
         gl.viewport(0, 0, width, height);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -605,25 +637,226 @@ export function createGlass(screen, picture) {
         gl.uniform1f(uniforms.uBanding, Math.max(0, slow(time * .045 + 70) - .2) * state.motion);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
 
+        let pictureShift = [0, 0, 0];
+
         if (animated) {
-            updatePicture(time);
+            pictureShift = updatePicture(time);
         } else if (picture.style.transform) {
             picture.style.transform = '';
         }
 
-        textLife.frame(time, {
+        const life = {
             flicker: Math.max(0, flicker),
             breath: Math.max(0, breath),
             surge: surgeLevel(time) * state.motion,
             disturb: state.disturb,
             motion: state.motion,
-        });
+        };
 
-        if (curvedText) {
-            curvedText.setFringe(restingFringe + state.glitch.strength * .1 + state.disturb * .04);
+        if (! isTextReady) {
+            textLife.frame(time, life);
+
+            return animated || Math.abs(state.motion) > .002 || Math.abs(state.signal - (isOn ? 1 : 0)) > .002 || state.disturb > .002;
         }
 
+        const textAlpha = shaderTextLife.frame(time, life) * pictureOpacity() * contentOpacity();
+
+        drawText(curve, pictureShift, textAlpha);
+
         return animated || Math.abs(state.motion) > .002 || Math.abs(state.signal - (isOn ? 1 : 0)) > .002 || state.disturb > .002;
+    }
+
+    /**
+     * The opacity and scale of the picture while the screen switches on or
+     * off, which CSS animates on the (transparent) DOM picture.
+     */
+    function pictureTransition() {
+        const isPowering = screen.classList.contains('is-powering-on') || screen.classList.contains('is-powering-off') || root.getAttribute('data-power') === 'off';
+
+        if (! isPowering) {
+            return null;
+        }
+
+        const style = getComputedStyle(picture);
+        const matrix = style.transform && style.transform !== 'none' ? new DOMMatrixReadOnly(style.transform) : new DOMMatrixReadOnly();
+
+        return { opacity: parseFloat(style.opacity), scale: [Math.max(.004, matrix.a), Math.max(.004, matrix.d)] };
+    }
+
+    function pictureOpacity() {
+        const transition = pictureTransition();
+
+        return transition ? transition.opacity : 1;
+    }
+
+    function contentOpacity() {
+        const content = document.getElementById('screen-content');
+
+        if (! content || ! content.getAnimations().length) {
+            return 1;
+        }
+
+        return parseFloat(getComputedStyle(content).opacity);
+    }
+
+    function caretValues() {
+        const caret = textLayer.caret();
+
+        if (! caret || root.getAttribute('data-power') === 'off') {
+            return { caret: [0, 0, 0, 0], colour: [0, 0, 0, 0] };
+        }
+
+        const isTyping = performance.now() - lastTypedAt < 600;
+        const isOn = isTyping || ! isAnimated() || Math.floor(performance.now() / 530) % 2 === 0;
+        const [red, green, blue] = (caret.colour.match(/[\d.]+/g) || [228, 228, 231]).map(Number);
+
+        return { caret: [caret.x, caret.top, caret.width, caret.height], colour: [red / 255, green / 255, blue / 255, isOn ? 1 : 0] };
+    }
+
+    function drawText(curve, pictureShift, textAlpha) {
+        const change = textLayer.update();
+
+        if (change) {
+            textPass.uploadText(textLayer, change === true ? null : change);
+        }
+
+        if (change === true && isRevealPending) {
+            isRevealPending = false;
+            startReveal();
+        }
+
+        const transition = pictureTransition();
+        const { lineA, lineB } = shaderTextLife.lineEffects();
+        const { caret, colour } = caretValues();
+        const revealElapsed = reveal.startedAt < 0 ? -1 : now() - reveal.startedAt;
+
+        if (revealElapsed > reveal.longestDelay + .6) {
+            reveal.startedAt = -1;
+        }
+
+        textPass.draw(outputWidth, outputHeight, {
+            screen: [screen.clientWidth, screen.clientHeight],
+            picture: pictureBox,
+            pictureScale: transition ? transition.scale : [1, 1],
+            pictureShift,
+            curve,
+            fringe: restingFringe + state.glitch.strength * .1 + state.disturb * .04,
+            textAlpha: textAlpha * state.signal,
+            glow: .75,
+            lineA,
+            lineB,
+            reveal: [reveal.startedAt < 0 ? -1 : revealElapsed, reveal.longestDelay, 0, 0],
+            revealBox: reveal.box,
+            scroll: textLayer.scrollOffset,
+            ring: textLayer.ring,
+            burnBox: textLayer.burn.box,
+            caret,
+            caretColour: colour,
+        });
+    }
+
+    let lastTypedAt = 0;
+    let isRevealPending = false;
+
+    function startReveal() {
+        const results = textLayer ? textLayer.resultLines() : null;
+
+        if (! results || ! isAnimated()) {
+            reveal.startedAt = -1;
+
+            return;
+        }
+
+        reveal = {
+            startedAt: now(),
+            longestDelay: textPass.uploadRows(results),
+            box: [results.left, results.top, results.width, results.height],
+        };
+    }
+
+    /**
+     * Hands the text over to the shader once the fonts are there, and keeps
+     * the painted text in step with the DOM.
+     */
+    function startText() {
+        textLayer = createTextLayer(picture);
+        shaderTextLife = createShaderTextLife(textLayer, { maximumEffects: maximumLineEffects });
+
+        const content = () => document.getElementById('screen-content');
+        let phosphorUntil = 0;
+
+        new MutationObserver(mutations => {
+            const changes = mutations.filter(mutation => ! (mutation.target === picture && mutation.attributeName === 'style'));
+
+            if (! changes.length) {
+                return;
+            }
+
+            const changedLines = changes.map(mutation => {
+                const target = mutation.target.nodeType === Node.ELEMENT_NODE ? mutation.target : mutation.target.parentElement;
+
+                return target ? target.closest(textLineSelector) : null;
+            });
+
+            if (changedLines.every(Boolean)) {
+                changedLines.forEach(line => textLayer.invalidateLine(line));
+            } else {
+                textLayer.invalidate();
+            }
+
+            wake();
+        }).observe(picture, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden', 'data-label', 'style'] });
+
+        new MutationObserver(() => {
+            phosphorUntil = performance.now() + 900;
+        }).observe(root, { attributes: true, attributeFilter: ['data-phosphor'] });
+
+        document.addEventListener('input', event => {
+            if (event.target.closest('#screen-content')) {
+                lastTypedAt = performance.now();
+                textLayer.repaintInput();
+                wake();
+            }
+        });
+
+        document.addEventListener('selectionchange', () => {
+            lastTypedAt = performance.now();
+        });
+
+
+        ['pointerover', 'pointerout', 'focusin', 'focusout'].forEach(type => {
+            picture.addEventListener(type, event => {
+                textLayer.invalidateLine(event.target);
+                wake();
+            });
+        });
+
+        document.fonts.addEventListener('loadingdone', () => textLayer.invalidate());
+        document.addEventListener('scroll', wake, { capture: true, passive: true });
+
+        setInterval(() => {
+            const root = content();
+
+            const dots = root ? root.querySelector('.resolving__dots') : null;
+
+            if (performance.now() < phosphorUntil) {
+                textLayer.invalidate();
+                wake();
+            }
+
+            if (dots) {
+                textLayer.invalidateLine(dots);
+                wake();
+            }
+        }, 60);
+
+        textLife.reset();
+        isTextReady = true;
+        resize();
+        textLayer.update();
+        textLayer.update();
+        textPass.uploadText(textLayer);
+        root.setAttribute('data-text', 'gl');
     }
 
     function adapt(delta) {
@@ -649,9 +882,7 @@ export function createGlass(screen, picture) {
             return;
         }
 
-        if (curvedText) {
-            curvedText.setQuality('off');
-        }
+        resize();
     }
 
     function tick(timestamp) {
@@ -670,10 +901,6 @@ export function createGlass(screen, picture) {
 
         if (keepGoing) {
             adapt(delta);
-
-            if (curveWatch) {
-                curveWatch.frame(time, delta);
-            }
 
             frame = requestAnimationFrame(tick);
 
@@ -719,6 +946,11 @@ export function createGlass(screen, picture) {
             state.disturbTarget = 0;
             resize();
 
+            if (isTextReady) {
+                textLayer.invalidate();
+                isRevealPending = true;
+            }
+
             if (isAnimated()) {
                 addSurge(.03, .5);
             }
@@ -741,14 +973,20 @@ export function createGlass(screen, picture) {
         event.preventDefault();
         isLost = true;
         root.removeAttribute('data-crt');
+        root.removeAttribute('data-text');
     });
 
     resize();
     wake();
 
-    curvedText = createCurvedText(picture, { curve: Math.min(window.innerWidth, 900) < 640 ? .02 : .034, fringe: restingFringe, quality: initialCurveQuality() });
-    curveWatch = createCurveWatch(curvedText);
-    tuneCurve(curvedText);
+    if (textPass) {
+        document.fonts.ready.then(() => {
+            if (! isLost) {
+                startText();
+                wake();
+            }
+        });
+    }
 
     requestAnimationFrame(() => root.setAttribute('data-crt', 'gl'));
 

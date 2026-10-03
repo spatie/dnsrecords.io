@@ -377,39 +377,8 @@
     }
 }
 
-.screen__picture.is-curved {
-    background: var(--bg);
-    filter: url(#crt-curve);
-    transform: translate3d(0, 0, 0);
-}
-
-/*
- * Safari paints the curve filter on the CPU and redoes all of it whenever
- * the picture flickers, unless the content has a layer of its own, and
- * whenever a stacking context inside the picture appears or disappears,
- * which every opacity or transform animation does when it starts and ends.
- * Giving the content a layer and making the animated parts stacking
- * contexts from the start (and keeping the picture composited, above) turns
- * those frames back into cheap partial repaints.
- */
-.screen__picture.is-curved .screen__content {
-    will-change: transform;
-}
-
-.screen__content,
-.brand,
-.prompt,
-.resolving,
-.results__header,
-.message,
-.line,
-.terminal-footer p {
-    isolation: isolate;
-}
-
 /* Glitches drawn over the text, never part of it. */
-.screen__overlay,
-.screen__burn {
+.screen__overlay {
     position: absolute;
     pointer-events: none;
     user-select: none;
@@ -441,25 +410,45 @@
     text-shadow: none !important;
 }
 
-/* The brand and the prompt of the first screen, burnt into the phosphor. */
-.screen__burn {
-    z-index: -1;
-    color: var(--fg);
-    opacity: .045;
-    isolation: isolate;
-}
-
-.screen__burn,
-.screen__burn * {
-    color: var(--fg) !important;
-    text-shadow: none !important;
-    animation: none !important;
-}
-
-.screen__burn .prompt {
-    font-weight: 400;
-}
-
 [data-crt='gl'] .screen__picture {
     transform: translate3d(0, 0, 0);
+}
+
+/*
+ * Once the glass shader paints the text on the curved tube, the DOM text
+ * stays for selecting, copying, find in page and screen readers, but
+ * without any colour of its own. A selection still shows.
+ */
+[data-text='gl'] .screen__content,
+[data-text='gl'] .screen__content *,
+[data-text='gl'] .screen__content *::before,
+[data-text='gl'] .screen__content *::after {
+    color: transparent !important;
+    background-color: transparent !important;
+    text-shadow: none !important;
+    text-decoration-color: transparent !important;
+    box-shadow: none !important;
+    caret-color: transparent !important;
+}
+
+[data-text='gl'] .screen__content ::placeholder {
+    color: transparent !important;
+}
+
+[data-text='gl'] .screen__content ::selection {
+    background: color-mix(in srgb, var(--fg) 45%, transparent);
+    color: var(--bg) !important;
+}
+
+[data-text='gl'] .screen__overlay {
+    display: none;
+}
+
+[data-text='gl'] .line {
+    animation: none;
+}
+
+[data-measuring] .screen__content,
+[data-measuring] .screen__content * {
+    transition: none !important;
 }
