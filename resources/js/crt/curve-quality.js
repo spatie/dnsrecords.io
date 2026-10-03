@@ -2,20 +2,41 @@ import { curveQualities } from './text-fx.js';
 
 /*
  * The curved text is an SVG filter over the whole picture. Chrome runs it on
- * the GPU, Safari and Firefox paint it on the CPU, so there anything that
- * makes them redo the whole filter costs a few hundred milliseconds on a
- * large Retina screen. The quality is measured instead of guessed: first how
- * long a frame takes when the colour fringes change, then a watch on the
- * frame times keeps stepping the curve down while long frames keep coming.
- * The outcome is remembered for a week.
+ * the GPU. Safari and Firefox paint it on the CPU, and on a large Retina
+ * screen a single repaint of it can take seconds. So Safari always gets flat
+ * text under the curved glass, Chrome keeps the full curve, and every other
+ * browser is measured: the first frames at the real size of the screen
+ * decide the quality, and a watch on the frame times keeps stepping the
+ * curve down while long frames keep coming. The outcome is remembered for a
+ * week.
  */
 
 const storageKey = 'crt-curve-quality';
 const rememberFor = 7 * 24 * 60 * 60 * 1000;
-const slowFrame = 34;
+const probeDuration = 1500;
+const slowFrame = 20;
 const longFrame = .06;
 const longFramesAllowed = 3;
 const longFrameWindow = 4;
+
+/**
+ * Safari, and every browser on iOS, paint SVG filters on HTML on the CPU and
+ * the curve makes them drop to a few frames per second on large screens, in
+ * ways a short measurement does not always catch. WebKit is the only engine
+ * reporting Apple as its vendor.
+ */
+export function isWebKit() {
+    return navigator.vendor === 'Apple Computer, Inc.';
+}
+
+/**
+ * Chromium runs SVG filters on the GPU. Its first frames are often slow while
+ * the glass starts up, which would wrongly flatten the curve there, so it
+ * only has the watch on long frames.
+ */
+function isChromium() {
+    return 'chrome' in window;
+}
 
 function remembered() {
     try {
@@ -44,12 +65,12 @@ function lower(quality) {
 }
 
 /**
- * The median time, in milliseconds, of a frame in which the colour fringes
- * change, the way they do in every glitch.
+ * The 90th percentile of the frame times over a short stretch, in milliseconds.
  */
-function measureFringeChange(curvedText, fringe, frames = 5) {
+function measureFrames(duration = probeDuration) {
     return new Promise(resolve => {
         const times = [];
+        const startedAt = performance.now();
 
         let previous = null;
 
@@ -59,19 +80,16 @@ function measureFringeChange(curvedText, fringe, frames = 5) {
             }
 
             previous = now;
-            curvedText.setFringe(times.length % 2 ? fringe + .01 : fringe);
 
-            if (times.length < frames) {
+            if (now - startedAt < duration) {
                 requestAnimationFrame(step);
 
                 return;
             }
 
-            curvedText.setFringe(fringe);
+            const sorted = times.sort((a, b) => a - b);
 
-            const sorted = times.slice(1).sort((a, b) => a - b);
-
-            resolve(sorted[Math.floor(sorted.length / 2)]);
+            resolve(sorted.length ? sorted[Math.floor(sorted.length * .9)] : Infinity);
         };
 
         requestAnimationFrame(step);
@@ -79,20 +97,24 @@ function measureFringeChange(curvedText, fringe, frames = 5) {
 }
 
 export function initialCurveQuality() {
+    if (isWebKit()) {
+        return 'off';
+    }
+
     return remembered() || 'full';
 }
 
 /**
- * Keeps the fringes still when changing them takes longer than about two
- * frames at 60 Hz. Skipped when an earlier visit already settled on a quality.
+ * Steps the curve down while the frames are slow. Skipped when an earlier
+ * visit already settled on a quality.
  */
-export async function tuneCurve(curvedText, fringe) {
-    if (remembered()) {
+export async function tuneCurve(curvedText) {
+    if (curvedText.quality === 'off' || isChromium() || remembered()) {
         return;
     }
 
-    if (curvedText.quality === 'full' && await measureFringeChange(curvedText, fringe) > slowFrame) {
-        curvedText.setQuality('steady');
+    while (curvedText.quality !== 'off' && await measureFrames() > slowFrame) {
+        curvedText.setQuality(lower(curvedText.quality));
     }
 
     remember(curvedText.quality);
