@@ -10,6 +10,9 @@ return [
      */
     'enforced_signals' => [
         BotSignal::CrawlerUserAgent,
+        BotSignal::MissingSecFetchHeaders,
+        BotSignal::DatacenterIp,
+        BotSignal::TooManyLookupsFromSubnet,
     ],
 
     'lookups_per_minute_per_subnet' => 30,
