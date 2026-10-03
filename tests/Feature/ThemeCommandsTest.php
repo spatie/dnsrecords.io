@@ -8,7 +8,7 @@ use Tests\TestCase;
 class ThemeCommandsTest extends TestCase
 {
     #[Test]
-    public function it_opens_mother_and_lcars_from_the_terminal()
+    public function it_opens_mother_and_lcars_from_the_terminal(): void
     {
         $this
             ->sendCommand('mother')
@@ -20,7 +20,7 @@ class ThemeCommandsTest extends TestCase
     }
 
     #[Test]
-    public function it_opens_mother_and_lcars_from_the_old_interface()
+    public function it_opens_mother_and_lcars_from_the_old_interface(): void
     {
         $this
             ->sendCommand('mother', '/old/mother')
@@ -32,7 +32,7 @@ class ThemeCommandsTest extends TestCase
     }
 
     #[Test]
-    public function it_mentions_mother_and_lcars_in_the_terminal_manual()
+    public function it_mentions_mother_and_lcars_in_the_terminal_manual(): void
     {
         $this->sendCommand('help');
 
@@ -43,7 +43,7 @@ class ThemeCommandsTest extends TestCase
     }
 
     #[Test]
-    public function it_redirects_the_old_theme_urls_permanently()
+    public function it_redirects_the_old_theme_urls_permanently(): void
     {
         $this
             ->get("{$this->baseUrl}/alien")
@@ -68,7 +68,7 @@ class ThemeCommandsTest extends TestCase
     }
 
     #[Test]
-    public function it_protects_the_old_theme_lookup_urls_like_lookups()
+    public function it_protects_the_old_theme_lookup_urls_like_lookups(): void
     {
         $this
             ->withHeader('User-Agent', 'ClaudeBot/1.0')
@@ -82,7 +82,7 @@ class ThemeCommandsTest extends TestCase
     }
 
     #[Test]
-    public function it_marks_every_interface_so_pages_are_only_swapped_within_one()
+    public function it_marks_every_interface_so_pages_are_only_swapped_within_one(): void
     {
         $this
             ->get("{$this->baseUrl}/")
@@ -106,7 +106,7 @@ class ThemeCommandsTest extends TestCase
     }
 
     #[Test]
-    public function it_goes_back_to_the_terminal_from_every_other_interface()
+    public function it_goes_back_to_the_terminal_from_every_other_interface(): void
     {
         foreach (['/lcars', '/old', '/mother'] as $interface) {
             foreach (['exit', 'home', 'terminal', 'default'] as $command) {
@@ -118,7 +118,7 @@ class ThemeCommandsTest extends TestCase
     }
 
     #[Test]
-    public function it_mentions_the_way_back_in_the_lcars_and_old_manual()
+    public function it_mentions_the_way_back_in_the_lcars_and_old_manual(): void
     {
         $this->sendCommand('help', '/lcars/help');
 
@@ -130,7 +130,7 @@ class ThemeCommandsTest extends TestCase
     }
 
     #[Test]
-    public function it_mentions_the_default_phosphor_in_the_terminal_manual()
+    public function it_mentions_the_default_phosphor_in_the_terminal_manual(): void
     {
         $this->sendCommand('help');
 
