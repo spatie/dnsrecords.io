@@ -1,28 +1,12 @@
-@use('Illuminate\Support\Str')
+@php
+    $isIdle = ! $terminalOutput && ! $errors->any() && ! session()->has('flash_notification');
+@endphp
 
-<div class="screen__content" id="screen-content">
-    <header class="status-bar">
-        <h1 class="status-bar__title">
-            <a href="{{ route('home') }}" data-glitch>dnsrecords.io</a>
-        </h1>
-        <p class="status-bar__state">
-            @if($terminalOutput?->recordCount())
-                <span>{{ $terminalOutput->recordCount() }} {{ Str::plural('record', $terminalOutput->recordCount()) }}</span>
-            @else
-                <span>resolver ready</span>
-            @endif
-            <span class="status-bar__clock" id="clock" aria-hidden="true"></span>
-        </p>
-    </header>
-
-    <main class="terminal" id="terminal">
-        @unless($terminalOutput || $errors->any() || session()->has('flash_notification'))
-            <div class="banner">
-                <pre class="banner__art banner__art--wide" aria-hidden="true">@include('crt.partials.bannerWide')</pre>
-                <pre class="banner__art banner__art--narrow" aria-hidden="true">@include('crt.partials.bannerNarrow')</pre>
-                <p class="banner__tagline">DNS record lookups just as you like 'em.</p>
-            </div>
-        @endunless
+<div class="screen__content" id="screen-content" data-title="{{ $domain ?? 'dnsrecords.io' }}">
+    <div class="terminal" id="terminal">
+        @if($isIdle)
+            <p class="welcome">Ready. Type a domain to see every record it has.</p>
+        @endif
 
         @if($terminalOutput)
             @include('crt.partials.results', ['terminalOutput' => $terminalOutput])
@@ -41,32 +25,43 @@
             {{ csrf_field() }}
 
             <label for="url" class="prompt__label">
-                <span aria-hidden="true"><span class="prompt__host">guest@dnsrecords.io:~</span>$</span>
+                <span aria-hidden="true"><span class="prompt__path">~</span> <span class="prompt__symbol">&#10095;</span></span>
                 <span class="visually-hidden">Domain or command</span>
             </label>
-            <span class="prompt__field">
-                <input
-                    id="url"
-                    name="command"
-                    class="prompt__input"
-                    placeholder="enter a domain"
-                    autocomplete="off"
-                    autocorrect="off"
-                    autocapitalize="off"
-                    autofocus="autofocus"
-                    spellcheck="false"
-                    enterkeyhint="go"
-                />
-                <span class="prompt__hint" aria-hidden="true">enter a domain</span>
-                <span class="prompt__cursor" id="cursor" aria-hidden="true"></span>
-            </span>
+
+            <input
+                id="url"
+                name="command"
+                class="prompt__input"
+                placeholder="spatie.be"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                autofocus="autofocus"
+                spellcheck="false"
+                enterkeyhint="go"
+            />
         </form>
 
         <p class="resolving" id="resolving" aria-live="polite"></p>
-    </main>
 
-    <footer class="terminal-footer">
-        <p>Type <kbd>help</kbd> for commands.</p>
-        <p>(c) <a href="https://spatie.be/open-source" data-glitch>spatie</a> {{ date('Y') }}. Miss the old look? <a href="{{ route('old.home') }}" data-glitch>/old</a></p>
-    </footer>
+
+        @unless($terminalOutput)
+            <div class="suggestions" aria-label="Try one of these">
+                @foreach(['spatie.be', 'github.com', 'ip', 'help'] as $suggestion)
+                    <button type="button" class="suggestion" data-command="{{ $suggestion }}">{{ $suggestion }}</button>
+                @endforeach
+            </div>
+        @endunless
+
+        @if($isIdle)
+            <dl class="commands">
+                <div><dt>&lt;domain&gt;</dt><dd>every record for that domain</dd></div>
+                <div><dt>ip</dt><dd>your own IP address</dd></div>
+                <div><dt>green, amber, white</dt><dd>change the terminal colour</dd></div>
+                <div><dt>degauss</dt><dd>give the window a wiggle</dd></div>
+                <div><dt>fx off</dt><dd>calm the glow and motion</dd></div>
+            </dl>
+        @endif
+    </div>
 </div>

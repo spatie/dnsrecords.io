@@ -1,0 +1,306 @@
+.results {
+    margin: 0 0 22px;
+}
+
+.results__header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px 16px;
+    margin: 0 0 12px;
+    padding-bottom: 14px;
+    border-bottom: .5px solid var(--term-line);
+}
+
+.results__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font: 600 19px/1.25 var(--font-ui);
+    letter-spacing: -.02em;
+    text-shadow: none;
+}
+
+.results__domain {
+    color: var(--term-text);
+}
+
+.results__count {
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .08);
+    color: var(--term-dim);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+.results__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .08);
+    box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .1);
+    color: var(--term-text);
+    font: 500 13px/1 var(--font-ui);
+    text-decoration: none;
+    text-shadow: none;
+    transition: background-color .25s var(--ease-out), transform .45s var(--ease-spring);
+}
+
+.screen__content .action {
+    color: var(--term-text);
+    text-decoration: none;
+}
+
+.action:hover {
+    background: rgba(255, 255, 255, .13);
+}
+
+.action:active {
+    transform: scale(.95);
+    transition-duration: .1s;
+}
+
+.action__icon {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.action__check {
+    stroke: #30d158;
+    stroke-width: 2;
+    stroke-dasharray: 18;
+    stroke-dashoffset: 18;
+    transition: stroke-dashoffset .45s var(--ease-out);
+}
+
+.action__copy {
+    transition: opacity .2s var(--ease-out), transform .35s var(--ease-spring);
+    transform-origin: center;
+}
+
+.is-copied .action__copy {
+    opacity: 0;
+    transform: scale(.6);
+}
+
+.is-copied .action__check {
+    stroke-dashoffset: 0;
+    transition-delay: .08s;
+}
+
+.results__output {
+    --line-padding: 10px;
+    --type-width: 7.5ch;
+    --ttl-width: 6ch;
+    --copy-width: 30px;
+
+    margin: 0 calc(-1 * var(--line-padding));
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre;
+    tab-size: 4;
+}
+
+.line {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    padding: 3px calc(var(--line-padding) + var(--ttl-width) + var(--copy-width)) 3px calc(var(--line-padding) + var(--type-width));
+    border-radius: 8px;
+    vertical-align: top;
+    white-space: pre-wrap;
+    transition: background-color .2s var(--ease-out);
+    animation: line-in .55s var(--ease-out) both;
+    animation-delay: var(--delay);
+}
+
+.line:hover {
+    background: var(--term-hover);
+}
+
+.line__type {
+    position: absolute;
+    top: 5px;
+    left: var(--line-padding);
+    padding: 0 7px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--pill) 16%, transparent);
+    box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--pill) 38%, transparent);
+    color: var(--pill);
+    font: 600 11px/1.75 var(--font-ui);
+    letter-spacing: .03em;
+    text-shadow: none;
+}
+
+.line__name {
+    display: inline-block;
+    width: calc(var(--name-width) + 2.5ch);
+    overflow: hidden;
+    color: var(--term-dim);
+    text-overflow: ellipsis;
+    vertical-align: top;
+    white-space: pre;
+}
+
+.line__value {
+    display: inline-block;
+    width: calc(100% - var(--name-width) - 2.5ch);
+    vertical-align: top;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    tab-size: 1;
+    text-indent: -1ch;
+}
+
+.line__ttl {
+    position: absolute;
+    top: 3px;
+    right: calc(var(--line-padding) + var(--copy-width));
+    width: var(--ttl-width);
+    color: var(--term-faint);
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    line-height: calc(14px * 1.55);
+    text-align: right;
+}
+
+.line__gap {
+    position: absolute;
+    opacity: 0;
+    white-space: pre;
+    pointer-events: none;
+}
+
+.line__text {
+    display: inline-block;
+    color: var(--term-dim);
+    white-space: pre-wrap;
+}
+
+.line__copy {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 24px;
+    margin-top: -12px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--term-dim);
+    opacity: 0;
+    transition: opacity .2s var(--ease-out), background-color .2s var(--ease-out), transform .4s var(--ease-spring);
+}
+
+.line:hover .line__copy,
+.line__copy:focus-visible,
+.line__copy.is-copied {
+    opacity: 1;
+}
+
+.line__copy:hover {
+    background: rgba(255, 255, 255, .1);
+    color: var(--term-text);
+}
+
+.line__copy:active {
+    transform: scale(.88);
+}
+
+.line__copy svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.line__type { --pill: #98989d; }
+.line__type--a { --pill: #64d2ff; }
+.line__type--aaaa { --pill: #8e8cff; }
+.line__type--cname { --pill: #40c8e0; }
+.line__type--mx { --pill: #ffb340; }
+.line__type--ns { --pill: #30d158; }
+.line__type--txt { --pill: #da8fff; }
+.line__type--soa { --pill: #ff6482; }
+.line__type--caa { --pill: #ffd60a; }
+.line__type--srv { --pill: #66d4cf; }
+.line__type--ptr { --pill: #c8a87a; }
+
+@keyframes line-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+
+@media (max-width: 640px) {
+    .results__output {
+        --type-width: 6.5ch;
+        --ttl-width: 5ch;
+        --copy-width: 0px;
+        --line-padding: 8px;
+
+        font-size: 12.5px;
+    }
+
+    .line__name {
+        width: 0;
+    }
+
+    .line__value {
+        width: 100%;
+    }
+
+    .line__ttl {
+        font-size: 11.5px;
+        line-height: calc(12.5px * 1.55);
+    }
+
+    .line__text {
+        tab-size: 1;
+    }
+
+    .line__copy {
+        display: none;
+    }
+
+    .results__title {
+        font-size: 17px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .results__output {
+        font-size: 15px;
+    }
+
+    .line__ttl {
+        line-height: calc(15px * 1.55);
+    }
+}

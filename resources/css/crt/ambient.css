@@ -1,0 +1,69 @@
+.ambient {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: var(--glow-opacity);
+    transition: opacity .8s var(--ease-in-out);
+}
+
+.ambient__glow {
+    position: absolute;
+    width: 70vmax;
+    height: 70vmax;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--glow) 0%, transparent 62%);
+    will-change: transform;
+    animation: drift 46s var(--ease-in-out) infinite alternate;
+}
+
+.ambient__glow--sky {
+    --glow: rgba(90, 200, 250, .75);
+
+    top: -30vmax;
+    left: -22vmax;
+}
+
+.ambient__glow--violet {
+    --glow: rgba(125, 92, 255, .6);
+
+    top: -26vmax;
+    right: -26vmax;
+    animation-duration: 58s;
+    animation-delay: -20s;
+}
+
+.ambient__glow--rose {
+    --glow: rgba(255, 79, 139, .45);
+
+    right: -18vmax;
+    bottom: -38vmax;
+    animation-duration: 52s;
+    animation-delay: -9s;
+}
+
+.ambient__glow--sun {
+    --glow: rgba(255, 204, 0, .38);
+
+    bottom: -40vmax;
+    left: -14vmax;
+    animation-duration: 64s;
+    animation-delay: -31s;
+}
+
+@keyframes drift {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(6vmax, 4vmax, 0) scale(1.08); }
+    100% { transform: translate3d(-4vmax, 7vmax, 0) scale(.94); }
+}
+
+[data-fx='off'] .ambient__glow {
+    animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ambient__glow {
+        animation: none;
+    }
+}

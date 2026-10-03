@@ -1,36 +1,104 @@
+@font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 100 800;
+    font-display: swap;
+    src: url('../../fonts/jetbrains-mono-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@property --term-text {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #f2f2f7;
+}
+
+@property --term-dim {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #8e8e98;
+}
+
+@property --term-accent {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #64d2ff;
+}
+
+@property --term-glow {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: rgba(170, 215, 255, .18);
+}
+
 :root {
-    --room: #1b1713;
-    --room-light: #2a241d;
-    --plastic: #cfc6af;
-    --plastic-light: #e6dfcd;
-    --plastic-dark: #a0957c;
-    --plastic-deep: #6e654f;
-    --plastic-ink: #4a4334;
-    --glass: #0a0c0b;
+    color-scheme: light dark;
 
-    --phosphor: #ffb43c;
-    --phosphor-dim: #b07a24;
-    --phosphor-faint: rgba(255, 180, 60, .14);
-    --phosphor-glow: rgba(255, 150, 30, .5);
-    --screen-bg: #130d05;
+    --font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', SFMono-Regular, 'Cascadia Code', Menlo, Consolas, 'Liberation Mono', monospace;
 
-    --screen-font: 'VT323', 'Cascadia Mono', 'Consolas', monospace;
-    --panel-font: 'Helvetica Neue', 'Arial', sans-serif;
-    --screen-size: clamp(19px, .9vw + 12px, 27px);
+    --page: #f5f5f7;
+    --ink: #1d1d1f;
+    --ink-2: #6e6e73;
+    --ink-3: #86868b;
+    --hairline: rgba(0, 0, 0, .1);
+    --glow-opacity: .6;
+    --window-shadow:
+        0 0 0 .5px rgba(0, 0, 0, .28),
+        0 1px 2px rgba(20, 10, 50, .08),
+        0 14px 34px -10px rgba(40, 20, 90, .28),
+        0 50px 100px -30px rgba(40, 20, 90, .4);
+
+    --term-bg: #17171b;
+    --term-bg-deep: #111114;
+    --term-text: #f2f2f7;
+    --term-dim: #8e8e98;
+    --term-faint: #5d5d68;
+    --term-accent: #64d2ff;
+    --term-glow: rgba(170, 215, 255, .18);
+    --term-hover: rgba(255, 255, 255, .045);
+    --term-line: rgba(255, 255, 255, .08);
+
+    --gradient: linear-gradient(90deg, #2997ff 0%, #7d5cff 48%, #ff4f8b 100%);
+
+    --ease-spring: cubic-bezier(.34, 1.45, .64, 1);
+    --ease-out: cubic-bezier(.22, 1, .36, 1);
+    --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+
+    transition:
+        --term-text .7s var(--ease-in-out),
+        --term-dim .7s var(--ease-in-out),
+        --term-accent .7s var(--ease-in-out),
+        --term-glow .7s var(--ease-in-out);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --page: #000;
+        --ink: #f5f5f7;
+        --ink-2: #a1a1a6;
+        --ink-3: #6e6e73;
+        --hairline: rgba(255, 255, 255, .14);
+        --glow-opacity: .42;
+        --window-shadow:
+            0 0 0 .5px rgba(255, 255, 255, .14),
+            0 1px 2px rgba(0, 0, 0, .4),
+            0 20px 50px -12px rgba(0, 0, 0, .7),
+            0 60px 120px -30px rgba(60, 30, 140, .35);
+    }
 }
 
 [data-phosphor='green'] {
-    --phosphor: #5bff8f;
-    --phosphor-dim: #2a9c4f;
-    --phosphor-faint: rgba(91, 255, 143, .13);
-    --phosphor-glow: rgba(40, 255, 110, .45);
-    --screen-bg: #04110a;
+    --term-text: #d8ffe3;
+    --term-dim: #7ea78b;
+    --term-accent: #30d158;
+    --term-glow: rgba(48, 209, 88, .3);
 }
 
-[data-phosphor='white'] {
-    --phosphor: #e8efff;
-    --phosphor-dim: #8994a8;
-    --phosphor-faint: rgba(232, 239, 255, .12);
-    --phosphor-glow: rgba(190, 210, 255, .4);
-    --screen-bg: #0a0c12;
+[data-phosphor='amber'] {
+    --term-text: #ffe8c7;
+    --term-dim: #b08d5f;
+    --term-accent: #ff9f0a;
+    --term-glow: rgba(255, 159, 10, .3);
 }

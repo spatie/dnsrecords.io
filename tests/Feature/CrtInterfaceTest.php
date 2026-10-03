@@ -8,12 +8,12 @@ use Tests\TestCase;
 class CrtInterfaceTest extends TestCase
 {
     #[Test]
-    public function it_shows_the_crt_monitor_on_the_homepage()
+    public function it_shows_the_terminal_window_on_the_homepage()
     {
         $this
             ->get("{$this->baseUrl}/")
             ->assertSuccessful()
-            ->assertSee('class="monitor"', false)
+            ->assertSee('class="window"', false)
             ->assertSee('<title>DNS records lookup ~ dnsrecords.io</title>', false)
             ->assertSee('<meta name="description" content="DNS record lookups just as you like &#039;em" />', false)
             ->assertSee('action="https://dnsrecords.io.dev"', false)
@@ -61,7 +61,7 @@ class CrtInterfaceTest extends TestCase
             ->withHeader('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36')
             ->get("{$this->baseUrl}/nothing-here.be")
             ->assertNotFound()
-            ->assertSee('class="monitor"', false)
+            ->assertSee('class="window"', false)
             ->assertSee('<span class="message__label">err</span>', false)
             ->assertSee('Could not fetch dns records', false);
     }
@@ -104,7 +104,43 @@ class CrtInterfaceTest extends TestCase
         $this
             ->sendCommand('ip')
             ->assertSuccessful()
-            ->assertSee('class="monitor"', false)
+            ->assertSee('class="window"', false)
             ->assertSee('Your ip address is');
+    }
+
+    #[Test]
+    public function it_offers_the_terminal_controls()
+    {
+        $this
+            ->get("{$this->baseUrl}/")
+            ->assertSuccessful()
+            ->assertSee('role="radiogroup"', false)
+            ->assertSee('data-phosphor-option="green"', false)
+            ->assertSee('data-phosphor-option="amber"', false)
+            ->assertSee('aria-pressed="true" aria-label="Glow and motion"', false);
+    }
+
+    #[Test]
+    public function it_does_not_link_to_lookup_pages_from_the_homepage()
+    {
+        $this
+            ->get("{$this->baseUrl}/")
+            ->assertSuccessful()
+            ->assertSee('data-command="spatie.be"', false)
+            ->assertSee('data-command="help"', false)
+            ->assertDontSee('href="https://dnsrecords.io.dev/help"', false)
+            ->assertDontSee('href="https://dnsrecords.io.dev/spatie.be"', false);
+    }
+
+    #[Test]
+    public function it_shows_the_record_count_and_copy_action_with_results()
+    {
+        $this
+            ->sendCommand('spatie.be')
+            ->assertSuccessful()
+            ->assertSee('data-title="spatie.be"', false)
+            ->assertSee('<span class="results__count">2 records</span>', false)
+            ->assertSee('id="copy-results"', false)
+            ->assertSee('<span class="line__gap">', false);
     }
 }
