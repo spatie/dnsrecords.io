@@ -1,3 +1,5 @@
+import { between, exponential } from './random.js';
+
 /*
  * Puts the DOM text itself on the curved glass: an SVG displacement filter
  * bends the picture along the same barrel curve as the glass shader, with
@@ -174,17 +176,9 @@ export function createCurvedText(picture, { curve, fringe = .035, quality = 'ful
     };
 }
 
-function exponential(mean, minimum = 0) {
-    return minimum + -Math.log(1 - Math.random()) * mean;
-}
+const terminalLines = '.line, .brand, .prompt, .resolving, .results__header, .message, .terminal-footer p';
 
-function between(min, max) {
-    return min + Math.random() * (max - min);
-}
-
-const lineSelector = '.line, .brand, .prompt, .resolving, .results__header, .message, .terminal-footer p';
-
-const echoSelector = '.line, .brand, .results__header, .message, .terminal-footer p';
+const terminalEchoLines = '.line, .brand, .results__header, .message, .terminal-footer p';
 
 const corruptGlyphs = '░▒▓█▀▄▌▐■▚▞╳┼╬#%&@$';
 
@@ -270,9 +264,10 @@ export function createBurnIn(picture) {
  * Small lives of individual lines: a slightly uneven brightness, a line that
  * jitters sideways now and then, and tears where a few lines slip with an
  * RGB split and snap back. Also dims and lifts the whole picture in step
- * with the flicker of the glass.
+ * with the flicker of the glass. Other interfaces pass their own lines, a
+ * pace (below 1 makes the events rarer) and a strength for the flicker.
  */
-export function createTextLife(picture) {
+export function createTextLife(picture, { lines: lineSelector = terminalLines, echoLines: echoSelector = terminalEchoLines, pace = 1, strength = 1 } = {}) {
     const screen = picture.parentNode;
     const overlay = createOverlay(picture);
 
@@ -467,7 +462,7 @@ export function createTextLife(picture) {
         tear,
         dropout,
         frame(time, { flicker, breath, surge, disturb, motion }) {
-            const opacity = Math.max(.82, Math.min(.999, 1 - breath * 1.6 + flicker * 2.5 + surge * 2 - disturb * .06));
+            const opacity = Math.max(.82, Math.min(.999, 1 - (breath * 1.6 - flicker * 2.5 - surge * 2 + disturb * .06) * strength));
 
             if (Math.abs(opacity - lastOpacity) > .002) {
                 picture.style.opacity = opacity.toFixed(3);
@@ -486,27 +481,27 @@ export function createTextLife(picture) {
                     jitter(line, (Math.random() < .5 ? -1 : 1) * between(.8, 2.2), between(90, 180));
                 }
 
-                nextJitter = time + exponential(2.4, .4);
+                nextJitter = time + exponential(2.4, .4) / pace;
             }
 
             if (time > nextDrift) {
                 drift();
-                nextDrift = time + exponential(1.8, .3);
+                nextDrift = time + exponential(1.8, .3) / pace;
             }
 
             if (time > nextCorruption) {
                 corrupt();
-                nextCorruption = time + exponential(4.5, 1);
+                nextCorruption = time + exponential(4.5, 1) / pace;
             }
 
             if (time > nextEcho) {
                 echo();
-                nextEcho = time + exponential(10, 3);
+                nextEcho = time + exponential(10, 3) / pace;
             }
 
             if (disturb > .35 && time > nextBurst) {
                 tear(Math.random(), .5 + disturb * .5);
-                nextBurst = time + exponential(.35, .15);
+                nextBurst = time + exponential(.35, .15) / pace;
             }
         },
         reset() {

@@ -39,7 +39,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#060706">
+    <meta name="theme-color" content="#070807">
 </head>
 
 <body class="mother-page">
@@ -49,13 +49,10 @@
 
     <div class="screen" id="screen">
         <div class="screen__picture" id="picture">
-            <header class="mother-bar">
-                <a class="mother-bar__name" href="{{ route('mother.home') }}">MU/TH/UR 6000</a>
-                <span class="mother-bar__interface" aria-hidden="true">Interface 2037</span>
-            </header>
-
             @include('alien.partials.screen')
         </div>
+
+        <canvas class="phosphor" id="phosphor" aria-hidden="true"></canvas>
     </div>
 
     <p class="visually-hidden" id="announcer" aria-live="polite"></p>

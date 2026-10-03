@@ -1,11 +1,13 @@
+import { approach } from '../crt/random.js';
+
 /*
  * The room around the tube: rows of small indicator lights that switch on
  * and off at their own pace, like the walls of the room Mother is consulted
- * from. Drawn on a canvas a few times a second, only around the screen.
+ * from. Drawn on a canvas around the screen; on every frame only the
+ * lights that change are drawn again, so the fades stay smooth and cheap.
  */
 
 const spacing = 26;
-const framesPerSecond = 8;
 
 const colours = [
     { colour: [255, 236, 200], weight: .78 },
@@ -33,7 +35,8 @@ export function createRoomLights(canvas, screen) {
 
     let lights = [];
     let ratio = 1;
-    let timer = null;
+    let frame = null;
+    let lastFrameAt = null;
 
     function layout() {
         ratio = Math.min(2, window.devicePixelRatio || 1);
@@ -66,43 +69,59 @@ export function createRoomLights(canvas, screen) {
 
         lights.forEach(light => {
             light.level = light.isOn ? 1 : 0;
+            light.drawnLevel = light.level;
         });
 
         draw();
     }
 
+    function drawLight(light) {
+        const [red, green, blue] = light.colour;
+        const glow = .05 + light.level * .95;
+
+        context.clearRect(light.x - 6, light.y - 6, 12, 12);
+
+        context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${(glow * .16).toFixed(3)})`;
+        context.beginPath();
+        context.arc(light.x, light.y, 4.2, 0, Math.PI * 2);
+        context.fill();
+
+        context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${(.08 + light.level * .82).toFixed(3)})`;
+        context.beginPath();
+        context.arc(light.x, light.y, 1.6, 0, Math.PI * 2);
+        context.fill();
+
+        light.drawnLevel = light.level;
+    }
+
     function draw() {
         context.setTransform(ratio, 0, 0, ratio, 0, 0);
         context.clearRect(0, 0, canvas.width, canvas.height);
-
-        lights.forEach(({ x, y, colour, level }) => {
-            const [red, green, blue] = colour;
-            const glow = .05 + level * .95;
-
-            context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${(glow * .16).toFixed(3)})`;
-            context.beginPath();
-            context.arc(x, y, 4.2, 0, Math.PI * 2);
-            context.fill();
-
-            context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${(.08 + level * .82).toFixed(3)})`;
-            context.beginPath();
-            context.arc(x, y, 1.6, 0, Math.PI * 2);
-            context.fill();
-        });
+        lights.forEach(drawLight);
     }
 
-    function tick() {
-        const delta = 1 / framesPerSecond;
+    /**
+     * Every frame, a few lights switch at random and fade towards their new
+     * state; only the lights that changed are drawn again.
+     */
+    function tick(now) {
+        frame = requestAnimationFrame(tick);
+
+        const delta = lastFrameAt === null ? 0 : Math.min(.1, (now - lastFrameAt) / 1000);
+
+        lastFrameAt = now;
 
         lights.forEach(light => {
             if (Math.random() < light.rate * delta) {
                 light.isOn = ! light.isOn;
             }
 
-            light.level += ((light.isOn ? 1 : 0) - light.level) * .7;
-        });
+            light.level = approach(light.level, light.isOn ? 1 : 0, 14, delta);
 
-        draw();
+            if (Math.abs(light.level - light.drawnLevel) > .004) {
+                drawLight(light);
+            }
+        });
     }
 
     function start() {
@@ -112,12 +131,13 @@ export function createRoomLights(canvas, screen) {
             return;
         }
 
-        timer = setInterval(tick, 1000 / framesPerSecond);
+        lastFrameAt = null;
+        frame = requestAnimationFrame(tick);
     }
 
     function stop() {
-        clearInterval(timer);
-        timer = null;
+        cancelAnimationFrame(frame);
+        frame = null;
     }
 
     let resizeFrame = null;

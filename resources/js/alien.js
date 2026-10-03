@@ -1,29 +1,47 @@
-import { followOutput } from './crt/follow-output.js';
 import { fetchScreen, lookupUrl } from './crt/lookup.js';
-import { typeOut } from './alien/typewriter.js';
+import { writeOut, randomGlyph } from './alien/writer.js';
+import { createPhosphor } from './alien/phosphor.js';
 import { createRoomLights } from './alien/room-lights.js';
 
 const root = document.documentElement;
 const announcer = document.getElementById('announcer');
 const screenElement = document.getElementById('screen');
+const phosphor = createPhosphor(document.getElementById('phosphor'), screenElement);
 
 const element = {
     content: () => document.getElementById('screen-content'),
     exchange: () => document.getElementById('exchange'),
     form: () => document.getElementById('form'),
     input: () => document.getElementById('url'),
+    mirror: () => document.getElementById('inquiry-mirror'),
     status: () => document.getElementById('resolving'),
     results: () => document.getElementById('results'),
 };
 
-let typing = null;
+const underlineFlashDuration = 80;
+const pauseBeforeBeam = 125;
+const cursorGlyphInterval = { typing: 50, resting: 180 };
+const exitCommands = ['exit', 'home', 'terminal', 'default'];
 
-const output = followOutput(() => document.getElementById('screen-content'), () => document.getElementById('terminal'));
+let writing = null;
+let booting = null;
 let lookupInProgress = null;
 let hasOverride = false;
+let lastKeystrokeAt = 0;
+
+/**
+ * Following the answer: while Mother writes, the screen scrolls along so
+ * the newest output stays in view. Scrolling up stops it, scrolling back to
+ * the bottom or a new inquiry starts it again.
+ */
+const follow = { isOn: root.getAttribute('data-page') === 'result', lastTop: 0 };
 
 function prefersReducedMotion() {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function wait(milliseconds) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
 function signal(type) {
@@ -43,6 +61,7 @@ function focusInput() {
 
     if (input && document.activeElement !== input) {
         input.focus({ preventScroll: true });
+        input.setSelectionRange(input.value.length, input.value.length);
     }
 }
 
@@ -50,115 +69,219 @@ function report(message) {
     const status = element.status();
 
     if (status) {
-        status.classList.remove('mother-processing');
         status.textContent = message;
     }
 }
 
-function finishTyping() {
-    if (typing && ! typing.isDone) {
-        typing.finish();
+function smallFontSize() {
+    return parseFloat(getComputedStyle(element.exchange() || document.body).fontSize) || 16;
+}
+
+function finishWriting() {
+    if (writing && ! writing.isDone) {
+        writing.finish();
     }
 }
 
-function type({ skip = null } = {}) {
-    const exchange = element.exchange();
+function finishBoot() {
+    if (booting) {
+        booting();
+    }
+}
 
-    finishTyping();
+function settleInquiry() {
+    element.form()?.classList.remove('is-waiting');
+    updateMirror();
+}
 
-    if (! exchange) {
+/**
+ * Small hot blocks around a few of the cells Mother is writing.
+ */
+function sparkAround(edges) {
+    if (! edges.length || prefersReducedMotion() || Math.random() > .12) {
         return;
     }
 
-    typing = typeOut(exchange, {
-        skip,
+    const points = edges
+        .filter(() => Math.random() < Math.min(1, 3 / edges.length))
+        .map(edge => phosphor.localRect(edge));
+
+    phosphor.sparks(points, { fontSize: smallFontSize() });
+}
+
+function scrollBehavior() {
+    return prefersReducedMotion() ? 'instant' : 'smooth';
+}
+
+function isAtBottom(content) {
+    return content.scrollTop + content.clientHeight >= content.scrollHeight - 4;
+}
+
+function followOutput({ toEnd = false } = {}) {
+    const content = element.content();
+    const exchange = element.exchange();
+
+    if (! follow.isOn || ! content || ! exchange) {
+        return;
+    }
+
+    let target = content.scrollHeight - content.clientHeight;
+
+    if (! toEnd) {
+        const shown = exchange.querySelectorAll('.is-shown');
+        const newest = shown[shown.length - 1];
+
+        if (! newest) {
+            return;
+        }
+
+        const padding = parseFloat(getComputedStyle(content).paddingBottom) || 0;
+        const bottom = newest.getBoundingClientRect().bottom - content.getBoundingClientRect().top + content.scrollTop;
+
+        target = Math.min(target, bottom + padding - content.clientHeight);
+    }
+
+    if (target > content.scrollTop + 2) {
+        content.scrollTo({ top: target, behavior: scrollBehavior() });
+    }
+}
+
+/**
+ * Follows only when a new line comes into view, so a smooth scroll is not
+ * restarted on every frame.
+ */
+let newestFollowed = null;
+
+function followNewest() {
+    const exchange = element.exchange();
+    const shown = exchange ? exchange.querySelectorAll('.is-shown') : [];
+    const newest = shown[shown.length - 1] || null;
+
+    if (newest !== newestFollowed) {
+        newestFollowed = newest;
+        followOutput();
+    }
+}
+
+function restartFollowing() {
+    const content = element.content();
+
+    follow.isOn = true;
+    follow.lastTop = content ? content.scrollTop : 0;
+}
+
+document.addEventListener('scroll', event => {
+    const content = element.content();
+
+    if (event.target !== content) {
+        return;
+    }
+
+    if (content.scrollTop < follow.lastTop - 2) {
+        follow.isOn = false;
+    }
+
+    if (isAtBottom(content)) {
+        follow.isOn = true;
+    }
+
+    follow.lastTop = content.scrollTop;
+}, true);
+
+function write() {
+    const exchange = element.exchange();
+
+    finishWriting();
+
+    if (! exchange) {
+        settleInquiry();
+
+        return;
+    }
+
+    writing = writeOut(exchange, {
         instant: prefersReducedMotion(),
+        onUpdate: edges => {
+            sparkAround(edges);
+            followNewest();
+        },
         onDone: () => {
             const copyButton = document.getElementById('copy-results');
 
             if (copyButton) {
                 copyButton.hidden = false;
             }
+
+            settleInquiry();
+            followOutput({ toEnd: true });
+            focusInput();
         },
     });
 }
 
-function line(text, { label = null, attributes = {} } = {}) {
+function line(text, { className = '' } = {}) {
     const paragraph = document.createElement('p');
 
-    paragraph.className = 'mother-line';
+    paragraph.className = `mother-line ${className}`.trim();
     paragraph.setAttribute('data-line', '');
-    Object.entries(attributes).forEach(([name, value]) => paragraph.setAttribute(name, value));
-
-    if (label) {
-        const labelElement = document.createElement('span');
-
-        labelElement.className = 'mother-label';
-        labelElement.textContent = label;
-        paragraph.append(labelElement, ' ');
-    }
-
-    paragraph.append(text);
-
-    return paragraph;
-}
-
-function inquiryLine(inquiry) {
-    const paragraph = line('', { label: 'Inquiry', attributes: { 'data-inquiry': '' } });
-    const echo = document.createElement('span');
-
-    paragraph.classList.add('mother-line--inquiry');
-    echo.className = 'mother-line__echo';
-    echo.textContent = inquiry;
-    paragraph.append(echo);
+    paragraph.textContent = text;
 
     return paragraph;
 }
 
 /**
- * A blur over the whole picture is slow in browsers that paint the curve on
- * the CPU or leave the text flat (Safari), so there the picture only dims
- * and brightens as it fades.
+ * The phosphor lets go of the old answer quickly.
  */
-function fadeFilter(brightness, blur) {
-    const isBlurSlow = ['steady', 'lite', 'off'].includes(root.getAttribute('data-curve'));
+async function clearExchange() {
+    const exchange = element.exchange();
 
-    return isBlurSlow ? `brightness(${brightness})` : `brightness(${brightness}) blur(${blur}px)`;
-}
-
-/**
- * Clears the screen the way a phosphor does: the old picture lingers a
- * moment and fades, then the new one is written.
- */
-async function clearScreen(target) {
-    if (! target || prefersReducedMotion()) {
+    if (! exchange || prefersReducedMotion() || ! exchange.children.length) {
         return;
     }
 
-    await target.animate([
-        { opacity: 1, filter: fadeFilter(1, 0) },
-        { opacity: .5, filter: fadeFilter(1.35, .3), offset: .2 },
-        { opacity: 0, filter: fadeFilter(1, 1.2) },
-    ], { duration: 360, easing: 'cubic-bezier(.3, 0, .6, 1)', fill: 'forwards' }).finished.catch(() => {});
+    await exchange.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
 }
 
-async function respond(inquiry, responseLines) {
+function resetExchange(children) {
     const exchange = element.exchange();
 
-    finishTyping();
-    await clearScreen(exchange);
-
-    const lines = [inquiryLine(inquiry)];
-
-    responseLines.forEach((text, index) => lines.push(line(text, { label: index === 0 ? 'Response' : null })));
-    lines.slice(2).forEach(paragraph => paragraph.classList.add('mother-line--detail'));
-    lines.push(line('Interface 2037 ready for inquiry', { attributes: { class: 'mother-line mother-line--ready' } }));
-
     exchange.getAnimations().forEach(animation => animation.cancel());
-    exchange.replaceChildren(...lines);
-    exchange.setAttribute('data-announce', `Response: ${responseLines.join(' ')}`);
+    exchange.replaceChildren(...children);
+    restartFollowing();
+}
+
+/**
+ * What happens the moment an inquiry is entered, as in the film: the
+ * underline is drawn hot for two frames, the cursor jumps ahead and goes.
+ */
+async function enter() {
+    const form = element.form();
+    const mirror = element.mirror();
+
+    form.classList.add('is-entered', 'is-waiting');
+    updateMirror();
+
+    if (prefersReducedMotion()) {
+        return;
+    }
+
+    form.classList.add('is-flashing');
+    phosphor.flare(mirror.querySelector('.inquiry__before'));
+    await wait(underlineFlashDuration);
+    form.classList.remove('is-flashing');
+}
+
+async function respond(responseLines) {
+    finishWriting();
+    await enter();
+    await clearExchange();
+
+    const lines = responseLines.map((text, index) => line(text, { className: index > 0 ? 'mother-line--detail' : '' }));
+
+    resetExchange(lines);
+    element.exchange().setAttribute('data-announce', `Response: ${responseLines.join(' ')}`);
     report('');
-    type();
+    write();
     announce(`Response: ${responseLines.join(' ')}`);
 }
 
@@ -203,30 +326,36 @@ function copyRecords(button = null) {
 const chances = ['what are my chances', 'what are my chances?', 'what are our chances', 'what are our chances?'];
 
 const localCommands = {
-    copy: () => copyRecords(),
-    terminal: () => window.location.assign('/'),
-    'emergency command override 100375': inquiry => {
-        hasOverride = true;
-        respond(inquiry, ['Override accepted.']);
+    copy: () => {
+        enter().then(settleInquiry);
+        copyRecords();
     },
-    'special order 937': inquiry => specialOrder(inquiry),
-    'what is special order 937': inquiry => specialOrder(inquiry),
-    'what is special order 937?': inquiry => specialOrder(inquiry),
-    'request enhancement': inquiry => respond(inquiry, ['No further enhancement.', 'Special order 937.', 'Science officer eyes only.']),
+    'emergency command override 100375': () => {
+        hasOverride = true;
+        respond(['Override accepted.']);
+    },
+    'special order 937': () => specialOrder(),
+    'what is special order 937': () => specialOrder(),
+    'what is special order 937?': () => specialOrder(),
+    'request enhancement': () => respond(['No further enhancement.', 'Special order 937.', 'Science officer eyes only.']),
 };
 
 chances.forEach(question => {
-    localCommands[question] = inquiry => respond(inquiry, ['Does not compute.']);
+    localCommands[question] = () => respond(['Does not compute.']);
 });
 
-function specialOrder(inquiry) {
+exitCommands.forEach(command => {
+    localCommands[command] = () => window.location.assign('/');
+});
+
+function specialOrder() {
     if (! hasOverride) {
-        respond(inquiry, ['Unable to clarify.', 'Special order 937.', 'Science officer eyes only.']);
+        respond(['Unable to clarify.', 'Special order 937.', 'Science officer eyes only.']);
 
         return;
     }
 
-    respond(inquiry, [
+    respond([
         'dnsrecords.io rerouted to new name servers.',
         'Investigate zone. Gather records.',
         'Priority one.',
@@ -248,26 +377,38 @@ function runLocalCommand(inquiry) {
     return true;
 }
 
-async function showProcessing(inquiry) {
-    const exchange = element.exchange();
+/**
+ * While the records are fetched the answer area fills with noise, like
+ * the start of the boot sequence in the film.
+ */
+async function showProcessing() {
+    finishWriting();
+    await enter();
+    await clearExchange();
+    resetExchange([]);
+    report('Processing');
 
-    finishTyping();
-    await clearScreen(exchange);
-
-    exchange.getAnimations().forEach(animation => animation.cancel());
-    exchange.replaceChildren(inquiryLine(inquiry));
-    type();
-
-    const status = element.status();
-
-    if (status) {
-        status.textContent = 'Processing';
-        status.classList.add('mother-processing');
+    if (prefersReducedMotion()) {
+        return null;
     }
+
+    const exchange = element.exchange();
+    const area = phosphor.localRect(exchange);
+    const fontSize = smallFontSize();
+
+    area.height = Math.max(fontSize * 1.45 * 6, Math.min(fontSize * 1.45 * 14, screenElement.clientHeight - area.y - fontSize * 4));
+    area.width = Math.max(area.width, screenElement.clientWidth * .6);
+
+    return phosphor.noise(area, { intensity: .55, fontSize });
 }
 
-async function swapScreen(screenPage) {
+/**
+ * Swaps in the answer. The ready line and the inquiry stay where they are
+ * (and keep whatever is being typed); everything else is replaced.
+ */
+function swapScreen(screenPage, { inquiry = null } = {}) {
     const content = element.content();
+    const currentForm = element.form();
 
     document.title = screenPage.title;
 
@@ -280,16 +421,25 @@ async function swapScreen(screenPage) {
     root.setAttribute('data-page', screenPage.page);
 
     const nextContent = document.adoptNode(screenPage.content);
-    const currentInquiry = content.querySelector('[data-inquiry] .mother-line__echo');
-    const nextInquiry = nextContent.querySelector('[data-inquiry] .mother-line__echo');
-    const isSameInquiry = currentInquiry && nextInquiry && currentInquiry.textContent.trim().toLowerCase() === nextInquiry.textContent.trim().toLowerCase();
+    const nextForm = nextContent.querySelector('#form');
 
-    if (! isSameInquiry) {
-        await clearScreen(content.querySelector('#exchange'));
+    if (nextForm && currentForm) {
+        const nextValue = nextForm.querySelector('#url').value;
+        const input = currentForm.querySelector('#url');
+
+        if (inquiry === null) {
+            input.value = nextValue;
+        }
+
+        currentForm.classList.toggle('is-entered', input.value !== '');
+        nextForm.replaceWith(currentForm);
     }
 
     content.replaceWith(nextContent);
-    mountContent({ skip: isSameInquiry ? '[data-inquiry]' : null });
+    element.content().scrollTop = 0;
+    restartFollowing();
+    write();
+    focusInput();
     signal('processing-end');
 
     const exchange = element.exchange();
@@ -307,19 +457,24 @@ async function lookup(command) {
     lookupInProgress = attempt;
     signal('processing-start');
 
-    const [result] = await Promise.all([
-        fetchScreen(url),
-        showProcessing(command),
-    ]);
+    const startedAt = performance.now();
+    const [result, noise] = await Promise.all([fetchScreen(url), showProcessing()]);
+
+    if (noise) {
+        await wait(Math.max(0, 420 - (performance.now() - startedAt)));
+        noise.stop();
+    }
 
     if (lookupInProgress !== attempt) {
         return;
     }
 
     lookupInProgress = null;
+    report('');
 
     if (result.type !== 'screen') {
         signal('processing-end');
+        settleInquiry();
     }
 
     if (result.type === 'navigate') {
@@ -336,23 +491,25 @@ async function lookup(command) {
     }
 
     history.pushState({ mother: true }, '', result.url);
-
-    await swapScreen(result.screen);
+    swapScreen(result.screen, { inquiry: command });
 }
 
-function run(command) {
+function run(command, { echo = false } = {}) {
     const inquiry = command.trim();
     const input = element.input();
 
+    finishBoot();
+
     if (inquiry === '') {
-        finishTyping();
+        finishWriting();
 
         return;
     }
 
-    if (input) {
-        input.value = '';
-        updateMirror();
+    restartFollowing();
+
+    if (echo && input) {
+        input.value = inquiry;
     }
 
     if (runLocalCommand(inquiry)) {
@@ -405,7 +562,7 @@ document.addEventListener('click', event => {
     const commandButton = event.target.closest('[data-command]');
 
     if (commandButton) {
-        run(commandButton.getAttribute('data-command'));
+        run(commandButton.getAttribute('data-command'), { echo: true });
 
         return;
     }
@@ -422,9 +579,8 @@ document.addEventListener('click', event => {
         return;
     }
 
-    if (typing && ! typing.isDone) {
-        finishTyping();
-    }
+    finishBoot();
+    finishWriting();
 
     setTimeout(() => {
         if (window.getSelection().toString() === '') {
@@ -433,31 +589,81 @@ document.addEventListener('click', event => {
     }, 200);
 });
 
+/**
+ * The ready line and the inquiry scroll away with a long answer; typing
+ * brings them back into view.
+ */
+function revealInquiry() {
+    const content = element.content();
+    const form = element.form();
+
+    if (! content || ! form || form.getBoundingClientRect().top >= content.getBoundingClientRect().top) {
+        return;
+    }
+
+    follow.isOn = false;
+    content.scrollTo({ top: 0, behavior: scrollBehavior() });
+}
+
+function isPrintable(event) {
+    return event.key.length === 1 && ! event.metaKey && ! event.ctrlKey && ! event.altKey;
+}
+
 document.addEventListener('keydown', event => {
-    if (typing && ! typing.isDone && ! ['Shift', 'Alt', 'Control', 'Meta', 'Tab'].includes(event.key)) {
-        finishTyping();
+    if (! ['Shift', 'Alt', 'Control', 'Meta', 'Tab'].includes(event.key)) {
+        finishBoot();
+        finishWriting();
     }
 
     const input = element.input();
+    const form = element.form();
 
     if (event.key === '/' && document.activeElement !== input && ! event.target.closest('input, textarea')) {
         event.preventDefault();
         focusInput();
+
+        return;
     }
 
-    if (event.key === 'Escape' && input && document.activeElement === input) {
+    if (! input || document.activeElement !== input) {
+        return;
+    }
+
+    if (event.key === 'Escape') {
         input.value = '';
+        form.classList.remove('is-entered');
         updateMirror();
+
+        return;
+    }
+
+    revealInquiry();
+
+    if (form.classList.contains('is-entered') && event.key !== 'Enter') {
+        form.classList.remove('is-entered', 'is-waiting');
+
+        if (isPrintable(event)) {
+            input.value = '';
+        }
+    }
+});
+
+document.addEventListener('paste', event => {
+    const form = element.form();
+
+    if (form && event.target === element.input() && form.classList.contains('is-entered')) {
+        form.classList.remove('is-entered', 'is-waiting');
+        element.input().value = '';
     }
 });
 
 /**
  * Keeps the mirror of the inquiry input in step with what is typed, with
- * the block cursor at the caret position.
+ * the cursor cell at the caret position.
  */
 function updateMirror() {
     const input = element.input();
-    const mirror = document.getElementById('inquiry-mirror');
+    const mirror = element.mirror();
 
     if (! input || ! mirror) {
         return;
@@ -477,6 +683,66 @@ function updateMirror() {
 
 ['input', 'focusin', 'focusout', 'keyup'].forEach(type => document.addEventListener(type, updateMirror));
 document.addEventListener('selectionchange', updateMirror);
+document.addEventListener('input', () => {
+    lastKeystrokeAt = performance.now();
+});
+
+/**
+ * The cursor is the next cell flickering through overstruck glyphs, hot
+ * yellow or cyan. It flickers every film frame while typing and slows down
+ * when nothing is typed.
+ */
+function startCursor() {
+    let lastChangeAt = 0;
+
+    const tick = now => {
+        requestAnimationFrame(tick);
+
+        const mirror = element.mirror();
+        const cursor = mirror?.querySelector('.inquiry__cursor');
+
+        if (! cursor || prefersReducedMotion() || mirror.classList.contains('is-idle')) {
+            return;
+        }
+
+        const isTyping = now - lastKeystrokeAt < 700;
+
+        if (now - lastChangeAt < (isTyping ? cursorGlyphInterval.typing : cursorGlyphInterval.resting)) {
+            return;
+        }
+
+        lastChangeAt = now;
+        cursor.setAttribute('data-a', randomGlyph());
+        cursor.setAttribute('data-b', randomGlyph());
+        cursor.setAttribute('data-tint', Math.random() < .7 ? 'yellow' : 'cyan');
+    };
+
+    requestAnimationFrame(tick);
+}
+
+/**
+ * A rare disturbance on a resting screen: a bar of light along one of the
+ * lines, every half a minute to a minute and a half.
+ */
+function scheduleGlitches() {
+    const delay = 30000 + Math.random() * 60000;
+
+    setTimeout(() => {
+        const isResting = ! document.hidden && ! prefersReducedMotion() && ! phosphor.isBusy() && (! writing || writing.isDone) && ! lookupInProgress && performance.now() - lastKeystrokeAt > 4000;
+        const candidates = Array.from(document.querySelectorAll('.mother-ready, .matrix__title, .mother-line, .records > .record, .roots__row'))
+            .filter(candidate => {
+                const rect = candidate.getBoundingClientRect();
+
+                return rect.height > 0 && rect.top > 0 && rect.bottom < window.innerHeight;
+            });
+
+        if (isResting && candidates.length) {
+            phosphor.glitch(candidates[Math.floor(Math.random() * candidates.length)]);
+        }
+
+        scheduleGlitches();
+    }, delay);
+}
 
 window.addEventListener('popstate', event => {
     if (! event.state || ! event.state.mother) {
@@ -494,14 +760,99 @@ window.addEventListener('popstate', event => {
     });
 });
 
-function mountContent({ skip = null } = {}) {
-    const content = element.content();
+/**
+ * Switching the screen on, as in the film: a burst of noise over the whole
+ * screen, then the ready line is there, a beam arms the inquiry line and
+ * Mother writes. Any key, click or tap skips straight to the end, and the
+ * inquiry takes typing from the very first moment.
+ */
+function bootArea() {
+    const ready = phosphor.localRect(document.querySelector('.mother-ready'));
+    const width = screenElement.clientWidth;
+    const height = screenElement.clientHeight;
 
-    output.follow({ smooth: false });
-    type({ skip });
+    return { x: ready.x, y: ready.y, width: width - ready.x * 2, height: Math.max(height * .5, height - ready.y * 1.6) };
+}
+
+async function boot(onScreen) {
+    const content = element.content();
+    const form = element.form();
+    const isEntered = form.classList.contains('is-entered');
+
+    content.classList.add('is-booting');
     root.classList.remove('mother-boot');
+
+    let isSkipped = false;
+    const fontSize = smallFontSize();
+    const noise = phosphor.noise(
+        bootArea(),
+        { duration: isEntered ? .55 : .9, intensity: 1, fontSize },
+    );
+
+    let isOnScreen = false;
+
+    const showScreen = () => {
+        if (! isOnScreen) {
+            isOnScreen = true;
+            content.classList.remove('is-booting');
+            onScreen();
+        }
+    };
+
+    booting = () => {
+        isSkipped = true;
+        booting = null;
+        phosphor.stopAll();
+        form.classList.remove('is-arming');
+        showScreen();
+    };
+
+    await noise.done;
+
+    if (isSkipped) {
+        return;
+    }
+
+    showScreen();
+
+    if (! isEntered) {
+        form.classList.add('is-arming');
+        await wait(pauseBeforeBeam);
+
+        if (isSkipped) {
+            return;
+        }
+
+        await phosphor.beam(form);
+        form.classList.remove('is-arming');
+    }
+
+    booting = null;
+}
+
+function mount() {
+    const form = element.form();
+
+    if (form?.classList.contains('is-entered')) {
+        form.classList.add('is-waiting');
+    }
+
+    if (prefersReducedMotion()) {
+        root.classList.remove('mother-boot');
+        write();
+    } else {
+        boot(write);
+    }
+
     focusInput();
     updateMirror();
+}
+
+/**
+ * Nobody is typing, nothing is being looked up and Mother is not writing.
+ */
+function isQuiet() {
+    return ! lookupInProgress && ! booting && (! writing || writing.isDone) && ! phosphor.isBusy() && performance.now() - lastKeystrokeAt > 4000;
 }
 
 function loadGlass() {
@@ -510,7 +861,7 @@ function loadGlass() {
     }
 
     const load = () => import('./alien/mother-glass.js')
-        .then(({ createMotherGlass }) => createMotherGlass(screenElement, document.getElementById('picture')))
+        .then(({ createMotherGlass }) => createMotherGlass(screenElement, document.getElementById('picture'), { isQuiet }))
         .catch(() => {});
 
     const whenIdle = callback => ('requestIdleCallback' in window ? window.requestIdleCallback(callback, { timeout: 1200 }) : setTimeout(callback, 300));
@@ -531,15 +882,15 @@ function init() {
 
     history.replaceState({ mother: true }, '', window.location.href);
 
-    const startTyping = () => mountContent();
-
     if (document.fonts && document.fonts.status !== 'loaded') {
-        Promise.race([document.fonts.ready, new Promise(resolve => setTimeout(resolve, 600))]).then(startTyping);
+        Promise.race([document.fonts.ready, wait(600)]).then(mount);
     } else {
-        startTyping();
+        mount();
     }
 
     createRoomLights(document.getElementById('room-lights'), screenElement);
+    startCursor();
+    scheduleGlitches();
     loadGlass();
 }
 

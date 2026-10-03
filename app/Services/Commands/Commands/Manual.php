@@ -41,7 +41,7 @@ class Manual implements Command
                 "Enter 'copy' to copy the records of the last response.",
                 "Enter 'what are my chances' for an honest assessment.",
                 "Enter 'special order 937' for orders that are not meant for you.",
-                'Enter \'terminal\' to return to the <a href="'.Theme::Crt->homeUrl().'">regular terminal</a>.',
+                'Enter \'exit\' to return to the <a href="'.Theme::Crt->homeUrl().'">regular terminal</a>.',
             ))
             ->push("Drag this bookmarklet to your toolbar to <a class=\"bookmarklet\" href=\"javascript:location.href='https://dnsrecords.io/'+location.hostname;\">lookup DNS records</a> for sites you're visiting.")
             ->implode('<br>');
