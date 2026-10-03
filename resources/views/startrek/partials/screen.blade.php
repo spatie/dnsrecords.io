@@ -24,7 +24,7 @@
         <p class="idle__suggestions">
             <span class="idle__label">Try</span>
             @foreach(['spatie.be', 'github.com', 'freek.dev'] as $suggestion)
-                <a class="pill pill--small" href="{{ route('startrek.command', ['command' => $suggestion]) }}" rel="nofollow" data-command="{{ $suggestion }}">{{ $suggestion }}</a>
+                <a class="pill pill--small" href="{{ route('lcars.command', ['command' => $suggestion]) }}" rel="nofollow" data-command="{{ $suggestion }}">{{ $suggestion }}</a>
             @endforeach
         </p>
     </div>

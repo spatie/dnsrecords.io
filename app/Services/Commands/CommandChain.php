@@ -6,8 +6,10 @@ use App\Services\Commands\Commands\Clear;
 use App\Services\Commands\Commands\DnsLookup;
 use App\Services\Commands\Commands\Doom;
 use App\Services\Commands\Commands\Ip;
+use App\Services\Commands\Commands\Lcars;
 use App\Services\Commands\Commands\Localhost;
 use App\Services\Commands\Commands\Manual;
+use App\Services\Commands\Commands\Mother;
 use App\Services\Commands\Commands\Old;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,6 +22,8 @@ class CommandChain
         Ip::class,
         Doom::class,
         Old::class,
+        Mother::class,
+        Lcars::class,
         DnsLookup::class,
     ];
 

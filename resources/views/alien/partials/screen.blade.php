@@ -72,7 +72,7 @@
             <p class="mother-line mother-line--ready" data-line>Interface 2037 ready for inquiry</p>
         </div>
 
-        <form id="form" class="inquiry" method="post" action="{{ route('alien.home') }}">
+        <form id="form" class="inquiry" method="post" action="{{ route('mother.home') }}">
             {{ csrf_field() }}
 
             <label for="url" class="inquiry__label">
