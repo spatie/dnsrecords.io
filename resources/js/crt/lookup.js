@@ -18,7 +18,7 @@ function parseScreen(html) {
     }
 
     const description = document.querySelector('meta[name="description"]');
-    const status = document.querySelector('.status-bar__state span');
+    const status = document.querySelector('.results__count');
 
     return {
         content,

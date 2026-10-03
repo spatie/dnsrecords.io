@@ -3,8 +3,6 @@ import { fetchScreen, lookupUrl } from './crt/lookup.js';
 const root = document.documentElement;
 const announcer = document.getElementById('announcer');
 const screenElement = document.getElementById('screen');
-const phosphorToggle = document.getElementById('phosphor-toggle');
-const clock = document.getElementById('clock');
 
 const phosphors = ['white', 'green', 'amber'];
 
@@ -93,8 +91,6 @@ function setPhosphor(phosphor, { shouldAnnounce = false } = {}) {
 
     remember('crt-phosphor', phosphor);
 
-    phosphorToggle.textContent = phosphor;
-
     if (shouldAnnounce) {
         announce(`Phosphor switched to ${phosphor}.`);
     }
@@ -165,6 +161,12 @@ const localCommands = {
     green: () => setPhosphor('green', { shouldAnnounce: true }),
     amber: () => setPhosphor('amber', { shouldAnnounce: true }),
     white: () => setPhosphor('white', { shouldAnnounce: true }),
+    time: () => {
+        const date = new Date();
+        const pad = value => String(value).padStart(2, '0');
+
+        report(`${date.toDateString()}, ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`);
+    },
     'power off': () => setAwake(false),
     sleep: () => setAwake(false),
 };
@@ -429,19 +431,6 @@ document.addEventListener('keydown', event => {
     }
 });
 
-phosphorToggle.addEventListener('click', () => {
-    const current = phosphors.indexOf(root.getAttribute('data-phosphor'));
-
-    setPhosphor(phosphors[(current + 1) % phosphors.length], { shouldAnnounce: true });
-});
-
-function tickClock() {
-    const date = new Date();
-    const pad = value => String(value).padStart(2, '0');
-
-    clock.textContent = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
 function mountContent() {
     const content = element.content();
     const copyButton = document.getElementById('copy-results');
@@ -479,8 +468,6 @@ function init() {
 
     history.replaceState({ crt: true }, '', window.location.href);
 
-    tickClock();
-    setInterval(tickClock, 10000);
 
     mountContent();
     loadGlass();

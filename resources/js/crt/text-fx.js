@@ -152,7 +152,7 @@ function between(min, max) {
     return min + Math.random() * (max - min);
 }
 
-const lineSelector = '.line, .welcome p, .prompt, .resolving, .results__header, .suggestions, .message, .terminal-footer p, .status-bar';
+const lineSelector = '.line, .brand, .prompt, .resolving, .results__header, .message, .terminal-footer p';
 
 /**
  * Small lives of individual lines: a slightly uneven brightness, a line that

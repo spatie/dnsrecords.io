@@ -34,15 +34,6 @@
 
     <div class="screen" id="screen">
         <div class="screen__picture" id="picture">
-            <header class="status-bar">
-                <a class="status-bar__title" href="{{ route('home') }}">dnsrecords.io</a>
-
-                <p class="status-bar__state">
-                    <button type="button" class="status-bar__toggle" id="phosphor-toggle" aria-label="Phosphor colour">white</button>
-                    <span class="status-bar__clock" id="clock" aria-hidden="true"></span>
-                </p>
-            </header>
-
             @include('crt.partials.terminal')
         </div>
 

@@ -110,13 +110,17 @@ class CrtInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_offers_the_terminal_controls()
+    public function it_keeps_the_first_screen_minimal()
     {
         $this
             ->get("{$this->baseUrl}/")
             ->assertSuccessful()
-            ->assertSee('id="phosphor-toggle"', false)
-            ->assertSee('data-motion="full"', false);
+            ->assertSee('<h1 class="brand">', false)
+            ->assertSee('placeholder="Enter a domain"', false)
+            ->assertSee('data-motion="full"', false)
+            ->assertDontSee('id="phosphor-toggle"', false)
+            ->assertDontSee('id="clock"', false)
+            ->assertDontSee('class="suggestions"', false);
     }
 
     #[Test]
@@ -125,7 +129,6 @@ class CrtInterfaceTest extends TestCase
         $this
             ->get("{$this->baseUrl}/")
             ->assertSuccessful()
-            ->assertSee('data-command="spatie.be"', false)
             ->assertSee('data-command="help"', false)
             ->assertDontSee('href="https://dnsrecords.io.dev/help"', false)
             ->assertDontSee('href="https://dnsrecords.io.dev/spatie.be"', false);
