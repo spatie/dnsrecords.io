@@ -156,4 +156,17 @@ class LcarsInterfaceTest extends TestCase
             ->get("{$this->baseUrl}/lcars/spatie.be")
             ->assertTooManyRequests();
     }
+
+    #[Test]
+    public function it_suggests_a_neutral_domain_in_the_lcars_input()
+    {
+        $this
+            ->get("{$this->baseUrl}/lcars")
+            ->assertSee('placeholder="yourdomain.com"', false)
+            ->assertDontSee('placeholder="spatie.be"', false);
+
+        $this
+            ->get("{$this->baseUrl}/lcars/spatie.be")
+            ->assertSee('placeholder="yourdomain.com"', false);
+    }
 }
