@@ -22,6 +22,6 @@
         </div>
     </div>
 
-    <pre class="results__output" id="results">@foreach($lines as $index => $line)<span class="line{{ $line->isRecord() ? ' line--record' : '' }}" style="--delay: {{ $index * $stagger }}ms">@if($line->isRecord())<span class="line__name">{{ $line->name }}</span><span class="line__gap">{{ $line->nameSpacing }}</span><span class="line__ttl">{{ $line->ttl }}</span><span class="line__gap">{{ $line->ttlSpacing }}</span><span class="line__type line__type--{{ strtolower($line->type) }}">{{ $line->type }}</span><span class="line__value">{{ $line->value }}</span>@else<span class="line__text">{{ $line->text }}</span>@endif</span>
+    <pre class="results__output" id="results">@foreach($lines as $index => $line)<span class="line{{ $line->isRecord() ? ' line--record' : '' }}" style="--delay: {{ $index * $stagger }}ms">@if($line->isRecord())<span class="line__name">{{ $line->name }}</span><span class="line__gap">{{ $line->nameSpacing }}</span><span class="line__ttl">{{ $line->ttl }}</span><span class="line__gap">{{ $line->ttlSpacing }}</span><span class="line__type line__type--{{ strtolower($line->type) }}" title="{{ $line->typeDescription() }}">{{ $line->type }}</span><span class="line__value">{{ $line->value }}</span>@else<span class="line__text">{{ $line->text }}</span>@endif</span>
 @endforeach</pre>
 </section>
