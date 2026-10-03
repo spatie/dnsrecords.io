@@ -26,9 +26,9 @@ class Manual implements Command
             "Enter 'doom' to play Doom.",
         ])
             ->when($theme === Theme::Crt, fn ($lines) => $lines->push(
-                "Enter 'degauss' to fix the wobbly colors.",
-                "Enter 'green', 'amber' or 'white' to swap the phosphor.",
-                "Enter 'fx off' to calm the screen down, 'fx on' to bring the noise back.",
+                "Enter 'degauss' to give the window a wiggle.",
+                "Enter 'green', 'amber' or 'white' to change the terminal colour.",
+                "Enter 'fx off' to calm the glow and motion, 'fx on' to bring them back.",
                 "Enter 'old' to go back to the <a href=\"{$oldHomeUrl}\">old interface</a>.",
             ))
             ->push("Drag this bookmarklet to your toolbar to <a class=\"bookmarklet\" href=\"javascript:location.href='https://dnsrecords.io/'+location.hostname;\">lookup DNS records</a> for sites you're visiting.")

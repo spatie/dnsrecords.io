@@ -1,0 +1,22 @@
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .2s !important;
+    }
+
+    .line {
+        animation-name: fade-in !important;
+    }
+
+    .resolving__dots i {
+        animation: none !important;
+        opacity: .7;
+    }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+}

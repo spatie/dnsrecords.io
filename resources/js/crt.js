@@ -1,29 +1,31 @@
+import { fetchScreen, lookupUrl } from './crt/lookup.js';
+
 const root = document.documentElement;
-const screen = document.getElementById('screen');
-const picture = document.getElementById('picture');
-const content = document.getElementById('screen-content');
-const form = document.getElementById('form');
-const input = document.getElementById('url');
-const cursor = document.getElementById('cursor');
-const resolving = document.getElementById('resolving');
 const announcer = document.getElementById('announcer');
-const results = document.getElementById('results');
-const copyButton = document.getElementById('copy-results');
+const windowElement = document.getElementById('window');
+const windowTitle = document.getElementById('window-title');
 const fxToggle = document.getElementById('fx-toggle');
-const degaussButton = document.getElementById('degauss');
-const powerButton = document.getElementById('power');
-const clock = document.getElementById('clock');
-const bootLog = document.getElementById('boot-log');
 const phosphorOptions = Array.prototype.slice.call(document.querySelectorAll('[data-phosphor-option]'));
 
-const phosphors = ['green', 'amber', 'white'];
+const phosphors = ['white', 'green', 'amber'];
 
-let fxLayer = null;
-let isLoadingFxLayer = false;
-let isPoweredOn = true;
-let glitchTimer = null;
-let finishBoot = null;
-let characterWidth = 0;
+const element = {
+    content: () => document.getElementById('screen-content'),
+    form: () => document.getElementById('form'),
+    input: () => document.getElementById('url'),
+    resolving: () => document.getElementById('resolving'),
+    results: () => document.getElementById('results'),
+};
+
+const copyIcon = '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M7 6.5V4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75v6.5A1.75 1.75 0 0 1 15.25 13H13.5M4.75 7h6.5A1.75 1.75 0 0 1 13 8.75v6.5A1.75 1.75 0 0 1 11.25 17h-6.5A1.75 1.75 0 0 1 3 15.25v-6.5A1.75 1.75 0 0 1 4.75 7z"/></svg>';
+const checkIcon = '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="#30d158"/></svg>';
+
+let isAwake = true;
+let lookupInProgress = null;
+
+function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 
 function isFxEnabled() {
     return root.getAttribute('data-fx') === 'on';
@@ -45,78 +47,33 @@ function announce(message) {
     }, 30);
 }
 
-function report(message) {
-    resolving.textContent = message;
-}
-
-function whenIdle(callback) {
-    if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(callback, { timeout: 2500 });
-
-        return;
-    }
-
-    setTimeout(callback, 1200);
-}
-
-function pulse(className, duration) {
-    screen.classList.remove(className);
-
-    void screen.offsetWidth;
-
-    screen.classList.add(className);
-
-    setTimeout(() => screen.classList.remove(className), duration);
-}
-
-function glitch(intensity = 1) {
-    if (! isFxEnabled() || ! isPoweredOn) {
-        return;
-    }
-
-    pulse('is-glitching', 240);
-
-    if (fxLayer) {
-        fxLayer.burst(intensity);
-    }
-}
-
-function scheduleIdleGlitch() {
-    clearTimeout(glitchTimer);
-
-    if (! isFxEnabled()) {
-        return;
-    }
-
-    glitchTimer = setTimeout(() => {
-        if (! document.hidden) {
-            glitch(.6);
-        }
-
-        scheduleIdleGlitch();
-    }, 12000 + Math.random() * 14000);
-}
-
-function loadFxLayer() {
-    if (fxLayer) {
-        fxLayer.start();
-
-        return;
-    }
-
-    if (isLoadingFxLayer || ! window.WebGLRenderingContext) {
-        return;
-    }
-
-    isLoadingFxLayer = true;
-
-    import('./crt-fx.js').then(({ createCrtFxLayer }) => {
-        fxLayer = createCrtFxLayer(screen);
-
-        if (fxLayer && isFxEnabled() && isPoweredOn) {
-            fxLayer.start();
-        }
+function fadeIn(target, duration = 360) {
+    target.animate([{ opacity: 0, transform: 'translateY(3px)' }, { opacity: 1, transform: 'none' }], {
+        duration,
+        easing: 'cubic-bezier(.22, 1, .36, 1)',
     });
+}
+
+function report(message) {
+    const resolving = element.resolving();
+
+    if (! resolving) {
+        return;
+    }
+
+    resolving.textContent = message;
+
+    if (message !== '') {
+        fadeIn(resolving);
+    }
+}
+
+function focusInput() {
+    const input = element.input();
+
+    if (input && document.activeElement !== input) {
+        input.focus({ preventScroll: true });
+    }
 }
 
 function setFx(isEnabled) {
@@ -124,208 +81,85 @@ function setFx(isEnabled) {
     fxToggle.setAttribute('aria-pressed', String(isEnabled));
 
     remember('crt-fx', isEnabled ? 'on' : 'off');
-
-    if (! isEnabled) {
-        clearTimeout(glitchTimer);
-
-        if (fxLayer) {
-            fxLayer.stop();
-        }
-
-        return;
-    }
-
-    loadFxLayer();
-    scheduleIdleGlitch();
 }
 
-function setPhosphor(phosphor, shouldGlitch = true) {
+function setPhosphor(phosphor, { shouldAnnounce = false } = {}) {
     root.setAttribute('data-phosphor', phosphor);
 
     remember('crt-phosphor', phosphor);
 
     phosphorOptions.forEach(option => {
-        option.setAttribute('aria-pressed', String(option.getAttribute('data-phosphor-option') === phosphor));
+        option.setAttribute('aria-checked', String(option.getAttribute('data-phosphor-option') === phosphor));
     });
 
-    if (fxLayer) {
-        fxLayer.refreshColor();
-    }
-
-    measureCharacterWidth();
-
-    if (shouldGlitch) {
-        glitch(.5);
+    if (shouldAnnounce) {
+        announce(`Terminal colour switched to ${phosphor}.`);
     }
 }
 
+/**
+ * A springy wobble with a brief shimmer of colour, a wink at the degauss
+ * button of old monitors.
+ */
 function degauss() {
-    if (! isPoweredOn) {
-        return;
-    }
-
-    if (! isFxEnabled()) {
-        report('Degaussed. Turn effects on to see the wobble.');
+    if (prefersReducedMotion() || ! isFxEnabled()) {
+        windowElement.animate([{ filter: 'none' }, { filter: 'hue-rotate(40deg) saturate(1.4)' }, { filter: 'none' }], { duration: 900, easing: 'ease-in-out' });
+        announce('Degaussed.');
 
         return;
     }
 
-    pulse('is-degaussing', 1500);
+    const keyframes = [];
+    const frames = 40;
 
-    if (fxLayer) {
-        fxLayer.burst(1.4);
+    for (let frame = 0; frame <= frames; frame++) {
+        const progress = frame / frames;
+        const amplitude = Math.exp(-4.2 * progress) * (1 - Math.exp(-progress * 30));
+
+        keyframes.push({
+            transform: `rotate(${(Math.sin(progress * Math.PI * 7) * .6 * amplitude).toFixed(3)}deg) scale(${(1 + Math.sin(progress * Math.PI * 5) * .008 * amplitude).toFixed(4)})`,
+            filter: `hue-rotate(${(Math.sin(progress * Math.PI * 6) * 60 * amplitude).toFixed(1)}deg)`,
+        });
     }
 
+    windowElement.animate(keyframes, { duration: 1600, easing: 'linear' });
     announce('Degaussed.');
 }
 
-function setPower(isOn) {
-    if (isOn === isPoweredOn) {
+function setAwake(isOn) {
+    if (isOn === isAwake) {
         return;
     }
 
-    isPoweredOn = isOn;
-    powerButton.setAttribute('aria-pressed', String(isOn));
+    isAwake = isOn;
+    root.setAttribute('data-power', isOn ? 'on' : 'off');
 
-    if (! isOn) {
-        clearTimeout(glitchTimer);
-
-        if (fxLayer) {
-            fxLayer.stop();
-        }
-
-        if (! isFxEnabled()) {
-            screen.classList.add('is-off');
-            announce('Screen off. Press any key to turn it back on.');
-
-            return;
-        }
-
-        pulse('is-powering-off', 450);
-        setTimeout(() => screen.classList.add('is-off'), 430);
-        announce('Screen off. Press any key to turn it back on.');
+    if (isOn) {
+        announce('Display is awake.');
+        focusInput();
 
         return;
     }
 
-    screen.classList.remove('is-off');
-
-    if (isFxEnabled()) {
-        pulse('is-powering-on', 700);
-        loadFxLayer();
-        scheduleIdleGlitch();
-    }
-
-    announce('Screen on.');
-    input.focus();
-}
-
-function measureCharacterWidth() {
-    const canvas = measureCharacterWidth.canvas || (measureCharacterWidth.canvas = document.createElement('canvas'));
-    const context = canvas.getContext('2d');
-    const style = window.getComputedStyle(input);
-
-    context.font = `${style.fontSize} ${style.fontFamily}`;
-    characterWidth = context.measureText('0000000000').width / 10;
-
-    updateCursor();
-}
-
-function updateCursor() {
-    if (! characterWidth) {
-        return;
-    }
-
-    const caretPosition = input.selectionStart === null ? input.value.length : input.selectionStart;
-    const hasSelection = input.selectionStart !== input.selectionEnd;
-    const left = caretPosition * characterWidth - input.scrollLeft;
-
-    cursor.style.width = `${characterWidth}px`;
-    cursor.style.transform = `translateX(${left}px)`;
-    cursor.style.visibility = hasSelection || left > input.clientWidth ? 'hidden' : 'visible';
-}
-
-function stripIds(element) {
-    element.removeAttribute('id');
-
-    Array.prototype.forEach.call(element.querySelectorAll('[id]'), child => child.removeAttribute('id'));
-}
-
-function tearScreen() {
-    const tear = document.createElement('div');
-    const slices = [];
-
-    tear.className = 'tear';
-    tear.setAttribute('aria-hidden', 'true');
-    tear.setAttribute('inert', '');
-
-    for (let index = 0; index < 6; index++) {
-        const slice = document.createElement('div');
-        const copy = content.cloneNode(true);
-
-        stripIds(copy);
-        slice.className = 'tear__slice';
-        slice.appendChild(copy);
-        tear.appendChild(slice);
-        slices.push({ slice, copy });
-    }
-
-    picture.appendChild(tear);
-
-    slices.forEach(({ copy }) => {
-        copy.scrollTop = content.scrollTop;
-
-        const copiedInput = copy.querySelector('input');
-
-        if (copiedInput) {
-            copiedInput.value = input.value;
-        }
-    });
-
-    let frame = 0;
-
-    const shuffle = () => {
-        slices.forEach(({ slice }) => {
-            const top = Math.random() * 90;
-            const height = 2 + Math.random() * 12;
-            const shift = (Math.random() - .5) * 60;
-
-            slice.style.clipPath = `inset(${top}% 0 ${Math.max(0, 100 - top - height)}% 0)`;
-            slice.style.transform = `translateX(${shift}px)`;
-        });
-
-        frame++;
-
-        if (frame > 7) {
-            clearInterval(interval);
-            tear.remove();
-        }
-    };
-
-    const interval = setInterval(shuffle, 70);
-
-    shuffle();
-
-    if (fxLayer) {
-        fxLayer.burst(1.2);
-    }
+    announce('Display is asleep. Press any key to wake it.');
 }
 
 const localCommands = {
     degauss: () => degauss(),
-    green: () => setPhosphor('green'),
-    amber: () => setPhosphor('amber'),
-    white: () => setPhosphor('white'),
+    green: () => setPhosphor('green', { shouldAnnounce: true }),
+    amber: () => setPhosphor('amber', { shouldAnnounce: true }),
+    white: () => setPhosphor('white', { shouldAnnounce: true }),
     'fx on': () => {
         setFx(true);
-        report('Effects on.');
+        report('Glow and motion are on.');
     },
     'fx off': () => {
         setFx(false);
-        report('Effects off.');
+        report('Glow and motion are off.');
     },
     fx: () => localCommands[isFxEnabled() ? 'fx off' : 'fx on'](),
-    'power off': () => setPower(false),
+    'power off': () => setAwake(false),
+    sleep: () => setAwake(false),
 };
 
 function runLocalCommand(command) {
@@ -336,297 +170,312 @@ function runLocalCommand(command) {
     localCommands[command]();
 
     if (phosphors.indexOf(command) !== -1) {
-        report(`Phosphor switched to ${command}.`);
+        report(`Terminal colour switched to ${command}.`);
     }
 
     return true;
 }
 
-function startSpinner(command) {
-    const frames = ['|', '/', '-', '\\'];
-    let frame = 0;
+function showResolving(command) {
+    const resolving = element.resolving();
 
-    const render = () => {
-        resolving.textContent = `resolving ${command} ${frames[frame++ % frames.length]}`;
-    };
+    if (! resolving) {
+        return;
+    }
 
-    render();
+    const label = document.createElement('span');
+    const dots = document.createElement('span');
 
-    return setInterval(render, 120);
+    label.textContent = `Resolving ${command}`;
+    dots.className = 'resolving__dots';
+    dots.setAttribute('aria-hidden', 'true');
+    dots.innerHTML = '<i></i><i></i><i></i>';
+
+    resolving.replaceChildren(label, dots);
+    fadeIn(resolving, 300);
 }
 
-let spinner = null;
+async function swapScreen(screenPage) {
+    const content = element.content();
 
-form.addEventListener('submit', event => {
+    document.title = screenPage.title;
+
+    const description = document.querySelector('meta[name="description"]');
+
+    if (description && screenPage.description !== null) {
+        description.setAttribute('content', screenPage.description);
+    }
+
+    await content.animate([
+        { opacity: 1, transform: 'none' },
+        { opacity: 0, transform: 'translateY(-4px)' },
+    ], { duration: 180, easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards' }).finished.catch(() => {});
+
+    root.setAttribute('data-page', screenPage.page);
+
+    const nextContent = document.adoptNode(screenPage.content);
+
+    content.replaceWith(nextContent);
+    nextContent.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.22, 1, .36, 1)' });
+
+    mountContent();
+
+    if (screenPage.announcement) {
+        announce(screenPage.announcement);
+    }
+}
+
+async function lookup(command) {
+    const url = lookupUrl(element.form(), command);
+    const attempt = Symbol('lookup');
+
+    showResolving(command);
+    lookupInProgress = attempt;
+
+    const result = await fetchScreen(url);
+
+    if (lookupInProgress !== attempt) {
+        return;
+    }
+
+    lookupInProgress = null;
+
+    if (result.type === 'navigate') {
+        window.location.assign(result.url);
+
+        return;
+    }
+
+    if (result.type === 'message') {
+        report(result.message);
+        announce(result.message);
+
+        return;
+    }
+
+    history.pushState({ crt: true }, '', result.url);
+
+    await swapScreen(result.screen);
+}
+
+function run(command) {
+    const trimmed = command.trim();
+
+    if (trimmed === '') {
+        return;
+    }
+
+    if (runLocalCommand(trimmed.toLowerCase())) {
+        const input = element.input();
+
+        if (input) {
+            input.value = '';
+        }
+
+        return;
+    }
+
+    lookup(trimmed);
+}
+
+document.addEventListener('submit', event => {
+    if (event.target.id !== 'form') {
+        return;
+    }
+
     event.preventDefault();
-
-    const command = input.value.trim();
-
-    if (command === '') {
-        glitch(.4);
-
-        return;
-    }
-
-    if (runLocalCommand(command.toLowerCase())) {
-        input.value = '';
-        updateCursor();
-
-        return;
-    }
-
-    const lookupBaseUrl = form.getAttribute('action').replace(/\/$/, '');
-
-    form.action = `${lookupBaseUrl}/${command}`;
-
-    clearInterval(spinner);
-    spinner = startSpinner(command);
-
-    if (isFxEnabled()) {
-        tearScreen();
-    }
-
-    form.submit();
+    run(element.input().value);
 });
 
-window.addEventListener('pageshow', event => {
-    if (! event.persisted) {
+document.addEventListener('click', event => {
+    const commandButton = event.target.closest('[data-command]');
+
+    if (commandButton) {
+        const input = element.input();
+
+        if (input) {
+            input.value = commandButton.getAttribute('data-command');
+        }
+
+        run(commandButton.getAttribute('data-command'));
+
         return;
     }
 
-    clearInterval(spinner);
-    resolving.textContent = '';
+    const copyAll = event.target.closest('#copy-results');
 
-    Array.prototype.forEach.call(document.querySelectorAll('.tear'), tear => tear.remove());
+    if (copyAll) {
+        copyResults(copyAll);
+
+        return;
+    }
+
+    const copyLine = event.target.closest('.line__copy');
+
+    if (copyLine) {
+        const value = copyLine.parentNode.querySelector('.line__value');
+
+        copyText(value ? value.textContent.trim() : '', copyLine, () => {
+            copyLine.innerHTML = checkIcon;
+            setTimeout(() => {
+                copyLine.innerHTML = copyIcon;
+                copyLine.classList.remove('is-copied');
+            }, 1400);
+        });
+    }
 });
+
+window.addEventListener('popstate', event => {
+    if (event.state && event.state.crt) {
+        fetchScreen(window.location.href).then(result => {
+            if (result.type !== 'screen') {
+                window.location.reload();
+
+                return;
+            }
+
+            swapScreen(result.screen);
+        });
+    }
+});
+
+function copyText(text, trigger, onCopied) {
+    const confirm = () => {
+        trigger.classList.add('is-copied');
+        onCopied();
+        announce('Copied to your clipboard.');
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(confirm, () => report('Select the text and press Cmd+C or Ctrl+C to copy.'));
+
+        return;
+    }
+
+    report('Select the text and press Cmd+C or Ctrl+C to copy.');
+}
+
+function copyResults(button) {
+    const results = element.results();
+
+    if (! results) {
+        return;
+    }
+
+    const label = button.querySelector('.action__label');
+
+    copyText(results.textContent.replace(/\n$/, ''), button, () => {
+        label.textContent = 'Copied';
+
+        setTimeout(() => {
+            button.classList.remove('is-copied');
+            label.textContent = 'Copy all';
+        }, 1600);
+    });
+}
 
 function isTextSelected() {
     return window.getSelection && window.getSelection().toString() !== '';
 }
 
-screen.addEventListener('click', event => {
+document.getElementById('screen').addEventListener('click', event => {
     if (event.target.closest('a, button, input, label')) {
         return;
     }
 
     setTimeout(() => {
         if (! isTextSelected()) {
-            input.focus({ preventScroll: true });
+            focusInput();
         }
     }, 200);
 });
 
-['input', 'keyup', 'click', 'focus', 'select', 'scroll'].forEach(eventName => {
-    input.addEventListener(eventName, updateCursor);
-});
-
-input.addEventListener('keydown', () => setTimeout(updateCursor, 0));
-
-if (copyButton && results) {
-    copyButton.hidden = false;
-
-    copyButton.addEventListener('click', () => {
-        const text = results.textContent.replace(/\n$/, '');
-
-        const confirm = () => {
-            copyButton.textContent = 'copied';
-            announce('DNS records copied to your clipboard.');
-            glitch(.4);
-
-            setTimeout(() => {
-                copyButton.textContent = 'copy records';
-            }, 1600);
-        };
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(confirm, () => selectResults());
-
-            return;
-        }
-
-        selectResults();
-    });
-}
-
-function selectResults() {
-    const range = document.createRange();
-
-    range.selectNodeContents(results);
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(range);
-
-    report('Records selected, press Ctrl+C or Cmd+C to copy.');
-}
-
-function finishTyping() {
-    if (results) {
-        results.classList.add('is-typed');
-    }
-}
-
 document.addEventListener('keydown', event => {
-    if (finishBoot) {
-        finishBoot();
+    const input = element.input();
+
+    if (! isAwake && ['Tab', 'Shift', 'Alt', 'Control', 'Meta'].indexOf(event.key) === -1) {
+        setAwake(true);
 
         return;
     }
 
-    finishTyping();
-
-    if (! isPoweredOn && event.key !== 'Tab' && event.key !== 'Shift') {
+    if (event.key === '/' && document.activeElement !== input && ! event.target.closest('input, textarea')) {
         event.preventDefault();
-        setPower(true);
+        focusInput();
 
         return;
     }
 
-    if (event.key === '/' && document.activeElement !== input) {
-        event.preventDefault();
-        input.focus();
-
-        return;
-    }
-
-    if (event.key === 'Escape' && document.activeElement === input && input.value !== '') {
+    if (event.key === 'Escape' && input && document.activeElement === input && input.value !== '') {
         input.value = '';
-        updateCursor();
     }
-});
-
-document.addEventListener('pointerdown', () => {
-    if (finishBoot) {
-        finishBoot();
-    }
-
-    finishTyping();
 });
 
 fxToggle.addEventListener('click', () => {
     setFx(! isFxEnabled());
-    announce(isFxEnabled() ? 'Effects on.' : 'Effects off.');
+    announce(isFxEnabled() ? 'Glow and motion are on.' : 'Glow and motion are off.');
 });
-
-degaussButton.addEventListener('click', degauss);
-
-powerButton.addEventListener('click', () => setPower(! isPoweredOn));
 
 phosphorOptions.forEach(option => {
-    option.addEventListener('click', () => {
-        const phosphor = option.getAttribute('data-phosphor-option');
+    option.addEventListener('click', () => setPhosphor(option.getAttribute('data-phosphor-option'), { shouldAnnounce: true }));
 
-        setPhosphor(phosphor);
-        announce(`Phosphor switched to ${phosphor}.`);
+    option.addEventListener('keydown', event => {
+        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+
+        if (! step) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const next = phosphorOptions[(phosphorOptions.indexOf(option) + step + phosphorOptions.length) % phosphorOptions.length];
+
+        next.focus();
+        setPhosphor(next.getAttribute('data-phosphor-option'), { shouldAnnounce: true });
     });
 });
 
-function tickClock() {
-    const now = new Date();
-    const pad = value => String(value).padStart(2, '0');
+function mountContent() {
+    const content = element.content();
+    const copyButton = document.getElementById('copy-results');
 
-    clock.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-}
-
-function runBoot() {
-    if (root.getAttribute('data-boot') !== 'pending') {
-        return Promise.resolve();
+    if (copyButton) {
+        copyButton.hidden = false;
     }
 
-    root.setAttribute('data-boot', 'running');
+    content.querySelectorAll('.line--record').forEach(line => {
+        if (line.querySelector('.line__copy')) {
+            return;
+        }
 
-    try {
-        sessionStorage.setItem('crt-booted', '1');
-    } catch (error) {
-        // Without session storage the boot sequence simply plays on every visit.
-    }
+        const button = document.createElement('button');
 
-    const phosphor = root.getAttribute('data-phosphor');
-    const script = [
-        { text: 'spatie DR-9000 colour terminal', wait: 380 },
-        { text: 'bios 4.04, (c) 1989 spatie systems antwerp', wait: 120 },
-        { text: '', wait: 60 },
-        { text: 'memory test ....... ', wait: 60, count: 640 },
-        { text: `phosphor .......... ${phosphor}, warm`, wait: 180 },
-        { text: 'root hints ........ 13 servers', wait: 200 },
-        { text: 'resolver .......... online', wait: 160 },
-        { text: '', wait: 80 },
-        { text: 'ready.', wait: 360 },
-    ];
-
-    return new Promise(resolve => {
-        const timers = [];
-        let elapsed = 0;
-
-        const done = () => {
-            timers.forEach(timer => clearTimeout(timer));
-            finishBoot = null;
-            root.setAttribute('data-boot', 'done');
-            bootLog.textContent = '';
-            pulse('is-glitching', 240);
-            resolve();
-        };
-
-        finishBoot = done;
-
-        pulse('is-powering-on', 700);
-        elapsed += 450;
-
-        script.forEach(line => {
-            elapsed += line.wait;
-
-            timers.push(setTimeout(() => {
-                bootLog.textContent += line.text;
-
-                if (! line.count) {
-                    bootLog.textContent += '\n';
-
-                    return;
-                }
-
-                const base = bootLog.textContent;
-
-                [128, 256, 384, 512, 640].forEach((kilobytes, index) => {
-                    timers.push(setTimeout(() => {
-                        bootLog.textContent = `${base}${kilobytes}K${kilobytes === line.count ? ' ok\n' : ''}`;
-                    }, index * 55));
-                });
-            }, elapsed));
-
-            if (line.count) {
-                elapsed += 300;
-            }
-        });
-
-        timers.push(setTimeout(done, elapsed + 350));
+        button.type = 'button';
+        button.className = 'line__copy';
+        button.setAttribute('aria-label', `Copy ${line.querySelector('.line__type').textContent} record value`);
+        button.innerHTML = copyIcon;
+        line.appendChild(button);
     });
+
+    if (windowTitle) {
+        windowTitle.textContent = content.getAttribute('data-title') || 'dnsrecords.io';
+        fadeIn(windowTitle, 400);
+    }
+
+    content.scrollTop = 0;
+    focusInput();
 }
 
 function init() {
     const phosphor = root.getAttribute('data-phosphor');
 
-    setPhosphor(phosphors.indexOf(phosphor) === -1 ? 'amber' : phosphor, false);
+    root.setAttribute('data-power', 'on');
+    setPhosphor(phosphors.indexOf(phosphor) === -1 ? 'white' : phosphor);
     fxToggle.setAttribute('aria-pressed', String(isFxEnabled()));
 
-    cursor.parentNode.parentNode.classList.add('has-block-cursor');
+    history.replaceState({ crt: true }, '', window.location.href);
 
-    tickClock();
-    setInterval(tickClock, 1000);
-
-    if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(measureCharacterWidth);
-    }
-
-    window.addEventListener('resize', measureCharacterWidth);
-
-    runBoot().then(() => {
-        input.focus({ preventScroll: true });
-        updateCursor();
-    });
-
-    if (isFxEnabled()) {
-        scheduleIdleGlitch();
-
-        window.addEventListener('load', () => whenIdle(loadFxLayer));
-    }
+    mountContent();
 }
 
 init();
