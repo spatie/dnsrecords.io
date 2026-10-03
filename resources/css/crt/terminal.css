@@ -68,69 +68,6 @@
     pointer-events: none;
 }
 
-.status-bar {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex: none;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    width: min(1180px, 100%);
-    margin: 0 auto;
-    padding: clamp(16px, 3.6vh, 34px) clamp(18px, 4.4vw, 52px) 12px;
-    color: var(--dim);
-    font-size: 13px;
-}
-
-.status-bar::after {
-    content: '';
-    position: absolute;
-    right: clamp(18px, 4.4vw, 52px);
-    bottom: 0;
-    left: clamp(18px, 4.4vw, 52px);
-    height: 1px;
-    background: var(--line);
-    transform: scaleY(.5);
-    transform-origin: bottom;
-}
-
-.status-bar__title {
-    color: var(--text);
-    font-weight: 700;
-    text-decoration: none;
-}
-
-.status-bar__state {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    margin: 0;
-}
-
-.status-bar__toggle {
-    color: var(--dim);
-    transition: color .25s var(--ease-out);
-}
-
-.status-bar__toggle::before {
-    content: '[';
-    color: var(--faint);
-}
-
-.status-bar__toggle::after {
-    content: ']';
-    color: var(--faint);
-}
-
-.status-bar__toggle:hover {
-    color: var(--text);
-}
-
-.status-bar__clock {
-    font-variant-numeric: tabular-nums;
-}
-
 .screen__content {
     position: relative;
     display: flex;
@@ -140,14 +77,13 @@
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 28px max(clamp(18px, 4.4vw, 52px), calc((100% - 1180px) / 2 + clamp(18px, 4.4vw, 52px))) clamp(24px, 4.4vh, 44px);
+    padding: clamp(28px, 6vh, 64px) max(clamp(20px, 6vw, 80px), calc((100% - 1180px) / 2 + clamp(20px, 6vw, 80px))) clamp(26px, 5vh, 48px);
     scrollbar-color: var(--faint) transparent;
     scrollbar-width: thin;
     transition: opacity .6s var(--ease-in-out), filter .6s var(--ease-in-out), text-shadow .7s var(--ease-in-out);
 }
 
-.screen__content,
-.status-bar {
+.screen__content {
     text-shadow:
         0 0 1px var(--glow),
         0 0 5px var(--glow),
@@ -155,7 +91,7 @@
 }
 
 .results__domain,
-.welcome__title,
+.brand,
 .prompt__input,
 .line__value {
     text-shadow:
@@ -172,8 +108,7 @@
         0 0 8px var(--glow) !important;
 }
 
-[data-motion='calm'] .screen__content,
-[data-motion='calm'] .status-bar {
+[data-motion='calm'] .screen__content {
     text-shadow: 0 0 1px var(--glow), 0 0 8px color-mix(in srgb, var(--glow) 60%, transparent);
 }
 
@@ -193,21 +128,22 @@
     text-decoration-color: currentColor;
 }
 
-.welcome {
-    margin: 0 0 28px;
-    color: var(--dim);
-}
-
-.welcome p {
-    margin: 0;
-}
-
-.welcome__title {
-    margin-bottom: 6px !important;
-    color: var(--text);
-    font-size: 22px;
+.brand {
+    display: flex;
+    align-items: baseline;
+    gap: 1.2ch;
+    margin: 0 0 14px;
+    font-size: 17px;
     font-weight: 700;
-    letter-spacing: -.01em;
+}
+
+.brand__tilde {
+    color: var(--cyan);
+}
+
+.brand a {
+    color: var(--text);
+    text-decoration: none;
 }
 
 .inline-command {
@@ -227,15 +163,16 @@
 .prompt {
     display: flex;
     align-items: baseline;
-    gap: 1ch;
+    gap: 1.2ch;
     margin: 0;
     font-size: 17px;
 }
 
 .prompt__label {
     flex: none;
-    color: var(--dim);
-    font-weight: 600;
+    width: 1ch;
+    color: var(--mint);
+    font-weight: 700;
 }
 
 .prompt__input {
@@ -297,18 +234,6 @@
     50% { opacity: 1; }
 }
 
-.suggestions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2ch;
-    margin: 14px 0 0;
-    font-size: 14px;
-}
-
-.suggestions__label {
-    color: var(--faint);
-}
-
 .message {
     margin: 0 0 18px;
     font-size: 14.5px;
@@ -342,8 +267,21 @@
 .terminal-footer {
     flex: none;
     margin-top: 40px;
+    padding-left: 2.4ch;
     color: var(--faint);
     font-size: 12.5px;
+}
+
+.screen__content .terminal-footer__old {
+    margin-left: 2ch;
+    color: var(--faint);
+    opacity: .6;
+    text-decoration: none;
+}
+
+.terminal-footer .inline-command {
+    color: var(--dim);
+    font-weight: 400;
 }
 
 .terminal-footer p {
@@ -431,26 +369,6 @@
 @media (max-width: 640px) {
     body {
         font-size: 13.5px;
-    }
-
-    .status-bar {
-        font-size: 12px;
-    }
-
-    .status-bar__state {
-        gap: 12px;
-    }
-
-    .status-bar__clock {
-        display: none;
-    }
-
-    .screen__content {
-        padding-top: 20px;
-    }
-
-    .welcome__title {
-        font-size: 18px;
     }
 
     .prompt {

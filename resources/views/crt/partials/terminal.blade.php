@@ -1,15 +1,10 @@
-@php
-    $isIdle = ! $terminalOutput && ! $errors->any() && ! session()->has('flash_notification');
-@endphp
-
 <div class="screen__content" id="screen-content">
     <main class="terminal" id="terminal">
-        @if($isIdle)
-            <div class="welcome">
-                <p class="welcome__title">DNS record lookups just as you like 'em.</p>
-                <p>Type a domain and press enter. Type <button type="button" class="inline-command" data-command="help">help</button> for commands.</p>
-            </div>
-        @endif
+        <h1 class="brand">
+            <span class="brand__tilde" aria-hidden="true">~</span>
+            <a href="{{ route('home') }}">dnsrecords.io</a>
+            <span class="visually-hidden">DNS record lookups just as you like 'em</span>
+        </h1>
 
         @if($terminalOutput)
             @include('crt.partials.results', ['terminalOutput' => $terminalOutput])
@@ -28,7 +23,7 @@
             {{ csrf_field() }}
 
             <label for="url" class="prompt__label">
-                <span aria-hidden="true">~ $</span>
+                <span aria-hidden="true">&rarr;</span>
                 <span class="visually-hidden">Domain or command</span>
             </label>
 
@@ -36,7 +31,7 @@
                 id="url"
                 name="command"
                 class="prompt__input"
-                placeholder="spatie.be"
+                placeholder="Enter a domain"
                 autocomplete="off"
                 autocorrect="off"
                 autocapitalize="off"
@@ -47,18 +42,9 @@
         </form>
 
         <p class="resolving" id="resolving" aria-live="polite"></p>
-
-        @if($isIdle)
-            <p class="suggestions">
-                <span class="suggestions__label">try</span>
-                @foreach(['spatie.be', 'github.com', 'ip'] as $suggestion)
-                    <button type="button" class="inline-command" data-command="{{ $suggestion }}">{{ $suggestion }}</button>
-                @endforeach
-            </p>
-        @endif
     </main>
 
     <footer class="terminal-footer">
-        <p>(c) <a href="https://spatie.be/open-source">spatie</a> {{ date('Y') }}. Miss the old look? <a href="{{ route('old.home') }}">/old</a></p>
+        <p>(c) <a href="https://spatie.be/open-source">spatie</a> {{ date('Y') }}. type <button type="button" class="inline-command" data-command="help">help</button> <a class="terminal-footer__old" href="{{ route('old.home') }}">/old</a></p>
     </footer>
 </div>

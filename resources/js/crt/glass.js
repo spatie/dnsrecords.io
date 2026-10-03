@@ -116,8 +116,8 @@ void main() {
 
     float tearDistance = abs(screenUv.y - uGlitch.y);
     float tear = smoothstep(uGlitch.z, 0.0, tearDistance) * uGlitch.x;
-    float tearSegments = step(0.15, snoise(vec3(screenUv.x * 14.0, uGlitch.y * 50.0, floor(time * 30.0))));
-    light += tint * tear * tearSegments * 0.22 * uMotion;
+    float tearShimmer = 0.55 + 0.45 * snoise(vec3(screenUv.x * 3.0, uGlitch.y * 20.0, time * 6.0));
+    light += tint * tear * tearShimmer * 0.05 * uMotion * effectWeight;
 
     float surgeShape = 0.7 + 0.3 * fbm(vec3(screenUv * 1.5, time * 0.4));
     light += tint * uSurge * surgeShape * uSignal;
@@ -453,7 +453,7 @@ export function createGlass(screen, picture) {
         }
 
         if (time > glitchUntil) {
-            state.glitch.strength = approach(state.glitch.strength, 0, 18, delta);
+            state.glitch.strength = state.glitch.strength < .01 ? 0 : approach(state.glitch.strength, 0, 18, delta);
         }
 
         const flicker = (.004 + .004 * slow(time * .9 + 11) + .003 * fast(time * 7.3)) * state.motion;

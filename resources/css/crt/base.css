@@ -59,9 +59,7 @@ button {
     white-space: nowrap;
 }
 
-.no-js .status-bar__toggle,
 .no-js .inline-command,
-.no-js .suggestions,
 .no-js .results__actions [hidden] {
     display: none;
 }
