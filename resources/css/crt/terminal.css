@@ -379,4 +379,29 @@
 .screen__picture.is-curved {
     background: var(--bg);
     filter: url(#crt-curve);
+    transform: translate3d(0, 0, 0);
+}
+
+/*
+ * Safari paints the curve filter on the CPU and redoes all of it whenever
+ * the picture flickers, unless the content has a layer of its own, and
+ * whenever a stacking context inside the picture appears or disappears,
+ * which every opacity or transform animation does when it starts and ends.
+ * Giving the content a layer and making the animated parts stacking
+ * contexts from the start (and keeping the picture composited, above) turns
+ * those frames back into cheap partial repaints.
+ */
+.screen__picture.is-curved .screen__content {
+    will-change: transform;
+}
+
+.screen__content,
+.brand,
+.prompt,
+.resolving,
+.results__header,
+.message,
+.line,
+.terminal-footer p {
+    isolation: isolate;
 }

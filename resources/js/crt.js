@@ -204,6 +204,16 @@ function showResolving(command) {
     fadeIn(resolving, 300);
 }
 
+/**
+ * A blur makes browsers that paint the curved text on the CPU redo the whole
+ * curve, so there the picture only dims and brightens as it decays.
+ */
+function decayFilter(brightness, blur) {
+    const isCurvePaintedOnCpu = ['steady', 'lite'].includes(root.getAttribute('data-curve'));
+
+    return isCurvePaintedOnCpu ? `brightness(${brightness})` : `brightness(${brightness}) blur(${blur}px)`;
+}
+
 async function swapScreen(screenPage) {
     const content = element.content();
 
@@ -217,9 +227,9 @@ async function swapScreen(screenPage) {
 
     const decay = hasFullMotion() && ! prefersReducedMotion()
         ? [
-            { opacity: 1, filter: 'brightness(1) blur(0px)' },
-            { opacity: .55, filter: 'brightness(1.5) blur(.4px)', offset: .25 },
-            { opacity: 0, filter: 'brightness(1.1) blur(1.5px)' },
+            { opacity: 1, filter: decayFilter(1, 0) },
+            { opacity: .55, filter: decayFilter(1.5, .4), offset: .25 },
+            { opacity: 0, filter: decayFilter(1.1, 1.5) },
         ]
         : [{ opacity: 1 }, { opacity: 0 }];
 
