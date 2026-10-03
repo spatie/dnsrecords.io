@@ -9,6 +9,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/css/crt.css',
                 'resources/js/crt.js',
+                'resources/css/startrek.css',
+                'resources/js/startrek.js',
             ],
             refresh: true,
         }),
