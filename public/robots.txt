@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Allow: /$
+Allow: /css/
+Allow: /js/
+Allow: /*.png$
+Allow: /*.ico$
+Allow: /*.svg$
+Allow: /manifest.json$
+Allow: /browserconfig.xml$
+Disallow: /
