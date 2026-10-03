@@ -1,8 +1,9 @@
 /*
  * Interface 2037: a DNS terminal in the manner of the ship computer in
- * Alien (1979). A wide slab serif in pale green phosphor, typed out one
- * character at a time on a curved tube, inside a dark room full of small
- * blinking lights.
+ * Alien (1979), tuned against footage of the film. A flat black screen, a
+ * wide slab serif in mint phosphor with an emerald halo, every entered line
+ * underlined, answers written as an address matrix. The picture is steady;
+ * the light only moves when Mother writes.
  */
 
 @font-face {
@@ -18,29 +19,30 @@
     color-scheme: dark;
 
     --font-mother: 'Stint Ultra Expanded', 'Rockwell Extra Bold', Rockwell, 'Courier New', serif;
-    --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
 
     --room: #070807;
-    --bg: #020503;
-    --fg: #a6f2b4;
-    --bright: #e6ffe9;
-    --dim: color-mix(in srgb, var(--fg) 62%, var(--bg));
-    --faint: color-mix(in srgb, var(--fg) 34%, var(--bg));
-    --line: color-mix(in srgb, var(--fg) 14%, var(--bg));
+    --bg: #000;
+    --fg: #70dca8;
+    --bright: #c4ffe0;
+    --hot-yellow: #f8ff7c;
+    --hot-cyan: #dafff6;
+    --faint: color-mix(in srgb, var(--fg) 45%, var(--bg));
 
-    --glow:
-        0 0 1px rgba(200, 255, 210, .55),
-        0 0 6px rgba(110, 255, 150, .32),
-        0 0 18px rgba(70, 255, 120, .16);
-    --glow-bright:
-        0 0 1px rgba(230, 255, 235, .9),
-        0 0 8px rgba(140, 255, 170, .55),
-        0 0 24px rgba(80, 255, 130, .28);
+    --glow: 0 0 .32em rgba(0, 210, 80, .45);
+    --glow-hot:
+        0 0 .08em rgba(255, 255, 220, .9),
+        0 0 .35em rgba(200, 255, 70, .7),
+        0 0 .8em rgba(90, 255, 60, .45);
+
+    --size-large: clamp(17px, min(2.9cqw, 5.2cqh), 62px);
+    --size-small: max(12px, calc(var(--size-large) * .46));
+    --margin-x: max(18px, 4.8cqw);
+    --margin-top: max(28px, 8cqh);
+    --underline: underline .075em solid currentColor;
 
     --screen-inset: clamp(18px, 5.5vmin, 72px);
     --screen-width: min(100vw - 2 * var(--screen-inset), (100dvh - 2 * var(--screen-inset)) * 1.5);
     --radius: clamp(18px, 3.6vmin, 42px);
-    --ease-out: cubic-bezier(.22, 1, .36, 1);
 }
 
 *,
@@ -66,8 +68,8 @@ body {
         var(--room);
     color: var(--fg);
     font-family: var(--font-mother);
-    font-size: clamp(13px, .62rem + .55vw, 20px);
-    line-height: 1.7;
+    font-size: var(--size-small);
+    line-height: 1.45;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -110,7 +112,7 @@ button {
     white-space: nowrap;
 }
 
-/* The room around the tube. */
+/* The room around the tube: a panel of small indicator lamps. */
 
 .room-lights {
     position: fixed;
@@ -120,16 +122,16 @@ button {
     pointer-events: none;
 }
 
-/* The tube. */
+/* The tube, in its dark bezel. Inside, the screen is as black as in the film. */
 
 .screen {
     position: fixed;
     inset: var(--screen-inset) calc((100vw - var(--screen-width)) / 2);
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
+    container-type: size;
     border-radius: var(--radius);
-    background: radial-gradient(ellipse 90% 80% at 50% 45%, #041008 0%, var(--bg) 70%);
+    font-size: var(--size-small);
+    background: radial-gradient(ellipse 90% 80% at 50% 45%, #020a05 0%, var(--bg) 70%);
     box-shadow:
         0 0 0 1px rgba(255, 255, 255, .06),
         0 0 0 clamp(6px, 1.2vmin, 14px) #0e100e,
@@ -139,65 +141,45 @@ button {
 }
 
 .screen__picture {
-    position: relative;
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    min-height: 0;
-    text-shadow: var(--glow);
+    position: absolute;
+    inset: 0;
+    z-index: 1;
 }
 
-.screen__picture.is-curved {
-    background: var(--bg);
-    filter: url(#crt-curve);
-    transform: translate3d(0, 0, 0);
+.screen__content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0 var(--margin-x) max(16px, 3cqh);
+    scrollbar-color: var(--faint) transparent;
+    scrollbar-width: thin;
 }
 
 /*
- * Safari paints the curve filter on the CPU and redoes all of it whenever
- * the picture flickers, unless its content has layers of its own, and
- * whenever a stacking context inside the picture appears or disappears,
- * which every opacity animation does when it starts and ends. Giving the
- * content layers and making the animated parts stacking contexts from the
- * start (and keeping the picture composited, above) turns those frames back
- * into cheap partial repaints.
+ * The light Mother makes while she writes: noise, beams, hot spots. Drawn
+ * on a canvas over the text, cleared and hidden whenever nothing happens.
  */
-.screen__picture.is-curved .mother-bar,
-.screen__picture.is-curved .screen__content {
-    will-change: transform;
-}
-
-.screen__content,
-.exchange,
-.inquiry,
-.inquiry__cursor,
-.mother-hint,
-.mother-processing::after {
-    isolation: isolate;
-}
-
-/* Static glass until the shader takes over, and whenever it is unavailable. */
-.screen::after {
-    content: '';
+.phosphor {
     position: absolute;
     inset: 0;
-    z-index: 3;
-    border-radius: inherit;
-    background:
-        radial-gradient(ellipse 120% 110% at 50% 50%, transparent 55%, rgba(0, 0, 0, .55) 100%),
-        repeating-linear-gradient(180deg, transparent 0 2px, rgba(0, 0, 0, .16) 2px 3px);
+    z-index: 2;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
-    transition: opacity 1.2s ease;
+    visibility: hidden;
 }
 
-[data-crt='gl'] .screen::after {
-    opacity: 0;
+.phosphor.is-active {
+    visibility: visible;
 }
 
 .crt-glass {
     position: absolute;
     inset: 0;
-    z-index: 4;
+    z-index: 3;
     width: 100%;
     height: 100%;
     pointer-events: none;
@@ -209,98 +191,63 @@ button {
     opacity: 1;
 }
 
-/* Header strip. */
-
-.mother-bar {
-    display: flex;
-    flex: 0 0 auto;
-    justify-content: space-between;
-    gap: 1em;
-    padding: clamp(16px, 4.2vmin, 44px) clamp(22px, 5.5vw, 72px) 0;
-    color: var(--dim);
-    font-size: .72em;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-}
-
-.mother-bar__name {
-    text-decoration: none;
-}
-
-/* Screen content. */
-
-.screen__content {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    padding: clamp(18px, 4.5vmin, 52px) clamp(18px, 5vw, 64px) clamp(14px, 3vmin, 28px);
-    scrollbar-color: var(--faint) transparent;
-    scrollbar-width: thin;
-}
+/* Text. */
 
 .mother {
     flex: 1 0 auto;
-    max-width: 62em;
-    letter-spacing: .04em;
+    text-shadow: var(--glow);
     text-transform: uppercase;
+    letter-spacing: .2em;
 }
 
-.mother-line,
-.mother-hint,
-.mother-status {
-    margin: 0 0 .55em;
+.mother-head {
+    padding-top: var(--margin-top);
+}
+
+.mother-ready,
+.inquiry {
+    font-size: var(--size-large);
+    letter-spacing: .12em;
+    line-height: 1.3;
+}
+
+.mother-ready {
+    margin: 0;
+    text-decoration: var(--underline);
+    text-decoration-skip-ink: none;
+    text-underline-offset: .22em;
+}
+
+.mother-line {
+    max-width: 70em;
+    margin: 0 0 .9em;
     overflow-wrap: anywhere;
-}
-
-.mother-label {
-    display: inline-block;
-    min-width: 8.4em;
-    color: var(--dim);
-}
-
-.mother-label::after {
-    content: ':';
-}
-
-.mother-line--inquiry .mother-line__echo {
-    color: var(--bright);
-    text-shadow: var(--glow-bright);
-}
-
-.mother-line--ready {
-    margin-top: 1.4em;
 }
 
 .mother-line--detail,
 .mother-line--manual {
-    padding-left: 8.8em;
+    text-transform: none;
 }
 
 .mother-line--manual {
-    line-height: 1.85;
+    line-height: 1.9;
 }
 
 .mother-line--end {
     display: flex;
     flex-wrap: wrap;
-    gap: .4em 1.6em;
-    margin-top: 1em;
-    color: var(--dim);
+    gap: .4em 2.4em;
+    margin-top: 1.6em;
 }
 
 .mother-line a,
 .mother-footer a {
-    text-decoration-thickness: 1px;
+    text-decoration-thickness: .075em;
     text-underline-offset: .25em;
 }
 
 .mother-action {
-    color: var(--fg);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
+    text-decoration: var(--underline);
     text-underline-offset: .25em;
 }
 
@@ -309,91 +256,246 @@ button {
     color: var(--bright);
 }
 
-.status-report {
-    margin: 1.2em 0 0;
-}
-
-.status-report__row {
-    display: flex;
-    gap: 1em;
-    align-items: baseline;
-    max-width: 44em;
-    margin: 0 0 .3em;
-}
-
-.status-report__row dt {
-    color: var(--dim);
-}
-
-.status-report__row dd {
-    margin: 0 0 0 auto;
-    text-align: right;
-}
-
-.status-report__row::before {
-    content: '';
-    order: 1;
-    flex: 1 1 2em;
-    align-self: center;
-    border-bottom: 1px dotted var(--faint);
-}
-
-.status-report__row dd {
-    order: 2;
-}
-
 .mother-hint {
-    margin-top: 2.2em;
-    color: var(--dim);
+    margin-bottom: 2.2em;
+}
+
+.mother-status {
+    margin: 1.4em 0 0;
 }
 
 .mother-status:empty {
     display: none;
 }
 
-/* Records: a grid for the eye, the raw dig line underneath for copying. */
+/* The inquiry: typed under the ready line, underlined once it is entered. */
 
-.records {
-    --name-column: minmax(8em, max-content);
-
-    display: grid;
-    grid-template-columns: var(--name-column) 4.6em 4.4em minmax(0, 1fr);
-    column-gap: 1.1em;
-    margin: .9em 0 0;
+.inquiry {
+    margin: min(2em, 6cqh) 0 0;
+    padding-bottom: min(.9em, 3cqh);
 }
 
-.record {
+.exchange {
+    padding-top: 1.6em;
+}
+
+.inquiry__field {
+    position: relative;
+    display: block;
+    min-height: 1.3em;
+}
+
+.inquiry__input {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--fg);
+    caret-color: var(--bright);
+    text-shadow: var(--glow);
+    text-transform: uppercase;
+}
+
+.inquiry__input:focus-visible {
+    outline: 0;
+}
+
+.inquiry__mirror {
+    display: none;
+}
+
+/*
+ * With JavaScript the input is invisible and a mirror shows what is typed,
+ * with Mother's cursor: the next cell flickering through overstruck glyphs.
+ */
+.js .inquiry__input {
+    position: absolute;
+    inset: 0;
+    color: transparent;
+    caret-color: transparent;
+    text-shadow: none;
+}
+
+.js .inquiry__input::selection {
+    background: color-mix(in srgb, var(--fg) 35%, transparent);
+    color: transparent;
+}
+
+.js .inquiry__mirror {
+    display: block;
+    overflow: hidden;
+    padding-bottom: .4em;
+    margin-bottom: -.4em;
+    white-space: pre;
+    pointer-events: none;
+}
+
+.inquiry.is-entered .inquiry__mirror {
+    text-decoration: var(--underline);
+    text-decoration-skip-ink: none;
+    text-underline-offset: .22em;
+}
+
+.inquiry.is-flashing .inquiry__mirror {
+    color: var(--bright);
+    text-decoration-color: var(--hot-cyan);
+}
+
+.inquiry__cursor {
+    position: relative;
+    display: inline-block;
+    width: .72em;
+    height: 1em;
+    margin-left: .06em;
+    vertical-align: -.08em;
+    text-decoration: none;
+}
+
+.inquiry__cursor::before,
+.inquiry__cursor::after,
+.scramble::before,
+.scramble::after {
+    content: attr(data-a);
+    position: absolute;
+    top: 0;
+    left: 50%;
+    color: var(--hot-yellow);
+    letter-spacing: 0;
+    line-height: inherit;
+    text-shadow: var(--glow-hot);
+    transform: translateX(-50%) scaleX(.72);
+}
+
+.inquiry__cursor::before,
+.inquiry__cursor::after {
+    top: -.17em;
+}
+
+.inquiry__cursor::after,
+.scramble::after {
+    content: attr(data-b);
+    opacity: .8;
+}
+
+.inquiry__cursor[data-tint='cyan']::before,
+.inquiry__cursor[data-tint='cyan']::after {
+    color: var(--hot-cyan);
+}
+
+.inquiry.is-waiting .inquiry__cursor,
+.inquiry.is-arming .inquiry__cursor {
+    visibility: hidden;
+}
+
+.inquiry__mirror.is-idle .inquiry__cursor,
+[data-motion='calm'] .inquiry__cursor {
+    background: var(--fg);
+    box-shadow: 0 0 .4em rgba(0, 200, 70, .4);
+}
+
+.inquiry__mirror.is-idle .inquiry__cursor {
+    opacity: .5;
+}
+
+.inquiry__mirror.is-idle .inquiry__cursor::before,
+.inquiry__mirror.is-idle .inquiry__cursor::after,
+[data-motion='calm'] .inquiry__cursor::before,
+[data-motion='calm'] .inquiry__cursor::after {
+    content: none;
+}
+
+/* Writing: unwritten text keeps its place, so nothing moves while Mother writes. */
+
+.unwritten {
+    visibility: hidden;
+}
+
+.scramble {
+    position: relative;
+    color: transparent;
+    text-shadow: none;
+}
+
+.scramble::before,
+.scramble::after {
+    color: var(--bright);
+    text-shadow: 0 0 .1em rgba(220, 255, 235, .8), 0 0 .5em rgba(60, 255, 120, .5);
+}
+
+.is-writing [data-line] button {
+    visibility: hidden;
+}
+
+.mother-boot .mother-ready,
+.mother-boot .exchange,
+.is-booting .mother-ready,
+.is-booting .exchange {
+    visibility: hidden;
+}
+
+/* Hidden without visibility, so the inquiry keeps focus and takes typing from the start. */
+.mother-boot .inquiry,
+.is-booting .inquiry {
+    opacity: 0;
+}
+
+/* The matrix: Mother's answers, in the heavy weight, written column by column. */
+
+.matrix {
+    margin: 0 0 .4em;
+}
+
+.matrix__title {
+    margin: 0 0 1em;
+    letter-spacing: .28em;
+}
+
+/*
+ * The heavy weight, as in the film's matrix. Stint only comes in one
+ * weight, so the browser emboldens it. A text stroke looks the same but
+ * makes Safari slow to repaint text with a glow.
+ */
+.exchange,
+.mother-status {
+    font-weight: 700;
+}
+
+.mother-line--manual {
+    font-weight: 400;
+}
+
+.records,
+.roots {
+    display: grid;
+    column-gap: 2.2em;
+}
+
+.records {
+    grid-template-columns: minmax(8em, max-content) max-content max-content minmax(0, 1fr);
+}
+
+.roots {
+    grid-template-columns: repeat(4, max-content);
+}
+
+.record,
+.roots__row {
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
-    padding: .12em 0;
-}
-
-.record__name,
-.record__ttl {
-    color: var(--dim);
 }
 
 .record__ttl {
     text-align: right;
 }
 
-.record__type {
-    color: var(--bright);
-    text-shadow: var(--glow-bright);
-}
-
 .record__value {
     overflow-wrap: anywhere;
 }
 
-.record--continued {
-    padding-top: 0;
-}
-
 .record--continued .record__value {
     grid-column: 4;
-    color: var(--dim);
 }
 
 .record__value--exact {
@@ -413,147 +515,67 @@ button {
     color: var(--bright);
 }
 
-/* The inquiry prompt. */
-
-.inquiry {
-    display: flex;
-    gap: .7em;
-    align-items: baseline;
-    margin: .2em 0 .6em;
-}
-
-.inquiry__label {
-    flex: 0 0 auto;
-    color: var(--bright);
-}
-
-.inquiry__field {
-    position: relative;
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.inquiry__input {
-    width: 100%;
-    padding: 0;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: var(--bright);
-    text-shadow: var(--glow-bright);
-    caret-color: var(--bright);
-    text-transform: uppercase;
-}
-
-.inquiry__mirror {
-    display: none;
-}
-
 /*
- * With JavaScript the input itself is invisible and a mirror shows what is
- * typed, with Mother's block cursor instead of a thin caret.
+ * Lines that the glass dims, jitters or tears are stacking contexts from the
+ * start, so an animation starting or ending on one does not make Safari
+ * repaint the whole screen.
  */
-.js .inquiry__input {
+.mother-ready,
+.inquiry__mirror,
+.mother-line,
+.matrix__title,
+.record,
+.roots__row,
+.mother-footer p {
+    isolation: isolate;
+}
+
+/* Glitches of the glass that draw over the text, never part of it. */
+
+.screen__overlay {
     position: absolute;
     inset: 0;
-    color: transparent;
-    caret-color: transparent;
-    text-shadow: none;
-}
-
-.js .inquiry__input::selection {
-    background: color-mix(in srgb, var(--fg) 35%, transparent);
-    color: transparent;
-}
-
-.js .inquiry__mirror {
-    display: block;
+    z-index: 1;
     overflow: hidden;
-    color: var(--bright);
-    text-shadow: var(--glow-bright);
-    text-transform: uppercase;
-    white-space: pre;
     pointer-events: none;
+    isolation: isolate;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-.inquiry__cursor {
-    display: inline-block;
-    width: .62em;
-    height: 1.05em;
-    vertical-align: -.16em;
-    background: var(--bright);
-    box-shadow: var(--glow-bright);
-    animation: cursor-blink 1.06s steps(1) infinite;
+.screen__glyphs {
+    position: absolute;
+    overflow: hidden;
+    background: var(--bg);
+    white-space: pre;
 }
 
-.inquiry__mirror.is-idle .inquiry__cursor {
-    opacity: .55;
-    animation: none;
+.screen__echo {
+    position: absolute;
+    margin: 0;
+    will-change: transform, opacity;
 }
 
-@keyframes cursor-blink {
-    50% { opacity: 0; }
+.screen__echo * {
+    text-shadow: none !important;
 }
 
-.inquiry__input:focus-visible {
-    outline: 0;
-}
-
-/* The typing cursor that follows Mother's output. */
-
-.mother-cursor {
-    display: inline-block;
-    width: .62em;
-    height: 1.05em;
-    margin-left: .06em;
-    vertical-align: -.16em;
-    background: var(--bright);
-    box-shadow: var(--glow-bright);
-}
-
-.mother-boot .exchange,
-.mother-boot .inquiry,
-.mother-boot .mother-hint {
-    opacity: 0;
-}
-
-.is-typing [data-line]:not(.is-shown) {
-    display: none;
-}
-
-.is-typing ~ .inquiry,
-.is-typing ~ .mother-hint {
-    opacity: 0;
-}
-
-.inquiry,
-.mother-hint {
-    transition: opacity .25s ease;
-}
-
-.mother-processing::after {
-    content: '';
-    display: inline-block;
-    width: .62em;
-    height: 1.05em;
-    margin-left: .5em;
-    vertical-align: -.16em;
-    background: var(--fg);
-    animation: processing 1.06s steps(1) infinite;
-}
-
-@keyframes processing {
-    50% { opacity: 0; }
+.is-torn,
+.is-torn * {
+    text-shadow:
+        -2px 0 rgba(255, 40, 90, .55),
+        2px 0 rgba(40, 210, 255, .55) !important;
 }
 
 /* Footer. */
 
 .mother-footer {
     flex: 0 0 auto;
-    padding-top: 2em;
+    padding-top: 1.6em;
     color: var(--faint);
-    font-size: .64em;
-    letter-spacing: .12em;
+    font-size: max(10px, .62em);
+    letter-spacing: .2em;
+    text-shadow: none;
     text-transform: uppercase;
 }
 
@@ -561,9 +583,34 @@ button {
     margin: 0;
 }
 
+/* The way back, plain to see. */
+.mother-exit {
+    display: inline-block;
+    margin-bottom: 1.2em;
+    color: var(--fg);
+    font-size: max(12px, 1.4em);
+    text-decoration: var(--underline);
+    text-underline-offset: .25em;
+    text-shadow: var(--glow);
+}
+
+.mother-exit:hover {
+    color: var(--bright);
+}
+
 .no-js .mother-hint .mother-action,
 .no-js #copy-results {
     display: none;
+}
+
+@container (max-width: 1600px) {
+    .roots__ipv6 {
+        display: none;
+    }
+
+    .roots {
+        grid-template-columns: repeat(3, max-content);
+    }
 }
 
 @media (max-width: 720px) {
@@ -571,20 +618,23 @@ button {
         --screen-inset: 0px;
         --screen-width: 100vw;
         --radius: 0px;
+        --size-large: clamp(15px, 4.6cqw, 26px);
+        --size-small: max(11px, calc(var(--size-large) * .62));
+        --margin-x: 6cqw;
+        --margin-top: max(24px, 7cqh);
     }
 
     .room-lights {
         display: none;
     }
 
-    .mother-label {
-        min-width: 0;
-        margin-right: .5em;
+    .mother {
+        letter-spacing: .14em;
     }
 
-    .mother-line--detail,
-    .mother-line--manual {
-        padding-left: 0;
+    .mother-ready,
+    .inquiry {
+        letter-spacing: .08em;
     }
 
     .records {
@@ -596,30 +646,21 @@ button {
         grid-template-columns: auto minmax(0, 1fr);
         column-gap: .9em;
         padding: .35em 0;
-        border-bottom: 1px solid var(--line);
     }
 
     .record__name {
         grid-column: 1 / -1;
         grid-row: 1;
-        font-size: .82em;
+        font-size: .86em;
     }
 
     .record__ttl {
         display: none;
     }
 
-    .record__type {
-        grid-row: 2;
-    }
-
+    .record__type,
     .record__value {
         grid-row: 2;
-    }
-
-    .record:has(+ .record--continued),
-    .record--continued {
-        border-bottom: 0;
     }
 
     .record--continued .record__value {
@@ -627,20 +668,13 @@ button {
         grid-row: auto;
     }
 
-    .status-report__row {
-        flex-wrap: wrap;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .inquiry__cursor,
-    .mother-processing::after {
-        animation: none;
+    .roots {
+        grid-template-columns: repeat(2, max-content);
+        column-gap: 1.4em;
     }
 
-    .inquiry,
-    .mother-hint {
-        transition: none;
+    .roots__operator {
+        display: none;
     }
 }
 

@@ -21,6 +21,9 @@ class MotherInterfaceTest extends TestCase
             ->assertSee('data-page="home"', false)
             ->assertSee('prefers-reduced-motion', false)
             ->assertSee('<meta name="robots" content="noindex, nofollow">', false)
+            ->assertSee('Root server address matrix')
+            ->assertSee('198.41.0.4')
+            ->assertSee('<a class="mother-exit" href="https://dnsrecords.io.dev">Exit to terminal</a>', false)
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
@@ -32,10 +35,12 @@ class MotherInterfaceTest extends TestCase
             ->assertSuccessful()
             ->assertSee('data-page="result"', false)
             ->assertSee('<title>spatie.be DNS records ~ Interface 2037 ~ dnsrecords.io</title>', false)
-            ->assertSee('<span class="mother-line__echo">spatie.be</span>', false)
+            ->assertSee('class="inquiry is-entered"', false)
+            ->assertSee('value="spatie.be"', false)
+            ->assertSee('spatie.be record matrix')
             ->assertSee('2 records located for spatie.be')
             ->assertSee('data-announce="Response: 2 records for spatie.be."', false)
-            ->assertSee('<span class="record__type" title="MX: mail server">MX</span>', false)
+            ->assertSee('<span class="record__type" data-column="2" title="MX: mail server">MX</span>', false)
             ->assertSee('103.133.1.1')
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
@@ -61,7 +66,7 @@ class MotherInterfaceTest extends TestCase
         $this
             ->get("{$this->baseUrl}/mother/spatie.be")
             ->assertSuccessful()
-            ->assertSee("<div class=\"record record--continued\" data-line data-raw=\"\t\t\t\t0 ; serial\">", false);
+            ->assertSee("<div class=\"record record--continued\" data-row data-raw=\"\t\t\t\t0 ; serial\">", false);
     }
 
     #[Test]
@@ -88,7 +93,7 @@ class MotherInterfaceTest extends TestCase
         $this
             ->get("{$this->baseUrl}/mother/nothing-here.be")
             ->assertNotFound()
-            ->assertSee('<span class="mother-line__echo">nothing-here.be</span>', false)
+            ->assertSee('value="nothing-here.be"', false)
             ->assertSee('Unable to compute. Available data insufficient.')
             ->assertSee('Could not fetch dns records', false);
     }
@@ -103,6 +108,7 @@ class MotherInterfaceTest extends TestCase
         $flashMessage = $this->getFlashMessage();
 
         $this->assertStringContainsString('special order 937', $flashMessage);
+        $this->assertStringContainsString("Enter 'exit' to return to the", $flashMessage);
         $this->assertStringNotContainsString('degauss', $flashMessage);
 
         $this
