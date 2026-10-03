@@ -68,11 +68,11 @@
 
             <div class="deck__content console">
                 <header class="console__header">
-                    <h1 class="console__title"><a href="{{ route('startrek.home') }}">dnsrecords.io</a></h1>
+                    <h1 class="console__title"><a href="{{ route('lcars.home') }}">dnsrecords.io</a></h1>
                     <p class="console__subtitle" aria-hidden="true">Domain name archive <span class="console__code">47-3596</span></p>
                 </header>
 
-                <form id="scan-form" class="scan" method="post" action="{{ route('startrek.home') }}">
+                <form id="scan-form" class="scan" method="post" action="{{ route('lcars.home') }}">
                     {{ csrf_field() }}
 
                     <label for="domain" class="scan__label">Domain</label>
@@ -123,9 +123,9 @@
             </div>
 
             <nav class="deck__side nav" aria-label="Commands">
-                <a class="block block--orange nav__item" href="{{ route('startrek.command', ['command' => 'ip']) }}" rel="nofollow" data-command="ip"><span class="block__code" aria-hidden="true">03</span>My ip</a>
-                <a class="block block--tan nav__item" href="{{ route('startrek.command', ['command' => 'help']) }}" rel="nofollow" data-command="help"><span class="block__code" aria-hidden="true">04</span>Help</a>
-                <a class="block block--blue nav__item" href="{{ route('startrek.home') }}" data-command="clear"><span class="block__code" aria-hidden="true">05</span>Clear</a>
+                <a class="block block--orange nav__item" href="{{ route('lcars.command', ['command' => 'ip']) }}" rel="nofollow" data-command="ip"><span class="block__code" aria-hidden="true">03</span>My ip</a>
+                <a class="block block--tan nav__item" href="{{ route('lcars.command', ['command' => 'help']) }}" rel="nofollow" data-command="help"><span class="block__code" aria-hidden="true">04</span>Help</a>
+                <a class="block block--blue nav__item" href="{{ route('lcars.home') }}" data-command="clear"><span class="block__code" aria-hidden="true">05</span>Clear</a>
                 <a class="block block--violet nav__item" href="{{ route('home') }}"><span class="block__code" aria-hidden="true">06</span>Terminal</a>
                 <a class="block block--peach nav__item" href="{{ route('old.home') }}"><span class="block__code" aria-hidden="true">07</span>Classic</a>
                 <span class="block block--lilac block--grow" aria-hidden="true"><span class="block__code">08-7208</span></span>

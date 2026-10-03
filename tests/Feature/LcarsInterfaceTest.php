@@ -5,16 +5,16 @@ namespace Tests\Feature;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class StartrekInterfaceTest extends TestCase
+class LcarsInterfaceTest extends TestCase
 {
     #[Test]
     public function it_shows_the_lcars_console()
     {
         $this
-            ->get("{$this->baseUrl}/startrek")
+            ->get("{$this->baseUrl}/lcars")
             ->assertSuccessful()
             ->assertSee('<body class="lcars">', false)
-            ->assertSee('action="https://dnsrecords.io.dev/startrek"', false)
+            ->assertSee('action="https://dnsrecords.io.dev/lcars"', false)
             ->assertSee('name="_token"', false)
             ->assertSee('<meta name="robots" content="noindex">', false)
             ->assertSee('data-page="home"', false)
@@ -28,7 +28,7 @@ class StartrekInterfaceTest extends TestCase
     public function it_groups_lookup_results_by_record_type()
     {
         $this
-            ->sendCommand('spatie.be', '/startrek/spatie.be')
+            ->sendCommand('spatie.be', '/lcars/spatie.be')
             ->assertSuccessful()
             ->assertSee('data-page="result"', false)
             ->assertSee('<title>spatie.be DNS records ~ dnsrecords.io</title>', false)
@@ -45,7 +45,7 @@ class StartrekInterfaceTest extends TestCase
     #[Test]
     public function it_keeps_the_raw_dig_output_copyable()
     {
-        $content = $this->sendCommand('spatie.be', '/startrek/spatie.be')->getContent();
+        $content = $this->sendCommand('spatie.be', '/lcars/spatie.be')->getContent();
 
         preg_match('/<pre class="raw" id="raw-records" hidden>(.*?)<\/pre>/s', $content, $matches);
 
@@ -66,7 +66,7 @@ class StartrekInterfaceTest extends TestCase
         ])."\n";
 
         $this
-            ->sendCommand('spatie.be', '/startrek/spatie.be')
+            ->sendCommand('spatie.be', '/lcars/spatie.be')
             ->assertSuccessful()
             ->assertSee('<span class="readout__number">03</span> records', false)
             ->assertSee('<section class="group group--soa"', false)
@@ -78,7 +78,7 @@ class StartrekInterfaceTest extends TestCase
     public function it_shows_failed_lookups_as_an_alert()
     {
         $this
-            ->get("{$this->baseUrl}/startrek/nothing-here.be")
+            ->get("{$this->baseUrl}/lcars/nothing-here.be")
             ->assertNotFound()
             ->assertSee('<body class="lcars">', false)
             ->assertSee('alert--danger', false)
@@ -86,31 +86,31 @@ class StartrekInterfaceTest extends TestCase
             ->assertSee('Could not fetch dns records', false);
 
         $this
-            ->sendCommand('nothing-here.be', '/startrek/nothing-here.be')
-            ->assertRedirect('/startrek');
+            ->sendCommand('nothing-here.be', '/lcars/nothing-here.be')
+            ->assertRedirect('/lcars');
     }
 
     #[Test]
     public function it_keeps_commands_on_the_lcars_console()
     {
         $this
-            ->sendCommand('clear', '/startrek/clear')
-            ->assertRedirect('/startrek');
+            ->sendCommand('clear', '/lcars/clear')
+            ->assertRedirect('/lcars');
 
         $this
-            ->sendCommand('help', '/startrek/help')
-            ->assertRedirect('/startrek');
+            ->sendCommand('help', '/lcars/help')
+            ->assertRedirect('/lcars');
 
         $this->assertStringNotContainsString('degauss', $this->getFlashMessage());
 
         $this
-            ->sendCommand('ip', '/startrek/ip')
+            ->sendCommand('ip', '/lcars/ip')
             ->assertSuccessful()
             ->assertSee('<body class="lcars">', false)
             ->assertSee('Your ip address is');
 
         $this
-            ->post("{$this->baseUrl}/startrek", ['command' => 'spatie.be'])
+            ->post("{$this->baseUrl}/lcars", ['command' => 'spatie.be'])
             ->assertSuccessful()
             ->assertSee('group--a', false);
     }
@@ -119,12 +119,12 @@ class StartrekInterfaceTest extends TestCase
     public function it_sanitizes_lcars_lookups()
     {
         $this
-            ->sendCommand('https://spatie.be/en/vacancies', '/startrek/https://spatie.be/en/vacancies')
-            ->assertRedirect('/startrek/spatie.be');
+            ->sendCommand('https://spatie.be/en/vacancies', '/lcars/https://spatie.be/en/vacancies')
+            ->assertRedirect('/lcars/spatie.be');
 
         $this
-            ->sendCommand('<iframe>', '/startrek/<iframe>')
-            ->assertRedirect('/startrek');
+            ->sendCommand('<iframe>', '/lcars/<iframe>')
+            ->assertRedirect('/lcars');
     }
 
     #[Test]
@@ -132,13 +132,13 @@ class StartrekInterfaceTest extends TestCase
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)')
-            ->get("{$this->baseUrl}/startrek/spatie.be")
+            ->get("{$this->baseUrl}/lcars/spatie.be")
             ->assertForbidden()
             ->assertDontSee('103.133.1.1');
 
         $this
             ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-            ->get("{$this->baseUrl}/startrek/spatie.be")
+            ->get("{$this->baseUrl}/lcars/spatie.be")
             ->assertSuccessful()
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
@@ -149,11 +149,11 @@ class StartrekInterfaceTest extends TestCase
         foreach (range(1, 10) as $attempt) {
             $this->get("{$this->baseUrl}/spatie.be")->assertSuccessful();
 
-            $this->get("{$this->baseUrl}/startrek/spatie.be")->assertSuccessful();
+            $this->get("{$this->baseUrl}/lcars/spatie.be")->assertSuccessful();
         }
 
         $this
-            ->get("{$this->baseUrl}/startrek/spatie.be")
+            ->get("{$this->baseUrl}/lcars/spatie.be")
             ->assertTooManyRequests();
     }
 }

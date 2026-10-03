@@ -50,7 +50,7 @@
     <div class="screen" id="screen">
         <div class="screen__picture" id="picture">
             <header class="mother-bar">
-                <a class="mother-bar__name" href="{{ route('alien.home') }}">MU/TH/UR 6000</a>
+                <a class="mother-bar__name" href="{{ route('mother.home') }}">MU/TH/UR 6000</a>
                 <span class="mother-bar__interface" aria-hidden="true">Interface 2037</span>
             </header>
 

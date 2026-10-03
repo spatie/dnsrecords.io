@@ -9,15 +9,15 @@ enum Theme
 {
     case Crt;
     case Classic;
-    case Startrek;
-    case Alien;
+    case Lcars;
+    case Mother;
 
     public static function fromRequest(Request $request): self
     {
         return match (true) {
             $request->routeIs('old.*') => self::Classic,
-            $request->routeIs('startrek.*') => self::Startrek,
-            $request->routeIs('alien.*') => self::Alien,
+            $request->routeIs('lcars.*') => self::Lcars,
+            $request->routeIs('mother.*') => self::Mother,
             default => self::Crt,
         };
     }
@@ -32,8 +32,8 @@ enum Theme
         return match ($this) {
             self::Crt => 'crt.index',
             self::Classic => 'home.index',
-            self::Startrek => 'startrek.index',
-            self::Alien => 'alien.index',
+            self::Lcars => 'startrek.index',
+            self::Mother => 'alien.index',
         };
     }
 
@@ -42,8 +42,8 @@ enum Theme
         return match ($this) {
             self::Crt => route('home'),
             self::Classic => route('old.home'),
-            self::Startrek => route('startrek.home'),
-            self::Alien => route('alien.home'),
+            self::Lcars => route('lcars.home'),
+            self::Mother => route('mother.home'),
         };
     }
 
@@ -52,8 +52,8 @@ enum Theme
         return match ($this) {
             self::Crt => route('command', ['command' => $command]),
             self::Classic => route('old.command', ['command' => $command]),
-            self::Startrek => route('startrek.command', ['command' => $command]),
-            self::Alien => route('alien.command', ['command' => $command]),
+            self::Lcars => route('lcars.command', ['command' => $command]),
+            self::Mother => route('mother.command', ['command' => $command]),
         };
     }
 
