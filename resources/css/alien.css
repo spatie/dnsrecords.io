@@ -29,10 +29,6 @@
     --faint: color-mix(in srgb, var(--fg) 45%, var(--bg));
 
     --glow: 0 0 .32em rgba(0, 210, 80, .45);
-    --glow-hot:
-        0 0 .08em rgba(255, 255, 220, .9),
-        0 0 .35em rgba(200, 255, 70, .7),
-        0 0 .8em rgba(90, 255, 60, .45);
 
     --size-large: clamp(17px, min(2.9cqw, 5.2cqh), 62px);
     --size-small: max(12px, calc(var(--size-large) * .46));
@@ -200,22 +196,44 @@ button {
     letter-spacing: .2em;
 }
 
-.mother-head {
+/*
+ * A transcript, like the terminal: every inquiry is a turn (the ready
+ * line, the entered inquiry, Mother's answer) and the prompt for the next
+ * one always comes last.
+ */
+.transcript {
     padding-top: var(--margin-top);
 }
 
+.turn + .turn,
+.exchange--boot + .turn {
+    margin-top: 2.6em;
+}
+
 .mother-ready,
+.mother-echo,
 .inquiry {
     font-size: var(--size-large);
     letter-spacing: .12em;
     line-height: 1.3;
 }
 
-.mother-ready {
+.mother-ready,
+.mother-echo {
     margin: 0;
+    overflow-wrap: anywhere;
     text-decoration: var(--underline);
     text-decoration-skip-ink: none;
     text-underline-offset: .22em;
+}
+
+.mother-echo {
+    margin-top: min(1.4em, 5cqh);
+}
+
+.mother-echo.is-flashing {
+    color: var(--bright);
+    text-decoration-color: var(--hot-cyan);
 }
 
 .mother-line {
@@ -256,10 +274,6 @@ button {
     color: var(--bright);
 }
 
-.mother-hint {
-    margin-bottom: 2.2em;
-}
-
 .mother-status {
     margin: 1.4em 0 0;
 }
@@ -268,15 +282,34 @@ button {
     display: none;
 }
 
-/* The inquiry: typed under the ready line, underlined once it is entered. */
+.exchange {
+    padding-top: 1.6em;
+}
+
+.exchange--boot {
+    padding-top: 0;
+}
+
+.exchange--boot .mother-hint {
+    margin-top: 1.6em;
+}
+
+/* The prompt for the next inquiry, under everything that came before. */
 
 .inquiry {
-    margin: min(2em, 6cqh) 0 0;
+    margin-top: 2.6em;
     padding-bottom: min(.9em, 3cqh);
 }
 
-.exchange {
-    padding-top: 1.6em;
+.inquiry .mother-ready {
+    margin-bottom: min(1.4em, 5cqh);
+}
+
+/* Hidden with opacity, so the inquiry keeps focus and takes typing while Mother writes. */
+.inquiry.is-busy,
+.mother-boot .inquiry,
+.is-booting .inquiry {
+    opacity: 0;
 }
 
 .inquiry__field {
@@ -307,7 +340,7 @@ button {
 
 /*
  * With JavaScript the input is invisible and a mirror shows what is typed,
- * with Mother's cursor: the next cell flickering through overstruck glyphs.
+ * with Mother's cursor.
  */
 .js .inquiry__input {
     position: absolute;
@@ -331,75 +364,65 @@ button {
     pointer-events: none;
 }
 
-.inquiry.is-entered .inquiry__mirror {
-    text-decoration: var(--underline);
-    text-decoration-skip-ink: none;
-    text-underline-offset: .22em;
-}
-
-.inquiry.is-flashing .inquiry__mirror {
-    color: var(--bright);
-    text-decoration-color: var(--hot-cyan);
-}
-
+/*
+ * The cursor: a solid block in the hot colour of the film's cursor, glowing
+ * and blinking. Inside it, dark overstruck glyphs flicker while typing, a
+ * nod to the film. The blink only animates opacity, on its own layer.
+ */
 .inquiry__cursor {
     position: relative;
     display: inline-block;
-    width: .72em;
-    height: 1em;
-    margin-left: .06em;
-    vertical-align: -.08em;
+    width: .7em;
+    height: 1.02em;
+    margin-left: .08em;
+    overflow: hidden;
+    vertical-align: -.12em;
+    background: var(--hot-yellow);
+    box-shadow: 0 0 .15em rgba(255, 255, 200, .8), 0 0 .6em rgba(190, 255, 80, .55);
     text-decoration: none;
+    text-shadow: none;
+    will-change: opacity;
+    animation: cursor-blink 1.06s infinite;
 }
 
-.inquiry__cursor::before,
-.inquiry__cursor::after,
-.scramble::before,
-.scramble::after {
-    content: attr(data-a);
-    position: absolute;
-    top: 0;
-    left: 50%;
-    color: var(--hot-yellow);
-    letter-spacing: 0;
-    line-height: inherit;
-    text-shadow: var(--glow-hot);
-    transform: translateX(-50%) scaleX(.72);
+.inquiry__mirror.is-typing .inquiry__cursor {
+    animation: none;
+}
+
+@keyframes cursor-blink {
+    0%, 48% { opacity: 1; }
+    56%, 92% { opacity: .35; }
+    100% { opacity: 1; }
 }
 
 .inquiry__cursor::before,
 .inquiry__cursor::after {
-    top: -.17em;
+    position: absolute;
+    top: -.14em;
+    left: 50%;
+    color: rgba(30, 60, 0, .4);
+    letter-spacing: 0;
+    line-height: inherit;
+    transform: translateX(-50%) scaleX(.72);
 }
 
-.inquiry__cursor::after,
-.scramble::after {
+.inquiry__mirror.is-typing .inquiry__cursor::before {
+    content: attr(data-a);
+}
+
+.inquiry__mirror.is-typing .inquiry__cursor::after {
     content: attr(data-b);
-    opacity: .8;
-}
-
-.inquiry__cursor[data-tint='cyan']::before,
-.inquiry__cursor[data-tint='cyan']::after {
-    color: var(--hot-cyan);
-}
-
-.inquiry.is-waiting .inquiry__cursor,
-.inquiry.is-arming .inquiry__cursor {
-    visibility: hidden;
-}
-
-.inquiry__mirror.is-idle .inquiry__cursor,
-[data-motion='calm'] .inquiry__cursor {
-    background: var(--fg);
-    box-shadow: 0 0 .4em rgba(0, 200, 70, .4);
 }
 
 .inquiry__mirror.is-idle .inquiry__cursor {
-    opacity: .5;
+    opacity: .6;
+    animation: none;
 }
 
-.inquiry__mirror.is-idle .inquiry__cursor::before,
-.inquiry__mirror.is-idle .inquiry__cursor::after,
+[data-motion='calm'] .inquiry__cursor {
+    animation: none;
+}
+
 [data-motion='calm'] .inquiry__cursor::before,
 [data-motion='calm'] .inquiry__cursor::after {
     content: none;
@@ -419,25 +442,29 @@ button {
 
 .scramble::before,
 .scramble::after {
+    content: attr(data-a);
+    position: absolute;
+    top: 0;
+    left: 50%;
     color: var(--bright);
+    letter-spacing: 0;
+    line-height: inherit;
     text-shadow: 0 0 .1em rgba(220, 255, 235, .8), 0 0 .5em rgba(60, 255, 120, .5);
+    transform: translateX(-50%) scaleX(.72);
+}
+
+.scramble::after {
+    content: attr(data-b);
+    opacity: .8;
 }
 
 .is-writing [data-line] button {
     visibility: hidden;
 }
 
-.mother-boot .mother-ready,
-.mother-boot .exchange,
-.is-booting .mother-ready,
-.is-booting .exchange {
+.mother-boot .transcript,
+.is-booting .transcript {
     visibility: hidden;
-}
-
-/* Hidden without visibility, so the inquiry keeps focus and takes typing from the start. */
-.mother-boot .inquiry,
-.is-booting .inquiry {
-    opacity: 0;
 }
 
 /* The matrix: Mother's answers, in the heavy weight, written column by column. */
@@ -521,6 +548,7 @@ button {
  * repaint the whole screen.
  */
 .mother-ready,
+.mother-echo,
 .inquiry__mirror,
 .mother-line,
 .matrix__title,
@@ -599,7 +627,7 @@ button {
 }
 
 .no-js .mother-hint .mother-action,
-.no-js #copy-results {
+.no-js [data-copy] {
     display: none;
 }
 
@@ -633,6 +661,7 @@ button {
     }
 
     .mother-ready,
+    .mother-echo,
     .inquiry {
         letter-spacing: .08em;
     }

@@ -15,7 +15,7 @@ class MotherInterfaceTest extends TestCase
             ->get("{$this->baseUrl}/mother")
             ->assertSuccessful()
             ->assertSee('Interface 2037 ready for inquiry')
-            ->assertSee('id="exchange"', false)
+            ->assertSee('id="transcript"', false)
             ->assertSee('action="https://dnsrecords.io.dev/mother"', false)
             ->assertSee('name="_token"', false)
             ->assertSee('data-page="home"', false)
@@ -35,8 +35,7 @@ class MotherInterfaceTest extends TestCase
             ->assertSuccessful()
             ->assertSee('data-page="result"', false)
             ->assertSee('<title>spatie.be DNS records ~ Interface 2037 ~ dnsrecords.io</title>', false)
-            ->assertSee('class="inquiry is-entered"', false)
-            ->assertSee('value="spatie.be"', false)
+            ->assertSee('<p class="mother-echo">spatie.be</p>', false)
             ->assertSee('spatie.be record matrix')
             ->assertSee('2 records located for spatie.be')
             ->assertSee('data-announce="Response: 2 records for spatie.be."', false)
@@ -93,7 +92,7 @@ class MotherInterfaceTest extends TestCase
         $this
             ->get("{$this->baseUrl}/mother/nothing-here.be")
             ->assertNotFound()
-            ->assertSee('value="nothing-here.be"', false)
+            ->assertSee('<p class="mother-echo">nothing-here.be</p>', false)
             ->assertSee('Unable to compute. Available data insufficient.')
             ->assertSee('Could not fetch dns records', false);
     }
@@ -131,7 +130,7 @@ class MotherInterfaceTest extends TestCase
         $this
             ->get("{$this->baseUrl}/mother/ip")
             ->assertSuccessful()
-            ->assertSee('id="exchange"', false)
+            ->assertSee('id="transcript"', false)
             ->assertSee('Your ip address is');
     }
 
@@ -176,12 +175,12 @@ class MotherInterfaceTest extends TestCase
             ->get("{$this->baseUrl}/")
             ->assertSuccessful()
             ->assertSee('class="screen"', false)
-            ->assertDontSee('id="exchange"', false);
+            ->assertDontSee('id="transcript"', false);
 
         $this
             ->get("{$this->baseUrl}/old")
             ->assertSuccessful()
             ->assertSee('<body class="layout">', false)
-            ->assertDontSee('id="exchange"', false);
+            ->assertDontSee('id="transcript"', false);
     }
 }

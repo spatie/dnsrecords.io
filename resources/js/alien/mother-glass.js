@@ -129,9 +129,9 @@ void main() {
 }
 `;
 
-const motherLines = '.mother-ready, .inquiry__mirror, .exchange:not(.is-writing) .mother-line, .exchange:not(.is-writing) .matrix__title, .exchange:not(.is-writing) .record, .exchange:not(.is-writing) .roots__row, .mother-footer p';
+const motherLines = '.mother-ready, .mother-echo, .inquiry__mirror, .exchange:not(.is-writing) .mother-line, .exchange:not(.is-writing) .matrix__title, .exchange:not(.is-writing) .record, .exchange:not(.is-writing) .roots__row, .mother-footer p';
 
-const motherEchoLines = '.mother-ready, .exchange:not(.is-writing) .mother-line, .exchange:not(.is-writing) .matrix__title, .exchange:not(.is-writing) .record';
+const motherEchoLines = '.mother-ready, .mother-echo, .exchange:not(.is-writing) .mother-line, .exchange:not(.is-writing) .matrix__title, .exchange:not(.is-writing) .record';
 
 function compile(gl, type, source) {
     const shader = gl.createShader(type);
