@@ -4,7 +4,7 @@
     $terminalOutput = isset($output) ? new TerminalOutput($output) : null;
 @endphp
 <!DOCTYPE html>
-<html lang="en" class="no-js" data-page="{{ $terminalOutput ? 'result' : 'home' }}" data-motion="full">
+<html lang="en" class="no-js" data-interface="mother" data-page="{{ $terminalOutput ? 'result' : 'home' }}" data-motion="full">
 
 <head>
     <meta charset="utf-8">
