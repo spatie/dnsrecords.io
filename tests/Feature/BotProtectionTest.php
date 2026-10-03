@@ -37,6 +37,8 @@ class BotProtectionTest extends TestCase
     {
         Log::spy();
 
+        $this->enforce(BotSignal::CrawlerUserAgent);
+
         $this
             ->withoutHeader('Sec-Fetch-Mode')
             ->withServerVariables(['REMOTE_ADDR' => '10.0.1.20'])
@@ -175,6 +177,28 @@ class BotProtectionTest extends TestCase
             ->get("{$this->baseUrl}/spatie.be")
             ->assertSuccessful()
             ->assertSee('103.133.1.1');
+    }
+
+    #[Test]
+    public function it_blocks_command_line_clients_and_datacenters_by_default()
+    {
+        $this
+            ->withHeaders(['User-Agent' => 'curl/8.7.1'])
+            ->withoutHeader('Sec-Fetch-Mode')
+            ->get("{$this->baseUrl}/spatie.be")
+            ->assertForbidden();
+
+        $this
+            ->withServerVariables(['REMOTE_ADDR' => '10.0.3.7'])
+            ->get("{$this->baseUrl}/spatie.be")
+            ->assertForbidden();
+
+        $this
+            ->withHeaders($this->browserHeaders)
+            ->withHeader('Accept-Language', '')
+            ->withServerVariables(['REMOTE_ADDR' => '10.0.2.7'])
+            ->get("{$this->baseUrl}/spatie.be")
+            ->assertSuccessful();
     }
 
     #[Test]
