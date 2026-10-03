@@ -80,4 +80,28 @@ class ThemeCommandsTest extends TestCase
             ->get("{$this->baseUrl}/mother/spatie.be")
             ->assertForbidden();
     }
+
+    #[Test]
+    public function it_marks_every_interface_so_pages_are_only_swapped_within_one()
+    {
+        $this
+            ->get("{$this->baseUrl}/")
+            ->assertSee('data-interface="terminal"', false);
+
+        $this
+            ->get("{$this->baseUrl}/spatie.be")
+            ->assertSee('data-interface="terminal"', false);
+
+        $this
+            ->get("{$this->baseUrl}/mother")
+            ->assertSee('data-interface="mother"', false);
+
+        $this
+            ->get("{$this->baseUrl}/mother/spatie.be")
+            ->assertSee('data-interface="mother"', false);
+
+        $this
+            ->get("{$this->baseUrl}/lcars")
+            ->assertSee('data-interface="lcars"', false);
+    }
 }

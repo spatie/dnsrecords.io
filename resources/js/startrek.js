@@ -44,7 +44,7 @@ function parsePage(html) {
     const page = new DOMParser().parseFromString(html, 'text/html');
     const screen = page.getElementById('lcars-content');
 
-    if (! screen) {
+    if (! screen || page.documentElement.getAttribute('data-interface') !== root.getAttribute('data-interface')) {
         return null;
     }
 
