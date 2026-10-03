@@ -7,21 +7,65 @@
     overflow: hidden;
 }
 
+.screen__picture {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    transform-origin: 50% 50%;
+}
+
+/* Static CRT glass, used until the shader takes over and whenever it is unavailable. */
 .screen::after {
     content: '';
     position: absolute;
     inset: 0;
     z-index: 3;
+    border-radius: clamp(14px, 2.4vmin, 28px);
     background:
-        radial-gradient(ellipse 120% 100% at 50% 50%, transparent 62%, rgba(0, 0, 0, .35) 100%),
+        radial-gradient(ellipse 125% 110% at 50% 50%, transparent 60%, rgba(0, 0, 0, .5) 100%),
         repeating-linear-gradient(180deg, transparent 0 2px, rgba(0, 0, 0, .07) 2px 3px);
-    opacity: 0;
+    box-shadow:
+        0 0 0 40px #000,
+        inset 0 0 22px 6px rgba(0, 0, 0, .75),
+        inset 0 0 2px 1px rgba(0, 0, 0, .9);
     pointer-events: none;
-    transition: opacity .7s var(--ease-in-out);
+    transition: opacity .9s var(--ease-in-out);
 }
 
-[data-fx='on'] .screen::after {
+[data-crt='gl'] .screen::after {
+    opacity: 0;
+}
+
+.crt-glass {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.2s var(--ease-in-out);
+}
+
+[data-crt='gl'] .crt-glass {
     opacity: 1;
+}
+
+.screen__beam {
+    position: absolute;
+    top: 50%;
+    right: 8%;
+    left: 8%;
+    z-index: 2;
+    height: 2px;
+    margin-top: -1px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 50%, #fff, var(--fg) 40%, transparent 100%);
+    box-shadow: 0 0 14px 3px var(--glow), 0 0 40px 10px var(--glow);
+    opacity: 0;
+    transform: scaleX(.004);
+    pointer-events: none;
 }
 
 .status-bar {
@@ -34,7 +78,7 @@
     gap: 16px;
     width: min(1180px, 100%);
     margin: 0 auto;
-    padding: 14px clamp(16px, 4vw, 48px) 12px;
+    padding: clamp(16px, 3.6vh, 34px) clamp(18px, 4.4vw, 52px) 12px;
     color: var(--dim);
     font-size: 13px;
 }
@@ -42,9 +86,9 @@
 .status-bar::after {
     content: '';
     position: absolute;
-    right: clamp(16px, 4vw, 48px);
+    right: clamp(18px, 4.4vw, 52px);
     bottom: 0;
-    left: clamp(16px, 4vw, 48px);
+    left: clamp(18px, 4.4vw, 52px);
     height: 1px;
     background: var(--line);
     transform: scaleY(.5);
@@ -96,7 +140,7 @@
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 28px max(clamp(16px, 4vw, 48px), calc((100% - 1180px) / 2 + clamp(16px, 4vw, 48px))) 24px;
+    padding: 28px max(clamp(18px, 4.4vw, 52px), calc((100% - 1180px) / 2 + clamp(18px, 4.4vw, 52px))) clamp(24px, 4.4vh, 44px);
     scrollbar-color: var(--faint) transparent;
     scrollbar-width: thin;
     transition: opacity .6s var(--ease-in-out), filter .6s var(--ease-in-out), text-shadow .7s var(--ease-in-out);
@@ -104,7 +148,11 @@
 
 [data-fx='on'] .screen__content,
 [data-fx='on'] .status-bar {
-    text-shadow: 0 0 10px var(--glow);
+    text-shadow:
+        -.45px 0 rgba(255, 40, 90, .2),
+        .45px 0 rgba(40, 210, 255, .2),
+        0 0 1px var(--glow),
+        0 0 12px var(--glow);
 }
 
 .terminal {
@@ -304,11 +352,53 @@
     transition-delay: .25s, 0s;
 }
 
-[data-power='off'] .screen__content,
-[data-power='off'] .status-bar {
+[data-power='off'] .screen__picture {
     opacity: 0;
-    filter: blur(4px);
-    transition: opacity .6s var(--ease-in-out), filter .6s var(--ease-in-out);
+}
+
+.screen.is-powering-off .screen__picture {
+    animation: picture-off 1.1s both;
+}
+
+.screen.is-powering-off .screen__beam {
+    animation: beam-off 1.1s both;
+}
+
+.screen.is-powering-on .screen__picture {
+    animation: picture-on 1s both;
+}
+
+.screen.is-powering-on .screen__beam {
+    animation: beam-on 1s both;
+}
+
+@keyframes picture-off {
+    0% { opacity: 1; transform: none; filter: none; animation-timing-function: cubic-bezier(.55, 0, .75, .3); }
+    38% { opacity: 1; transform: scale(1, .004); filter: brightness(1.6); animation-timing-function: var(--ease-in-out); }
+    56% { opacity: 0; transform: scale(.004, .004); filter: brightness(1.6); }
+    100% { opacity: 0; transform: scale(.004, .004); }
+}
+
+@keyframes beam-off {
+    0% { opacity: 0; transform: scaleX(1); animation-timing-function: var(--ease-in-out); }
+    34% { opacity: .9; transform: scaleX(1); animation-timing-function: var(--ease-in-out); }
+    56% { opacity: .9; transform: scaleX(.004); animation-timing-function: var(--ease-out); }
+    100% { opacity: 0; transform: scaleX(.004); }
+}
+
+@keyframes picture-on {
+    0% { opacity: 0; transform: scale(.004, .004); filter: brightness(1.6); animation-timing-function: cubic-bezier(.3, 0, .2, 1); }
+    30% { opacity: .9; transform: scale(1, .004); filter: brightness(1.6); animation-timing-function: cubic-bezier(.2, .8, .25, 1); }
+    70% { opacity: 1; transform: scale(1, 1.008); filter: brightness(1.1); animation-timing-function: var(--ease-in-out); }
+    100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes beam-on {
+    0% { opacity: 0; transform: scaleX(.004); animation-timing-function: var(--ease-out); }
+    12% { opacity: .9; transform: scaleX(.004); animation-timing-function: cubic-bezier(.3, 0, .2, 1); }
+    30% { opacity: .9; transform: scaleX(1); animation-timing-function: var(--ease-in-out); }
+    50% { opacity: 0; transform: scaleX(1); }
+    100% { opacity: 0; }
 }
 
 @media (max-width: 640px) {

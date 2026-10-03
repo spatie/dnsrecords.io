@@ -19,6 +19,21 @@ const element = {
 
 
 let isAwake = true;
+let powerTimer = null;
+
+function signal(type) {
+    document.dispatchEvent(new CustomEvent('crt', { detail: { type } }));
+}
+
+function restartClass(target, className, duration) {
+    target.classList.remove(className);
+
+    void target.offsetWidth;
+
+    target.classList.add(className);
+
+    return setTimeout(() => target.classList.remove(className), duration);
+}
 let lookupInProgress = null;
 
 function prefersReducedMotion() {
@@ -99,6 +114,8 @@ function setPhosphor(phosphor, { shouldAnnounce = false } = {}) {
  * button of old monitors.
  */
 function degauss() {
+    signal('degauss');
+
     if (prefersReducedMotion() || ! isFxEnabled()) {
         screenElement.animate([{ filter: 'none' }, { filter: 'brightness(1.4)' }, { filter: 'none' }], { duration: 900, easing: 'ease-in-out' });
         announce('Degaussed.');
@@ -129,14 +146,25 @@ function setAwake(isOn) {
     }
 
     isAwake = isOn;
-    root.setAttribute('data-power', isOn ? 'on' : 'off');
+    clearTimeout(powerTimer);
 
     if (isOn) {
+        screenElement.classList.remove('is-powering-off');
+        root.setAttribute('data-power', 'on');
+        powerTimer = restartClass(screenElement, 'is-powering-on', 1000);
         announce('Display is awake.');
         focusInput();
 
         return;
     }
+
+    screenElement.classList.remove('is-powering-on');
+    powerTimer = restartClass(screenElement, 'is-powering-off', 1100);
+    setTimeout(() => {
+        if (! isAwake) {
+            root.setAttribute('data-power', 'off');
+        }
+    }, 600);
 
     announce('Display is asleep. Press any key to wake it.');
 }
@@ -203,10 +231,15 @@ async function swapScreen(screenPage) {
         description.setAttribute('content', screenPage.description);
     }
 
-    await content.animate([
-        { opacity: 1, transform: 'none' },
-        { opacity: 0, transform: 'translateY(-4px)' },
-    ], { duration: 180, easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards' }).finished.catch(() => {});
+    const decay = isFxEnabled() && ! prefersReducedMotion()
+        ? [
+            { opacity: 1, filter: 'brightness(1) blur(0px)' },
+            { opacity: .55, filter: 'brightness(1.5) blur(.4px)', offset: .25 },
+            { opacity: 0, filter: 'brightness(1.1) blur(1.5px)' },
+        ]
+        : [{ opacity: 1 }, { opacity: 0 }];
+
+    await content.animate(decay, { duration: isFxEnabled() ? 320 : 180, easing: 'cubic-bezier(.3, 0, .6, 1)', fill: 'forwards' }).finished.catch(() => {});
 
     root.setAttribute('data-page', screenPage.page);
 
@@ -216,6 +249,7 @@ async function swapScreen(screenPage) {
     nextContent.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.22, 1, .36, 1)' });
 
     mountContent();
+    signal('lookup-end');
 
     if (screenPage.announcement) {
         announce(screenPage.announcement);
@@ -227,6 +261,7 @@ async function lookup(command) {
     const attempt = Symbol('lookup');
 
     showResolving(command);
+    signal('lookup-start');
     lookupInProgress = attempt;
 
     const result = await fetchScreen(url);
@@ -236,6 +271,10 @@ async function lookup(command) {
     }
 
     lookupInProgress = null;
+
+    if (result.type !== 'screen') {
+        signal('lookup-end');
+    }
 
     if (result.type === 'navigate') {
         window.location.assign(result.url);
@@ -466,6 +505,27 @@ function init() {
     setInterval(tickClock, 10000);
 
     mountContent();
+    loadGlass();
+}
+
+function loadGlass() {
+    if (! ('WebGL2RenderingContext' in window)) {
+        return;
+    }
+
+    const load = () => import('./crt/glass.js')
+        .then(({ createGlass }) => createGlass(screenElement, document.getElementById('picture')))
+        .catch(() => {});
+
+    const whenIdle = callback => ('requestIdleCallback' in window ? window.requestIdleCallback(callback, { timeout: 1200 }) : setTimeout(callback, 300));
+
+    if (document.readyState === 'complete') {
+        whenIdle(load);
+
+        return;
+    }
+
+    window.addEventListener('load', () => whenIdle(load), { once: true });
 }
 
 init();

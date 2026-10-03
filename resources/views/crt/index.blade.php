@@ -33,17 +33,21 @@
     @include('googletagmanager::script')
 
     <div class="screen" id="screen">
-        <header class="status-bar">
-            <a class="status-bar__title" href="{{ route('home') }}">dnsrecords.io</a>
+        <div class="screen__picture" id="picture">
+            <header class="status-bar">
+                <a class="status-bar__title" href="{{ route('home') }}">dnsrecords.io</a>
 
-            <p class="status-bar__state">
-                <button type="button" class="status-bar__toggle" id="phosphor-toggle" aria-label="Phosphor colour">white</button>
-                <button type="button" class="status-bar__toggle" id="fx-toggle" aria-pressed="true" aria-label="Effects">fx on</button>
-                <span class="status-bar__clock" id="clock" aria-hidden="true"></span>
-            </p>
-        </header>
+                <p class="status-bar__state">
+                    <button type="button" class="status-bar__toggle" id="phosphor-toggle" aria-label="Phosphor colour">white</button>
+                    <button type="button" class="status-bar__toggle" id="fx-toggle" aria-pressed="true" aria-label="Effects">fx on</button>
+                    <span class="status-bar__clock" id="clock" aria-hidden="true"></span>
+                </p>
+            </header>
 
-        @include('crt.partials.terminal')
+            @include('crt.partials.terminal')
+        </div>
+
+        <div class="screen__beam" aria-hidden="true"></div>
 
         <div class="screen__sleep" aria-hidden="true">
             <p>power off</p>
