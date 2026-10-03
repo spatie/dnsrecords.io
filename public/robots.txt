@@ -1,7 +1,6 @@
 User-agent: *
 Allow: /$
-Allow: /css/
-Allow: /js/
+Allow: /build/
 Allow: /*.png$
 Allow: /*.ico$
 Allow: /*.svg$
