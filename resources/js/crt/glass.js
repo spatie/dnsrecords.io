@@ -659,9 +659,14 @@ export function createGlass(screen, picture) {
             return animated || Math.abs(state.motion) > .002 || Math.abs(state.signal - (isOn ? 1 : 0)) > .002 || state.disturb > .002;
         }
 
-        const textAlpha = shaderTextLife.frame(time, life) * pictureOpacity() * contentOpacity();
+        const warm = warmth();
+        const textAlpha = (1 + (shaderTextLife.frame(time, life) - 1) * warm) * pictureOpacity() * contentOpacity();
 
-        drawText(curve, pictureShift, textAlpha);
+        drawText(curve, pictureShift, textAlpha, warm);
+
+        if (isHandoverPending) {
+            handOver();
+        }
 
         return animated || Math.abs(state.motion) > .002 || Math.abs(state.signal - (isOn ? 1 : 0)) > .002 || state.disturb > .002;
     }
@@ -713,7 +718,7 @@ export function createGlass(screen, picture) {
         return { caret: [caret.x, caret.top, caret.width, caret.height], colour: [red / 255, green / 255, blue / 255, isOn ? 1 : 0] };
     }
 
-    function drawText(curve, pictureShift, textAlpha) {
+    function drawText(curve, pictureShift, textAlpha, warm) {
         const change = textLayer.update();
 
         if (change) {
@@ -739,7 +744,8 @@ export function createGlass(screen, picture) {
             picture: pictureBox,
             pictureScale: transition ? transition.scale : [1, 1],
             pictureShift,
-            curve,
+            curve: curve * warm,
+            warm,
             fringe: restingFringe + state.glitch.strength * .1 + state.disturb * .04,
             textAlpha: textAlpha * state.signal,
             glow: .75,
@@ -756,6 +762,8 @@ export function createGlass(screen, picture) {
     }
 
     let lastTypedAt = 0;
+    let isHandoverPending = false;
+    let warmStartedAt = -1;
     let isRevealPending = false;
 
     function startReveal() {
@@ -856,6 +864,31 @@ export function createGlass(screen, picture) {
         textLayer.update();
         textLayer.update();
         textPass.uploadText(textLayer);
+        isHandoverPending = true;
+    }
+
+    /**
+     * How far the glass has warmed up after the text was handed over, from 0
+     * (flat text, no glass, just like the DOM text before) to 1.
+     */
+    function warmth() {
+        if (warmStartedAt < 0) {
+            return 0;
+        }
+
+        const progress = Math.min(1, (now() - warmStartedAt) / 1.4);
+
+        return progress * progress * (3 - 2 * progress);
+    }
+
+    /**
+     * Hides the DOM text in the very frame the canvas first shows the same
+     * text, so the page never flashes or goes blank in between.
+     */
+    function handOver() {
+        isHandoverPending = false;
+        warmStartedAt = now();
+        root.setAttribute('data-crt', 'gl');
         root.setAttribute('data-text', 'gl');
     }
 
@@ -988,7 +1021,9 @@ export function createGlass(screen, picture) {
         });
     }
 
-    requestAnimationFrame(() => root.setAttribute('data-crt', 'gl'));
+    if (! textPass) {
+        requestAnimationFrame(() => root.setAttribute('data-crt', 'gl'));
+    }
 
     return {
         get quality() {
