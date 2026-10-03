@@ -522,19 +522,9 @@ function loadGlass() {
         return;
     }
 
-    const load = () => import('./crt/glass.js')
+    import('./crt/glass.js')
         .then(({ createGlass }) => createGlass(screenElement, document.getElementById('picture')))
         .catch(() => {});
-
-    const whenIdle = callback => ('requestIdleCallback' in window ? window.requestIdleCallback(callback, { timeout: 1200 }) : setTimeout(callback, 300));
-
-    if (document.readyState === 'complete') {
-        whenIdle(load);
-
-        return;
-    }
-
-    window.addEventListener('load', () => whenIdle(load), { once: true });
 }
 
 init();

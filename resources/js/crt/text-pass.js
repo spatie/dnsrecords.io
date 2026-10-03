@@ -34,6 +34,7 @@ uniform vec2 uPictureScale;
 uniform vec3 uPictureShift;
 uniform float uCurve;
 uniform float uFringe;
+uniform float uWarm;
 uniform float uTextAlpha;
 uniform float uGlow;
 uniform vec4 uLineA[${maximumLineEffects}];
@@ -166,7 +167,7 @@ void main() {
     vec2 uv = gl_FragCoord.xy / uResolution;
     vec2 screenPoint = vec2(uv.x, 1.0 - uv.y) * uScreen;
 
-    vec4 glass = texture(uGlass, uv);
+    vec4 glass = texture(uGlass, uv) * uWarm;
 
     vec4 red = textAt(screenPoint, uCurve * (1.0 + uFringe), -1.0);
     vec4 green = textAt(screenPoint, uCurve, 0.0);
@@ -361,6 +362,7 @@ export function createTextPass(gl) {
             gl.uniform3f(uniforms.uPictureShift, ...values.pictureShift);
             gl.uniform1f(uniforms.uCurve, values.curve);
             gl.uniform1f(uniforms.uFringe, values.fringe);
+            gl.uniform1f(uniforms.uWarm, values.warm);
             gl.uniform1f(uniforms.uTextAlpha, values.textAlpha);
             gl.uniform1f(uniforms.uGlow, values.glow);
             gl.uniform4fv(uniforms.uLineA, values.lineA);

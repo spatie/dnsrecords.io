@@ -53,6 +53,11 @@
     opacity: 1;
 }
 
+/* With the text on the glass, the shader warms the glass up itself. */
+[data-text='gl'] .crt-glass {
+    transition: none;
+}
+
 .screen__beam {
     position: absolute;
     top: 50%;
