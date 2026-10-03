@@ -13,7 +13,7 @@ use Throwable;
 class FlareReportingTest extends TestCase
 {
     #[Test]
-    public function it_reports_exceptions_to_flare()
+    public function it_reports_exceptions_to_flare(): void
     {
         app(FlareConfig::class)->apiToken = 'fake-flare-key';
 

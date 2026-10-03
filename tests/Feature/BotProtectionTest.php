@@ -21,7 +21,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_does_not_log_lookups_by_browsers()
+    public function it_does_not_log_lookups_by_browsers(): void
     {
         Log::spy();
 
@@ -33,7 +33,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_only_logs_signals_that_are_not_enforced()
+    public function it_only_logs_signals_that_are_not_enforced(): void
     {
         Log::spy();
 
@@ -50,7 +50,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_logs_enforced_signals()
+    public function it_logs_enforced_signals(): void
     {
         Log::spy();
 
@@ -65,7 +65,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_blocks_lookups_without_sec_fetch_headers_when_enforced()
+    public function it_blocks_lookups_without_sec_fetch_headers_when_enforced(): void
     {
         $this->enforce(BotSignal::MissingSecFetchHeaders);
 
@@ -79,7 +79,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_blocks_lookups_without_accept_language_when_enforced()
+    public function it_blocks_lookups_without_accept_language_when_enforced(): void
     {
         $this->enforce(BotSignal::MissingAcceptLanguage);
 
@@ -90,7 +90,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_blocks_lookups_from_datacenters_when_enforced()
+    public function it_blocks_lookups_from_datacenters_when_enforced(): void
     {
         $this->enforce(BotSignal::DatacenterIp);
 
@@ -112,7 +112,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_limits_lookups_per_subnet_when_enforced()
+    public function it_limits_lookups_per_subnet_when_enforced(): void
     {
         $this->enforce(BotSignal::TooManyLookupsFromSubnet);
 
@@ -137,7 +137,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_limits_lookups_per_ip_per_day_when_enforced()
+    public function it_limits_lookups_per_ip_per_day_when_enforced(): void
     {
         $this->enforce(BotSignal::TooManyLookupsToday);
 
@@ -156,7 +156,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_lets_browsers_use_the_lookup_form_when_all_signals_are_enforced()
+    public function it_lets_browsers_use_the_lookup_form_when_all_signals_are_enforced(): void
     {
         $this->enforce(...BotSignal::cases());
 
@@ -180,7 +180,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_blocks_command_line_clients_and_datacenters_by_default()
+    public function it_blocks_command_line_clients_and_datacenters_by_default(): void
     {
         $this
             ->withHeaders(['User-Agent' => 'curl/8.7.1'])
@@ -202,7 +202,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_finds_the_asn_of_datacenter_ips()
+    public function it_finds_the_asn_of_datacenter_ips(): void
     {
         $datacenterIpRanges = new DatacenterIpRanges(__DIR__.'/../fixtures/datacenter-ip-ranges.php');
 
@@ -218,7 +218,7 @@ class BotProtectionTest extends TestCase
     }
 
     #[Test]
-    public function it_can_update_the_datacenter_ip_ranges()
+    public function it_can_update_the_datacenter_ip_ranges(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'datacenter-ip-ranges');
 

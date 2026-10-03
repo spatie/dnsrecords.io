@@ -8,7 +8,7 @@ use Tests\TestCase;
 class ManualTest extends TestCase
 {
     #[Test]
-    public function it_shows_the_manual()
+    public function it_shows_the_manual(): void
     {
         $this->sendCommand('help');
 

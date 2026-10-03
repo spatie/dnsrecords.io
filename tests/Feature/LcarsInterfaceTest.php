@@ -8,7 +8,7 @@ use Tests\TestCase;
 class LcarsInterfaceTest extends TestCase
 {
     #[Test]
-    public function it_shows_the_lcars_console()
+    public function it_shows_the_lcars_console(): void
     {
         $this
             ->get("{$this->baseUrl}/lcars")
@@ -25,7 +25,7 @@ class LcarsInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_groups_lookup_results_by_record_type()
+    public function it_groups_lookup_results_by_record_type(): void
     {
         $this
             ->sendCommand('spatie.be', '/lcars/spatie.be')
@@ -43,7 +43,7 @@ class LcarsInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_the_raw_dig_output_copyable()
+    public function it_keeps_the_raw_dig_output_copyable(): void
     {
         $content = $this->sendCommand('spatie.be', '/lcars/spatie.be')->getContent();
 
@@ -56,7 +56,7 @@ class LcarsInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_folds_multiline_records_into_one_readout()
+    public function it_folds_multiline_records_into_one_readout(): void
     {
         $this->fakeDnsRecords['spatie.be SOA'] = implode("\n", [
             "spatie.be.\t\t1800 IN SOA ns1.digitalocean.com. hostmaster.spatie.be. (",
@@ -75,7 +75,7 @@ class LcarsInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_shows_failed_lookups_as_an_alert()
+    public function it_shows_failed_lookups_as_an_alert(): void
     {
         $this
             ->get("{$this->baseUrl}/lcars/nothing-here.be")
@@ -91,7 +91,7 @@ class LcarsInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_commands_on_the_lcars_console()
+    public function it_keeps_commands_on_the_lcars_console(): void
     {
         $this
             ->sendCommand('clear', '/lcars/clear')
@@ -116,7 +116,7 @@ class LcarsInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_sanitizes_lcars_lookups()
+    public function it_sanitizes_lcars_lookups(): void
     {
         $this
             ->sendCommand('https://spatie.be/en/vacancies', '/lcars/https://spatie.be/en/vacancies')
@@ -128,7 +128,7 @@ class LcarsInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_protects_lcars_lookups_like_the_main_lookups()
+    public function it_protects_lcars_lookups_like_the_main_lookups(): void
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)')
@@ -144,7 +144,7 @@ class LcarsInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_shares_the_lookup_rate_limit_with_the_main_interface()
+    public function it_shares_the_lookup_rate_limit_with_the_main_interface(): void
     {
         foreach (range(1, 10) as $attempt) {
             $this->get("{$this->baseUrl}/spatie.be")->assertSuccessful();

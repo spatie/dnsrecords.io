@@ -9,7 +9,7 @@ use Tests\TestCase;
 class MotherInterfaceTest extends TestCase
 {
     #[Test]
-    public function it_shows_the_mother_terminal()
+    public function it_shows_the_mother_terminal(): void
     {
         $this
             ->get("{$this->baseUrl}/mother")
@@ -25,7 +25,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_answers_an_inquiry_with_the_records()
+    public function it_answers_an_inquiry_with_the_records(): void
     {
         $this
             ->get("{$this->baseUrl}/mother/spatie.be")
@@ -41,7 +41,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_the_raw_dig_lines_for_copying()
+    public function it_keeps_the_raw_dig_lines_for_copying(): void
     {
         $content = $this->get("{$this->baseUrl}/mother/spatie.be")->getContent();
 
@@ -54,7 +54,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_multiline_records_together()
+    public function it_keeps_multiline_records_together(): void
     {
         $this->fakeDnsRecords['spatie.be SOA'] = "spatie.be.\t\t1800 IN SOA ns1.digitalocean.com. hostmaster.spatie.be. (\n\t\t\t\t0 ; serial\n\t\t\t\t)\n";
 
@@ -65,7 +65,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_accepts_inquiries_submitted_to_the_form()
+    public function it_accepts_inquiries_submitted_to_the_form(): void
     {
         $this
             ->post("{$this->baseUrl}/mother", ['command' => 'spatie.be'])
@@ -75,7 +75,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_sanitized_inquiries_on_the_mother_terminal()
+    public function it_keeps_sanitized_inquiries_on_the_mother_terminal(): void
     {
         $this
             ->sendCommand('https://spatie.be/en/vacancies', '/mother/https://spatie.be/en/vacancies')
@@ -83,7 +83,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_cannot_compute_domains_without_records()
+    public function it_cannot_compute_domains_without_records(): void
     {
         $this
             ->get("{$this->baseUrl}/mother/nothing-here.be")
@@ -94,7 +94,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_clarifies_the_commands_on_the_mother_terminal()
+    public function it_clarifies_the_commands_on_the_mother_terminal(): void
     {
         $this
             ->sendCommand('help', '/mother/help')
@@ -112,7 +112,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_clears_back_to_the_mother_terminal()
+    public function it_clears_back_to_the_mother_terminal(): void
     {
         $this
             ->sendCommand('clear', '/mother/clear')
@@ -120,7 +120,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_tells_the_ip_address_on_the_mother_terminal()
+    public function it_tells_the_ip_address_on_the_mother_terminal(): void
     {
         $this
             ->get("{$this->baseUrl}/mother/ip")
@@ -130,7 +130,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_protects_mother_lookups_from_crawlers()
+    public function it_protects_mother_lookups_from_crawlers(): void
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)')
@@ -146,7 +146,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_the_mother_terminal_out_of_robots_txt()
+    public function it_keeps_the_mother_terminal_out_of_robots_txt(): void
     {
         $robots = file_get_contents(public_path('robots.txt'));
 
@@ -155,7 +155,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_knows_the_mother_theme_from_the_route()
+    public function it_knows_the_mother_theme_from_the_route(): void
     {
         $this->get("{$this->baseUrl}/mother");
 
@@ -164,7 +164,7 @@ class MotherInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_leaves_the_other_interfaces_alone()
+    public function it_leaves_the_other_interfaces_alone(): void
     {
         $this
             ->get("{$this->baseUrl}/")

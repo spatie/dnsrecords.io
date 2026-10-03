@@ -8,7 +8,7 @@ use Tests\TestCase;
 class IpTest extends TestCase
 {
     #[Test]
-    public function it_shows_your_ip_address()
+    public function it_shows_your_ip_address(): void
     {
         $this
             ->withServerVariables(['REMOTE_ADDR' => '203.0.113.7'])

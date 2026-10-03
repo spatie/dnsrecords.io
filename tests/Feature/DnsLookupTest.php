@@ -10,7 +10,7 @@ use Tests\TestCase;
 class DnsLookupTest extends TestCase
 {
     #[Test]
-    public function it_can_lookup_a_normal_domain()
+    public function it_can_lookup_a_normal_domain(): void
     {
         $this
             ->sendCommand('spatie.be')
@@ -19,7 +19,7 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
-    public function it_doesnt_fail_with_a_dot_as_search_query()
+    public function it_doesnt_fail_with_a_dot_as_search_query(): void
     {
         $this
             ->sendCommand('.')
@@ -31,7 +31,7 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
-    public function it_redirects_to_home_when_the_domain_lookup_is_invalid()
+    public function it_redirects_to_home_when_the_domain_lookup_is_invalid(): void
     {
         $this->withoutExceptionHandling();
 
@@ -45,7 +45,7 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
-    public function it_sanitizes_the_domain_lookup_when_it_has_a_scheme()
+    public function it_sanitizes_the_domain_lookup_when_it_has_a_scheme(): void
     {
         $this
             ->sendCommand('http://spatie.be')
@@ -57,7 +57,7 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
-    public function it_sanitizes_the_domain_lookup_when_it_has_a_path()
+    public function it_sanitizes_the_domain_lookup_when_it_has_a_path(): void
     {
         $this
             ->sendCommand('https://spatie.be/en/vacancies')
@@ -65,7 +65,7 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
-    public function it_answers_unsanitized_lookup_urls_directly()
+    public function it_answers_unsanitized_lookup_urls_directly(): void
     {
         $this
             ->get("{$this->baseUrl}/spatie.be%2Fen%2Fvacancies")
@@ -79,7 +79,7 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
-    public function it_answers_lookup_urls_without_records_directly()
+    public function it_answers_lookup_urls_without_records_directly(): void
     {
         $this
             ->get("{$this->baseUrl}/unknown-domain.be")
@@ -92,7 +92,7 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
-    public function it_filters_out_html()
+    public function it_filters_out_html(): void
     {
         $this
             ->sendCommand('<iframe>')
@@ -100,7 +100,7 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
-    public function it_queries_every_record_type_and_keeps_their_order()
+    public function it_queries_every_record_type_and_keeps_their_order(): void
     {
         $this->fakeDnsRecords['spatie.be TXT'] = "spatie.be.\t\t3600 IN TXT \"v=spf1 -all\"\n";
         $this->fakeDnsRecords['spatie.be NS'] = "spatie.be.\t\t3600 IN NS ns1.digitalocean.com.\n";

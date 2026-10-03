@@ -8,7 +8,7 @@ use Tests\TestCase;
 class HttpLoggerTest extends TestCase
 {
     #[Test]
-    public function it_does_not_log_cookie_headers()
+    public function it_does_not_log_cookie_headers(): void
     {
         $logPath = storage_path('logs/http-logger-test.log');
 

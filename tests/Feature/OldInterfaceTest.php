@@ -7,10 +7,8 @@ use Tests\TestCase;
 
 class OldInterfaceTest extends TestCase
 {
-    protected string $browserUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
-
     #[Test]
-    public function it_shows_the_old_homepage()
+    public function it_shows_the_old_homepage(): void
     {
         $this
             ->get("{$this->baseUrl}/old")
@@ -23,7 +21,7 @@ class OldInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_can_lookup_a_domain_in_the_old_interface()
+    public function it_can_lookup_a_domain_in_the_old_interface(): void
     {
         $this
             ->sendCommand('spatie.be', '/old/spatie.be')
@@ -33,7 +31,7 @@ class OldInterfaceTest extends TestCase
             ->assertSee('<title>spatie.be DNS records ~ dnsrecords.io</title>', false);
 
         $this
-            ->withHeader('User-Agent', $this->browserUserAgent)
+            ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
             ->get("{$this->baseUrl}/old/spatie.be")
             ->assertSuccessful()
             ->assertSee('<pre class="main__results">', false)
@@ -41,7 +39,7 @@ class OldInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_can_submit_a_lookup_to_the_old_homepage()
+    public function it_can_submit_a_lookup_to_the_old_homepage(): void
     {
         $this
             ->post("{$this->baseUrl}/old", ['command' => 'spatie.be'])
@@ -50,7 +48,7 @@ class OldInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_sanitized_lookups_in_the_old_interface()
+    public function it_keeps_sanitized_lookups_in_the_old_interface(): void
     {
         $this
             ->sendCommand('https://spatie.be/en/vacancies', '/old/https://spatie.be/en/vacancies')
@@ -62,7 +60,7 @@ class OldInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_commands_in_the_old_interface()
+    public function it_keeps_commands_in_the_old_interface(): void
     {
         $this
             ->sendCommand('clear', '/old/clear')
@@ -81,7 +79,7 @@ class OldInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_redirects_failed_old_lookups_to_the_old_homepage()
+    public function it_redirects_failed_old_lookups_to_the_old_homepage(): void
     {
         $this
             ->sendCommand('nothing-here.be', '/old/nothing-here.be')
@@ -89,24 +87,24 @@ class OldInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_answers_failed_old_get_lookups_with_the_old_interface()
+    public function it_answers_failed_old_get_lookups_with_the_old_interface(): void
     {
         $this
-            ->withHeader('User-Agent', $this->browserUserAgent)
+            ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
             ->get("{$this->baseUrl}/old/nothing-here.be")
             ->assertNotFound()
             ->assertSee('<body class="layout">', false)
             ->assertSee('Could not fetch dns records', false);
 
         $this
-            ->withHeader('User-Agent', $this->browserUserAgent)
+            ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
             ->get("{$this->baseUrl}/old/<iframe>")
             ->assertNotFound()
             ->assertSee('<body class="layout">', false);
     }
 
     #[Test]
-    public function it_protects_old_lookups_like_the_main_lookups()
+    public function it_protects_old_lookups_like_the_main_lookups(): void
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)')
@@ -115,28 +113,28 @@ class OldInterfaceTest extends TestCase
             ->assertDontSee('103.133.1.1');
 
         $this
-            ->withHeader('User-Agent', $this->browserUserAgent)
+            ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
             ->get("{$this->baseUrl}/old/spatie.be")
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
     #[Test]
-    public function it_shares_the_lookup_rate_limit_with_the_main_interface()
+    public function it_shares_the_lookup_rate_limit_with_the_main_interface(): void
     {
         foreach (range(1, 10) as $attempt) {
             $this
-                ->withHeader('User-Agent', $this->browserUserAgent)
+                ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
                 ->get("{$this->baseUrl}/spatie.be")
                 ->assertSuccessful();
 
             $this
-                ->withHeader('User-Agent', $this->browserUserAgent)
+                ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
                 ->get("{$this->baseUrl}/old/spatie.be")
                 ->assertSuccessful();
         }
 
         $this
-            ->withHeader('User-Agent', $this->browserUserAgent)
+            ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
             ->get("{$this->baseUrl}/old/spatie.be")
             ->assertTooManyRequests();
     }

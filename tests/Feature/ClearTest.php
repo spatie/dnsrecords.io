@@ -8,7 +8,7 @@ use Tests\TestCase;
 class ClearTest extends TestCase
 {
     #[Test]
-    public function it_clears_the_output()
+    public function it_clears_the_output(): void
     {
         $this
             ->sendCommand('clear', '/spatie.be')
