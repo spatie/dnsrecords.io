@@ -1,7 +1,3 @@
 ::selection {
     background-color: var(--blue);
 }
-
-::-moz-selection {
-    background-color: var(--blue);
-}

@@ -1,4 +1,21 @@
-@import 'settings/*';
-@import 'base/*';
-@import 'components/*';
-@import 'helpers/*';
+@import './settings/colors.css';
+@import './settings/gutter.css';
+
+@import './base/a.css';
+@import './base/body.css';
+@import './base/headings.css';
+@import './base/html.css';
+@import './base/input.css';
+@import './base/selection.css';
+@import './base/universal.css';
+
+@import './components/alerts.css';
+@import './components/bookmarklet.css';
+@import './components/carret.css';
+@import './components/footer.css';
+@import './components/header.css';
+@import './components/layout.css';
+@import './components/main.css';
+@import './components/title.css';
+
+@import './helpers/text.css';
