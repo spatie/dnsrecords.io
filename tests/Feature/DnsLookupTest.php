@@ -63,6 +63,33 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
+    public function it_answers_unsanitized_lookup_urls_directly()
+    {
+        $this
+            ->get("{$this->baseUrl}/spatie.be%2Fen%2Fvacancies")
+            ->assertSuccessful()
+            ->assertSee('103.133.1.1');
+
+        $this
+            ->get("{$this->baseUrl}/Spatie.be")
+            ->assertSuccessful()
+            ->assertSee('103.133.1.1');
+    }
+
+    #[Test]
+    public function it_answers_lookup_urls_without_records_directly()
+    {
+        $this
+            ->get("{$this->baseUrl}/unknown-domain.be")
+            ->assertNotFound()
+            ->assertSee('Could not fetch dns records', false);
+
+        $this
+            ->get("{$this->baseUrl}/%3Ciframe%3E")
+            ->assertNotFound();
+    }
+
+    #[Test]
     public function it_filters_out_html()
     {
         $this

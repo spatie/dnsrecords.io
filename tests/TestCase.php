@@ -22,6 +22,15 @@ abstract class TestCase extends BaseTestCase
         '. NS' => ".\t\t\t518400 IN NS a.root-servers.net.\n",
     ];
 
+    /** @var array<string, string> */
+    protected array $browserHeaders = [
+        'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+        'Accept-Language' => 'en-US,en;q=0.9',
+        'Sec-Fetch-Dest' => 'document',
+        'Sec-Fetch-Mode' => 'navigate',
+        'Sec-Fetch-Site' => 'same-origin',
+    ];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -29,6 +38,8 @@ abstract class TestCase extends BaseTestCase
         $this->withoutMix();
 
         $this->fakeDnsLookups();
+
+        $this->withHeaders($this->browserHeaders);
     }
 
     protected function fakeDnsLookups(): void
