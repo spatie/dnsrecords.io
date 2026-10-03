@@ -1,4 +1,5 @@
 import { noise } from './glsl.js';
+import { createCurveWatch, initialCurveQuality, tuneCurve } from './curve-quality.js';
 import { createCurvedText, createTextLife } from './text-fx.js';
 
 /*
@@ -184,6 +185,8 @@ function between(min, max) {
 function approach(current, target, speed, delta) {
     return current + (target - current) * (1 - Math.exp(-speed * delta));
 }
+
+const restingFringe = .035;
 
 const phosphorColors = {
     white: [.89, .89, .91],
@@ -381,6 +384,7 @@ export function createGlass(screen, picture) {
 
     let glitchUntil = 0;
     let curvedText = null;
+    let curveWatch = null;
 
     const textLife = createTextLife(picture);
 
@@ -497,7 +501,7 @@ export function createGlass(screen, picture) {
         });
 
         if (curvedText) {
-            curvedText.setFringe(.035 + state.glitch.strength * .1 + state.disturb * .04);
+            curvedText.setFringe(restingFringe + state.glitch.strength * .1 + state.disturb * .04);
         }
 
         return animated || Math.abs(state.motion) > .002 || Math.abs(state.signal - (isOn ? 1 : 0)) > .002 || state.disturb > .002;
@@ -527,8 +531,7 @@ export function createGlass(screen, picture) {
         }
 
         if (curvedText) {
-            curvedText.disable();
-            curvedText = null;
+            curvedText.setQuality('off');
         }
     }
 
@@ -548,6 +551,11 @@ export function createGlass(screen, picture) {
 
         if (keepGoing) {
             adapt(delta);
+
+            if (curveWatch) {
+                curveWatch.frame(time, delta);
+            }
+
             frame = requestAnimationFrame(tick);
 
             return;
@@ -619,7 +627,9 @@ export function createGlass(screen, picture) {
     resize();
     wake();
 
-    curvedText = createCurvedText(picture, { curve: Math.min(window.innerWidth, 900) < 640 ? .02 : .034 });
+    curvedText = createCurvedText(picture, { curve: Math.min(window.innerWidth, 900) < 640 ? .02 : .034, fringe: restingFringe, quality: initialCurveQuality() });
+    curveWatch = createCurveWatch(curvedText);
+    tuneCurve(curvedText, restingFringe);
 
     requestAnimationFrame(() => root.setAttribute('data-crt', 'gl'));
 

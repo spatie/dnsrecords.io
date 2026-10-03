@@ -113,6 +113,16 @@ function inquiryLine(inquiry) {
 }
 
 /**
+ * A blur makes browsers that paint the curved text on the CPU redo the whole
+ * curve, so there the picture only dims and brightens as it fades.
+ */
+function fadeFilter(brightness, blur) {
+    const isCurvePaintedOnCpu = ['steady', 'lite'].includes(root.getAttribute('data-curve'));
+
+    return isCurvePaintedOnCpu ? `brightness(${brightness})` : `brightness(${brightness}) blur(${blur}px)`;
+}
+
+/**
  * Clears the screen the way a phosphor does: the old picture lingers a
  * moment and fades, then the new one is written.
  */
@@ -122,9 +132,9 @@ async function clearScreen(target) {
     }
 
     await target.animate([
-        { opacity: 1, filter: 'brightness(1) blur(0)' },
-        { opacity: .5, filter: 'brightness(1.35) blur(.3px)', offset: .2 },
-        { opacity: 0, filter: 'brightness(1) blur(1.2px)' },
+        { opacity: 1, filter: fadeFilter(1, 0) },
+        { opacity: .5, filter: fadeFilter(1.35, .3), offset: .2 },
+        { opacity: 0, filter: fadeFilter(1, 1.2) },
     ], { duration: 360, easing: 'cubic-bezier(.3, 0, .6, 1)', fill: 'forwards' }).finished.catch(() => {});
 }
 

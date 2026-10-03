@@ -71,7 +71,16 @@ function barrelMap(width, height, curve) {
     return { url: canvas.toDataURL('image/png'), scale };
 }
 
-export function createCurvedText(picture, { curve, fringe = .035 }) {
+/**
+ * Quality levels for the curved text, best first. `full` bends the red and
+ * blue channels a little more and less than green for colour fringes that
+ * flare up with glitches, `steady` keeps the fringes but never changes them
+ * (changing the filter makes Safari redo all of it), `lite` bends the
+ * picture in one pass without fringes and `off` leaves the text flat.
+ */
+export const curveQualities = ['full', 'steady', 'lite', 'off'];
+
+export function createCurvedText(picture, { curve, fringe = .035, quality = 'full' }) {
     const svg = element('svg', { width: 0, height: 0, 'aria-hidden': 'true', focusable: 'false' });
 
     svg.style.position = 'absolute';
@@ -91,19 +100,24 @@ export function createCurvedText(picture, { curve, fringe = .035 }) {
 
     const map = element('feImage', { x: 0, y: 0, preserveAspectRatio: 'none', result: 'map' }, filter);
     const green = element('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', xChannelSelector: 'R', yChannelSelector: 'G', result: 'green' }, filter);
-    const red = element('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', xChannelSelector: 'R', yChannelSelector: 'G', result: 'red' }, filter);
-    const blue = element('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', xChannelSelector: 'R', yChannelSelector: 'G', result: 'blue' }, filter);
+    const red = element('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', xChannelSelector: 'R', yChannelSelector: 'G', result: 'red' });
+    const blue = element('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', xChannelSelector: 'R', yChannelSelector: 'G', result: 'blue' });
 
-    element('feColorMatrix', { in: 'red', type: 'matrix', values: channel(1, 0, 0), result: 'redOnly' }, filter);
-    element('feColorMatrix', { in: 'green', type: 'matrix', values: channel(0, 1, 0), result: 'greenOnly' }, filter);
-    element('feColorMatrix', { in: 'blue', type: 'matrix', values: channel(0, 0, 1), result: 'blueOnly' }, filter);
-    element('feComposite', { in: 'redOnly', in2: 'greenOnly', operator: 'arithmetic', k1: 0, k2: 1, k3: 1, k4: 0, result: 'redGreen' }, filter);
-    element('feComposite', { in: 'redGreen', in2: 'blueOnly', operator: 'arithmetic', k1: 0, k2: 1, k3: 1, k4: 0 }, filter);
+    const fringePrimitives = [
+        red,
+        blue,
+        element('feColorMatrix', { in: 'red', type: 'matrix', values: channel(1, 0, 0), result: 'redOnly' }),
+        element('feColorMatrix', { in: 'green', type: 'matrix', values: channel(0, 1, 0), result: 'greenOnly' }),
+        element('feColorMatrix', { in: 'blue', type: 'matrix', values: channel(0, 0, 1), result: 'blueOnly' }),
+        element('feComposite', { in: 'redOnly', in2: 'greenOnly', operator: 'arithmetic', k1: 0, k2: 1, k3: 1, k4: 0, result: 'redGreen' }),
+        element('feComposite', { in: 'redGreen', in2: 'blueOnly', operator: 'arithmetic', k1: 0, k2: 1, k3: 1, k4: 0 }),
+    ];
 
     document.body.appendChild(svg);
 
     let scale = 0;
     let currentFringe = fringe;
+    let currentQuality = null;
 
     function applyFringe(amount) {
         currentFringe = amount;
@@ -124,22 +138,38 @@ export function createCurvedText(picture, { curve, fringe = .035 }) {
         applyFringe(currentFringe);
     }
 
+    function setQuality(quality) {
+        if (quality === currentQuality) {
+            return;
+        }
+
+        currentQuality = quality;
+
+        if (quality === 'full' || quality === 'steady') {
+            applyFringe(fringe);
+            fringePrimitives.forEach(primitive => filter.appendChild(primitive));
+        } else {
+            fringePrimitives.forEach(primitive => primitive.remove());
+        }
+
+        picture.classList.toggle('is-curved', quality !== 'off');
+        document.documentElement.setAttribute('data-curve', quality);
+    }
+
     resize();
     new ResizeObserver(resize).observe(picture);
 
-    picture.classList.add('is-curved');
+    setQuality(quality);
 
     return {
+        get quality() {
+            return currentQuality;
+        },
+        setQuality,
         setFringe(amount) {
-            if (Math.abs(amount - currentFringe) > .002) {
+            if (currentQuality === 'full' && Math.abs(amount - currentFringe) > .002) {
                 applyFringe(amount);
             }
-        },
-        disable() {
-            picture.classList.remove('is-curved');
-        },
-        enable() {
-            picture.classList.add('is-curved');
         },
     };
 }
@@ -241,7 +271,7 @@ export function createTextLife(picture) {
     return {
         tear,
         frame(time, { flicker, breath, surge, disturb, motion }) {
-            const opacity = Math.max(.82, Math.min(1, 1 - breath * 1.6 + flicker * 2.5 + surge * 2 - disturb * .06));
+            const opacity = Math.max(.82, Math.min(.999, 1 - breath * 1.6 + flicker * 2.5 + surge * 2 - disturb * .06));
 
             if (Math.abs(opacity - lastOpacity) > .002) {
                 picture.style.opacity = opacity.toFixed(3);

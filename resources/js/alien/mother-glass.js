@@ -1,4 +1,5 @@
 import { noise } from '../crt/glsl.js';
+import { createCurveWatch, initialCurveQuality, tuneCurve } from '../crt/curve-quality.js';
 import { createCurvedText } from '../crt/text-fx.js';
 
 /*
@@ -135,6 +136,8 @@ function approach(current, target, speed, delta) {
     return current + (target - current) * (1 - Math.exp(-speed * delta));
 }
 
+const restingFringe = .018;
+
 function curveFor(width) {
     return width < 720 ? .022 : .045;
 }
@@ -190,6 +193,7 @@ export function createMotherGlass(screen, picture) {
     let isLost = false;
     let slowFrames = 0;
     let curvedText = null;
+    let curveWatch = null;
 
     const state = {
         motion: 0,
@@ -297,10 +301,10 @@ export function createMotherGlass(screen, picture) {
         const shift = (isJolting ? Math.round((Math.random() - .5) * 4) : 0) + (state.disturb > .05 ? Math.round((Math.random() - .5) * 2 * state.disturb) : 0);
 
         picture.style.transform = shift ? `translate3d(${shift}px, 0, 0)` : '';
-        picture.style.opacity = animated ? (1 - .03 * (.5 + .5 * Math.sin(time * .9)) + surgeLevel(time) * 1.5).toFixed(3) : '';
+        picture.style.opacity = animated ? Math.min(.999, 1 - .03 * (.5 + .5 * Math.sin(time * .9)) + surgeLevel(time) * 1.5).toFixed(3) : '';
 
         if (curvedText) {
-            curvedText.setFringe(.018 + state.glitch.strength * .08 + state.disturb * .04);
+            curvedText.setFringe(restingFringe + state.glitch.strength * .08 + state.disturb * .04);
         }
 
         return animated || state.motion > .002 || state.disturb > .002;
@@ -310,8 +314,7 @@ export function createMotherGlass(screen, picture) {
         slowFrames = delta > 1 / 40 ? slowFrames + 1 : Math.max(0, slowFrames - 1);
 
         if (slowFrames > 90 && curvedText) {
-            curvedText.disable();
-            curvedText = null;
+            curvedText.setQuality('off');
         }
     }
 
@@ -329,6 +332,11 @@ export function createMotherGlass(screen, picture) {
 
         if (render(time, delta)) {
             adapt(delta);
+
+            if (curveWatch) {
+                curveWatch.frame(time, delta);
+            }
+
             frame = requestAnimationFrame(tick);
 
             return;
@@ -384,7 +392,9 @@ export function createMotherGlass(screen, picture) {
     resize();
     wake();
 
-    curvedText = createCurvedText(picture, { curve: curveFor(window.innerWidth), fringe: .018 });
+    curvedText = createCurvedText(picture, { curve: curveFor(window.innerWidth), fringe: restingFringe, quality: initialCurveQuality() });
+    curveWatch = createCurveWatch(curvedText);
+    tuneCurve(curvedText, restingFringe);
 
     requestAnimationFrame(() => root.setAttribute('data-crt', 'gl'));
 
