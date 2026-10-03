@@ -104,4 +104,36 @@ class ThemeCommandsTest extends TestCase
             ->get("{$this->baseUrl}/lcars")
             ->assertSee('data-interface="lcars"', false);
     }
+
+    #[Test]
+    public function it_goes_back_to_the_terminal_from_every_other_interface()
+    {
+        foreach (['/lcars', '/old', '/mother'] as $interface) {
+            foreach (['exit', 'home', 'terminal', 'default'] as $command) {
+                $this
+                    ->sendCommand($command, "{$interface}/{$command}")
+                    ->assertRedirect('/');
+            }
+        }
+    }
+
+    #[Test]
+    public function it_mentions_the_way_back_in_the_lcars_and_old_manual()
+    {
+        $this->sendCommand('help', '/lcars/help');
+
+        $this->assertStringContainsString("Enter 'exit' to return to the", $this->getFlashMessage());
+
+        $this->sendCommand('help', '/old/help');
+
+        $this->assertStringContainsString("Enter 'exit' to return to the", $this->getFlashMessage());
+    }
+
+    #[Test]
+    public function it_mentions_the_default_phosphor_in_the_terminal_manual()
+    {
+        $this->sendCommand('help');
+
+        $this->assertStringContainsString("'default' to go back to green", $this->getFlashMessage());
+    }
 }

@@ -1,3 +1,4 @@
+import { followOutput } from './crt/follow-output.js';
 import { fetchScreen, lookupUrl } from './crt/lookup.js';
 import { typeOut } from './alien/typewriter.js';
 import { createRoomLights } from './alien/room-lights.js';
@@ -16,6 +17,8 @@ const element = {
 };
 
 let typing = null;
+
+const output = followOutput(() => document.getElementById('screen-content'), () => document.getElementById('terminal'));
 let lookupInProgress = null;
 let hasOverride = false;
 
@@ -494,7 +497,7 @@ window.addEventListener('popstate', event => {
 function mountContent({ skip = null } = {}) {
     const content = element.content();
 
-    content.scrollTop = 0;
+    output.follow({ smooth: false });
     type({ skip });
     root.classList.remove('mother-boot');
     focusInput();

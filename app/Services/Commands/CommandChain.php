@@ -5,6 +5,7 @@ namespace App\Services\Commands;
 use App\Services\Commands\Commands\Clear;
 use App\Services\Commands\Commands\DnsLookup;
 use App\Services\Commands\Commands\Doom;
+use App\Services\Commands\Commands\ExitToTerminal;
 use App\Services\Commands\Commands\Ip;
 use App\Services\Commands\Commands\Lcars;
 use App\Services\Commands\Commands\Localhost;
@@ -24,6 +25,7 @@ class CommandChain
         Old::class,
         Mother::class,
         Lcars::class,
+        ExitToTerminal::class,
         DnsLookup::class,
     ];
 
