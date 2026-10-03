@@ -1,0 +1,169 @@
+/* Everything that moves lives behind data-fx="on", which defaults to off for prefers-reduced-motion. */
+
+[data-fx='on'] .screen__content {
+    text-shadow:
+        -.6px 0 rgba(255, 30, 70, .45),
+        .6px 0 rgba(30, 200, 255, .45),
+        0 0 2px var(--phosphor-glow),
+        0 0 14px var(--phosphor-glow);
+}
+
+[data-fx='on'] .screen__roll {
+    display: block;
+}
+
+[data-fx='on'] .screen__roll::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--phosphor);
+    opacity: 0;
+    animation: flicker 3.7s steps(1) infinite;
+}
+
+[data-fx='on'] .screen__roll::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 22%;
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, .045) 45%, rgba(255, 255, 255, .07) 50%, transparent);
+    animation: roll 7.5s linear infinite;
+}
+
+[data-fx='on'] .prompt__cursor {
+    animation: blink 1.06s steps(1) infinite;
+}
+
+[data-fx='on'][data-page='result'] .screen__picture {
+    animation: glitch-in .5s steps(6) both;
+}
+
+[data-fx='on'] .line {
+    animation: type calc(var(--steps) * 9ms + 60ms) steps(var(--steps)) var(--delay) both;
+}
+
+[data-fx='on'] .is-typed .line {
+    animation: none;
+}
+
+[data-fx='on'] [data-glitch]:hover,
+[data-fx='on'] [data-glitch]:focus-visible {
+    animation: rgb-split .32s steps(2) 2;
+}
+
+[data-fx='on'] .screen.is-glitching .screen__content {
+    animation: jitter .22s steps(4) both;
+}
+
+[data-fx='on'] .screen.is-powering-on .screen__picture {
+    animation: power-on .7s cubic-bezier(.2, .7, .3, 1) both;
+}
+
+[data-fx='on'] .screen.is-powering-off .screen__picture {
+    animation: power-off .45s ease-in both;
+}
+
+.screen.is-off .screen__picture {
+    opacity: 0;
+}
+
+.screen.is-off .screen__glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(140, 150, 140, .05), transparent 70%);
+}
+
+[data-fx='on'] .screen.is-degaussing .screen__picture {
+    animation: degauss 1.5s cubic-bezier(.3, .6, .4, 1) both;
+}
+
+.tear {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.tear__slice {
+    position: absolute;
+    inset: 0;
+    background: var(--screen-bg);
+    overflow: hidden;
+}
+
+.tear__slice > .screen__content {
+    overflow: hidden;
+}
+
+@keyframes flicker {
+    0% { opacity: 0; }
+    7% { opacity: .025; }
+    8% { opacity: 0; }
+    41% { opacity: .018; }
+    42% { opacity: 0; }
+    73% { opacity: .03; }
+    74% { opacity: 0; }
+}
+
+@keyframes roll {
+    from { transform: translateY(-110%); }
+    to { transform: translateY(560%); }
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+@keyframes type {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes rgb-split {
+    0% { text-shadow: -3px 0 rgba(255, 30, 70, .9), 3px 0 rgba(30, 200, 255, .9); transform: translateX(1px); }
+    50% { text-shadow: 2px 0 rgba(255, 30, 70, .9), -2px 0 rgba(30, 200, 255, .9); transform: translateX(-1px) skewX(-6deg); }
+    100% { text-shadow: -1px 0 rgba(255, 30, 70, .9), 1px 0 rgba(30, 200, 255, .9); transform: none; }
+}
+
+@keyframes jitter {
+    0% { transform: translateX(-4px) skewX(2deg); text-shadow: -4px 0 rgba(255, 30, 70, .7), 4px 0 rgba(30, 200, 255, .7), 0 0 10px var(--phosphor-glow); }
+    33% { transform: translateX(3px); clip-path: inset(10% 0 55% 0); }
+    66% { transform: translateX(-2px) skewX(-3deg); clip-path: none; }
+    100% { transform: none; }
+}
+
+@keyframes glitch-in {
+    0% { transform: translateX(-6px) scaleY(1.04); filter: blur(1px); opacity: .6; }
+    20% { transform: translateX(8px); clip-path: inset(30% 0 40% 0); }
+    40% { transform: translateX(-3px) skewX(4deg); clip-path: none; }
+    60% { transform: translateX(2px); filter: none; }
+    100% { transform: none; opacity: 1; }
+}
+
+@keyframes power-on {
+    0% { transform: scale(.02, .003); opacity: 1; filter: brightness(2.2); }
+    35% { transform: scale(1, .006); filter: brightness(2); }
+    60% { transform: scale(1, 1.03); filter: brightness(1.25); }
+    100% { transform: none; filter: none; }
+}
+
+@keyframes power-off {
+    0% { transform: none; filter: none; }
+    55% { transform: scale(1, .004); filter: brightness(1.8); opacity: 1; }
+    85% { transform: scale(.02, .003); opacity: .9; }
+    100% { transform: scale(0, 0); opacity: 0; }
+}
+
+@keyframes degauss {
+    0% { transform: none; filter: none; }
+    8% { transform: skewX(5deg) scale(1.03) rotate(.6deg); filter: hue-rotate(110deg) saturate(2.4); }
+    20% { transform: skewX(-4deg) scale(.985) rotate(-.5deg); filter: hue-rotate(-80deg) saturate(2); }
+    34% { transform: skewX(2.5deg) scale(1.012) rotate(.3deg); filter: hue-rotate(55deg) saturate(1.6); }
+    50% { transform: skewX(-1.4deg) rotate(-.15deg); filter: hue-rotate(-30deg) saturate(1.3); }
+    68% { transform: skewX(.6deg); filter: hue-rotate(12deg); }
+    100% { transform: none; filter: none; }
+}

@@ -1,0 +1,37 @@
+.boot {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    padding: clamp(14px, 2.6vw, 40px) clamp(16px, 3.4vw, 54px);
+    color: var(--phosphor);
+    font-family: var(--screen-font);
+    font-size: var(--screen-size);
+    line-height: 1.25;
+    text-shadow: 0 0 1px var(--phosphor), 0 0 10px var(--phosphor-glow);
+}
+
+.boot__log {
+    margin: 0;
+    font: inherit;
+    white-space: pre-wrap;
+}
+
+.boot__skip {
+    position: absolute;
+    right: clamp(16px, 3.4vw, 54px);
+    bottom: clamp(14px, 2.6vw, 40px);
+    margin: 0;
+    color: var(--phosphor-dim);
+    font-size: .8em;
+}
+
+[data-boot='pending'] .boot,
+[data-boot='running'] .boot {
+    display: block;
+}
+
+[data-boot='pending'] .screen__content,
+[data-boot='running'] .screen__content {
+    opacity: 0;
+}

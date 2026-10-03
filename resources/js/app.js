@@ -4,7 +4,9 @@ const input = document.getElementById('url');
 form.addEventListener('submit', event => {
     event.preventDefault();
 
-    form.action = window.location.origin + '/' + input.value;
+    const lookupBaseUrl = form.getAttribute('action').replace(/\/$/, '');
+
+    form.action = lookupBaseUrl + '/' + input.value;
 
     form.submit();
 });

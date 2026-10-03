@@ -1,0 +1,52 @@
+.room {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: clamp(8px, 2.5vw, 40px);
+    background:
+        radial-gradient(ellipse 70% 55% at 50% 45%, var(--phosphor-faint), transparent 70%),
+        radial-gradient(ellipse at 50% 120%, var(--room-light), var(--room) 60%);
+    transition: background .6s ease;
+}
+
+.monitor {
+    width: min(1180px, 100%);
+}
+
+.monitor__case {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 2 * clamp(8px, 2.5vw, 40px));
+    height: calc(100svh - 2 * clamp(8px, 2.5vw, 40px));
+    min-height: 520px;
+    max-height: 960px;
+    padding: clamp(10px, 2.4vw, 34px) clamp(10px, 2.4vw, 34px) 0;
+    border-radius: clamp(14px, 2vw, 28px) clamp(14px, 2vw, 28px) clamp(10px, 1.4vw, 18px) clamp(10px, 1.4vw, 18px);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, .35), rgba(255, 255, 255, 0) 12%),
+        linear-gradient(0deg, rgba(0, 0, 0, .18), rgba(0, 0, 0, 0) 18%),
+        var(--plastic);
+    box-shadow:
+        inset 0 2px 0 var(--plastic-light),
+        inset 0 -3px 0 var(--plastic-dark),
+        inset 3px 0 0 rgba(255, 255, 255, .25),
+        inset -3px 0 0 rgba(0, 0, 0, .08),
+        0 30px 60px -20px rgba(0, 0, 0, .8),
+        0 0 120px -30px var(--phosphor-glow);
+}
+
+.monitor__bezel {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: clamp(8px, 1.6vw, 22px);
+    border-radius: clamp(12px, 1.8vw, 26px);
+    background: linear-gradient(160deg, #2c2a25, #141311 60%);
+    box-shadow:
+        0 -2px 0 rgba(0, 0, 0, .25),
+        0 2px 0 var(--plastic-light),
+        inset 0 0 0 2px rgba(0, 0, 0, .55),
+        inset 0 8px 24px rgba(0, 0, 0, .8);
+}
