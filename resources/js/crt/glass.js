@@ -629,7 +629,7 @@ export function createGlass(screen, picture) {
 
     curvedText = createCurvedText(picture, { curve: Math.min(window.innerWidth, 900) < 640 ? .02 : .034, fringe: restingFringe, quality: initialCurveQuality() });
     curveWatch = createCurveWatch(curvedText);
-    tuneCurve(curvedText, restingFringe);
+    tuneCurve(curvedText);
 
     requestAnimationFrame(() => root.setAttribute('data-crt', 'gl'));
 

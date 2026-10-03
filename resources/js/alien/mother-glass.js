@@ -394,7 +394,7 @@ export function createMotherGlass(screen, picture) {
 
     curvedText = createCurvedText(picture, { curve: curveFor(window.innerWidth), fringe: restingFringe, quality: initialCurveQuality() });
     curveWatch = createCurveWatch(curvedText);
-    tuneCurve(curvedText, restingFringe);
+    tuneCurve(curvedText);
 
     requestAnimationFrame(() => root.setAttribute('data-crt', 'gl'));
 

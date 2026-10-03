@@ -205,13 +205,14 @@ function showResolving(command) {
 }
 
 /**
- * A blur makes browsers that paint the curved text on the CPU redo the whole
- * curve, so there the picture only dims and brightens as it decays.
+ * A blur over the whole picture is slow in browsers that paint the curve on
+ * the CPU or leave the text flat (Safari), so there the picture only dims
+ * and brightens as it decays.
  */
 function decayFilter(brightness, blur) {
-    const isCurvePaintedOnCpu = ['steady', 'lite'].includes(root.getAttribute('data-curve'));
+    const isBlurSlow = ['steady', 'lite', 'off'].includes(root.getAttribute('data-curve'));
 
-    return isCurvePaintedOnCpu ? `brightness(${brightness})` : `brightness(${brightness}) blur(${blur}px)`;
+    return isBlurSlow ? `brightness(${brightness})` : `brightness(${brightness}) blur(${blur}px)`;
 }
 
 async function swapScreen(screenPage) {
