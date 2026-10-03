@@ -73,7 +73,7 @@
                 </header>
 
                 <form id="scan-form" class="scan" method="post" action="{{ route('lcars.home') }}">
-                    {{ csrf_field() }}
+                    @csrf
 
                     <label for="domain" class="scan__label">Domain</label>
 
@@ -100,9 +100,9 @@
                 </p>
 
                 <div class="cascade" aria-hidden="true">
-                    @for ($column = 0; $column < $cascadeColumns; $column++)
+                    @for($column = 0; $column < $cascadeColumns; $column++)
                         <span class="cascade__column" style="--column: {{ $column }}">
-                            @for ($row = 0; $row < $cascadeRows; $row++)
+                            @for($row = 0; $row < $cascadeRows; $row++)
                                 <span style="--row: {{ $row }}">{{ str_pad((string) random_int(0, 10 ** random_int(2, 5) - 1), random_int(2, 5), '0', STR_PAD_LEFT) }}</span>
                             @endfor
                         </span>

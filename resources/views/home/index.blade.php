@@ -1,7 +1,6 @@
 @extends('layout.master')
 
 @section('content')
-
 <header class="header">
     <h1 class="title">
         <span class="carret">~</span>
@@ -21,7 +20,7 @@
     @include('layout._partials.flash')
 
     <form id="form" method="post" action="{{ route('old.home') }}">
-        {{ csrf_field() }}
+        @csrf
 
         <span class="carret -green">&rarr;</span>
         <input
