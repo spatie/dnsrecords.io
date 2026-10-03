@@ -11,6 +11,8 @@ export default defineConfig({
                 'resources/js/crt.js',
                 'resources/css/startrek.css',
                 'resources/js/startrek.js',
+                'resources/css/alien.css',
+                'resources/js/alien.js',
             ],
             refresh: true,
         }),
