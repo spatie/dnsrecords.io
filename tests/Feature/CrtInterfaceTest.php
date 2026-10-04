@@ -71,25 +71,22 @@ class CrtInterfaceTest extends TestCase
     #[Test]
     public function it_mentions_the_crt_commands_in_the_manual(): void
     {
-        $this
+        $response = $this
             ->sendCommand('help')
-            ->assertRedirect('/');
+            ->assertSuccessful()
+            ->assertSee('legend--mx', false)
+            ->assertSee('<strong>INTERFACES</strong>', false)
+            ->assertSee('/old');
 
-        $flashMessage = $this->getFlashMessage();
-
-        $this->assertStringNotContainsString('degauss', $flashMessage);
-        $this->assertStringContainsString("'green', 'amber' or 'white'", $flashMessage);
-        $this->assertStringNotContainsString('fx off', $flashMessage);
-        $this->assertStringContainsString('legend--mx', $flashMessage);
-        $this->assertStringContainsString('<strong>INTERFACES</strong>', $flashMessage);
-        $this->assertStringContainsString('/old', $flashMessage);
+        $this->assertStringNotContainsString('degauss', $response->getContent());
+        $this->assertStringContainsString("'green', 'amber' or 'white'", html_entity_decode($response->getContent()));
+        $this->assertStringNotContainsString('fx off', $response->getContent());
     }
 
     #[Test]
     public function it_shows_the_manual_instead_of_the_banner(): void
     {
         $this
-            ->followingRedirects()
             ->sendCommand('help')
             ->assertSee('Enter a domain name to retrieve all DNS records.')
             ->assertDontSee('banner__art', false);

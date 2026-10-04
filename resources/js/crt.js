@@ -648,12 +648,22 @@ function init() {
 
 function loadGlass() {
     if (! ('WebGL2RenderingContext' in window)) {
+        root.removeAttribute('data-glass-pending');
+        focusInput();
         return;
     }
 
     import('./crt/glass.js')
-        .then(({ createGlass }) => createGlass(screenElement, document.getElementById('picture')))
-        .catch(() => {});
+        .then(({ createGlass }) => {
+            if (! createGlass(screenElement, document.getElementById('picture'), focusInput)) {
+                root.removeAttribute('data-glass-pending');
+                focusInput();
+            }
+        })
+        .catch(() => {
+            root.removeAttribute('data-glass-pending');
+            focusInput();
+        });
 }
 
 init();

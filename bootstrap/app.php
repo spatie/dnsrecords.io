@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AddNoIndexHeader;
 use App\Http\Middleware\BlockCrawlers;
+use App\Http\Middleware\RememberTheme;
 use App\Http\Middleware\SanitizeCommand;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->web(append: [RememberTheme::class]);
 
         $middleware->alias([
             'blockCrawlers' => BlockCrawlers::class,

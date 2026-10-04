@@ -18,6 +18,6 @@ class ExitToTerminal implements Command
 
     public function perform(string $command): Response
     {
-        return Theme::Crt->redirectHome();
+        return redirect(Theme::Crt->selectionUrl());
     }
 }

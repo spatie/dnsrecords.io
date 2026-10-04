@@ -58,6 +58,13 @@ enum Theme
         };
     }
 
+    public function selectionUrl(): string
+    {
+        return $this === self::Crt
+            ? route('home', ['theme' => 'terminal'])
+            : $this->homeUrl();
+    }
+
     public function commandUrl(string $command): string
     {
         return match ($this) {

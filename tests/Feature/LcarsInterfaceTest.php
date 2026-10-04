@@ -99,9 +99,8 @@ class LcarsInterfaceTest extends TestCase
 
         $this
             ->sendCommand('help', '/lcars/help')
-            ->assertRedirect('/lcars');
-
-        $this->assertStringNotContainsString('degauss', $this->getFlashMessage());
+            ->assertSuccessful()
+            ->assertDontSee('degauss');
 
         $this
             ->sendCommand('ip', '/lcars/ip')

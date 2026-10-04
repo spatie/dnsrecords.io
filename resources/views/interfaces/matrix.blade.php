@@ -15,7 +15,7 @@
     ];
 @endphp
 <!DOCTYPE html>
-<html lang="en" class="no-js" data-interface="matrix">
+<html lang="en" class="no-js" data-interface="matrix" @if($terminalOutput) data-matrix-booting @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -23,6 +23,7 @@
     <title>{{ isset($domain) ? $domain . ' DNS records' : 'DNS records lookup' }} ~ The Matrix ~ dnsrecords.io</title>
     <meta name="description" content="{{ isset($output) ? formatOutput($output) : 'Look up DNS records in a different interface' }}">
     <link rel="preload" href="{{ Vite::asset('resources/fonts/jetbrains-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <script>document.documentElement.classList.replace('no-js', 'js');</script>
     @vite(['resources/css/interfaces.css', 'resources/css/matrix.css', 'resources/js/interfaces.js'])
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <meta name="theme-color" content="#020804">
@@ -52,7 +53,10 @@
 
         <div class="entries matrix-feed" id="entries">
             @if($terminalOutput)
-                @include('interfaces.partials.result', ['terminalOutput' => $terminalOutput])
+                <div class="entry entry--decoded">
+                    <p class="entry__command">&gt; {{ $domain ?? request()->route('command') }}</p>
+                    @include('interfaces.partials.result', ['terminalOutput' => $terminalOutput])
+                </div>
             @endif
 
             @if($errors->has('input'))
@@ -70,7 +74,7 @@
         <summary aria-label="Switch interface">INTERFACES</summary>
         <nav aria-label="Interfaces">
             @foreach($interfaces as [$label, $interface])
-                <a href="{{ $interface->homeUrl() }}">{{ $label }}</a>
+                <a href="{{ $interface->selectionUrl() }}">{{ $label }}</a>
             @endforeach
         </nav>
     </details>

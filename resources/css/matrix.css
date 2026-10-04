@@ -336,6 +336,10 @@
     gap: 44px;
 }
 
+.js[data-matrix-booting] .matrix-feed {
+    visibility: hidden;
+}
+
 .matrix-feed .entry {
     gap: 14px;
     scroll-margin-top: 50px;
@@ -390,13 +394,18 @@
 }
 
 .matrix-feed .record {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     border-top: 1px solid rgba(92, 197, 113, .24);
-    background: rgba(0, 15, 5, .5);
+    background: linear-gradient(90deg, rgba(0, 14, 4, .82), rgba(2, 32, 10, .33) 50%, rgba(0, 14, 4, .82));
     color: #d3ffdc;
+    transition: background-color .2s, box-shadow .2s;
 }
 
 .matrix-feed .record:hover {
-    background: rgba(30, 92, 42, .5);
+    background-color: rgba(38, 116, 52, .4);
+    box-shadow: inset 2px 0 0 #a2ffb5, 0 0 22px rgba(66, 255, 102, .13);
 }
 
 .matrix-feed .record__type {
@@ -404,18 +413,127 @@
     color: #e3ffe9;
 }
 
-.matrix-feed .entry--decoded.is-decoding-rows .record {
-    animation: matrix-row-reveal .55s cubic-bezier(.2, 0, 0, 1) both;
-    animation-delay: calc(var(--reveal-index) * 55ms);
+.matrix-entry--decoding .matrix-heading--decoding {
+    opacity: 0;
+    filter: blur(12px) brightness(3);
+    transform: translateY(-18px) skewX(-8deg);
 }
 
-@keyframes matrix-row-reveal {
-    from { opacity: 0; transform: translateY(-12px); filter: blur(4px); }
-    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+.matrix-entry--decoding .result__heading,
+.matrix-entry--decoding .record-head {
+    transition: opacity .45s, filter .45s, transform .45s;
 }
 
-.matrix-feed .entry--decoded .plain-output {
-    animation: matrix-row-reveal .65s ease-out both;
+.matrix-entry--decoding .matrix-record--queued {
+    opacity: 0;
+}
+
+.matrix-entry--decoding .matrix-record--assembling {
+    animation: matrix-record-enter .7s steps(7, end) both;
+}
+
+.matrix-entry--decoding .matrix-record--assembling::before {
+    content: '';
+    position: absolute;
+    z-index: 4;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(150, 255, 172, .12) 48%, #e1ffe8 50%, rgba(52, 255, 101, .35) 54%, transparent 100%);
+    box-shadow: 0 0 20px #6dff8a;
+    pointer-events: none;
+    animation: matrix-record-scan .76s linear both;
+}
+
+.matrix-entry--decoding .matrix-record--assembling::after {
+    content: '';
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    border-left: 2px solid #d9ffe1;
+    box-shadow: inset 12px 0 22px rgba(110, 255, 136, .3), 0 0 20px rgba(114, 255, 142, .45);
+    pointer-events: none;
+    animation: matrix-record-edge .75s ease-out both;
+}
+
+@keyframes matrix-record-enter {
+    0% { opacity: 0; transform: translateY(-24px) scaleY(.12); filter: blur(11px) brightness(4); clip-path: inset(0 0 90% 0); }
+    28% { opacity: 1; transform: translateY(4px) scaleY(1.15) skewX(-3deg); filter: blur(2px) brightness(2); clip-path: inset(0 0 0 0); }
+    44% { transform: translateY(-2px) skewX(2deg); }
+    64% { transform: translateY(1px) skewX(-1deg); filter: blur(0) brightness(1.2); }
+    100% { opacity: 1; transform: none; filter: none; clip-path: inset(0 0 0 0); }
+}
+
+@keyframes matrix-record-scan {
+    from { transform: translateY(-110%); opacity: 0; }
+    20% { opacity: 1; }
+    to { transform: translateY(110%); opacity: 0; }
+}
+
+@keyframes matrix-record-edge {
+    from { transform: translateX(-100%); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+.matrix-entry--decoding .record > span:not(.matrix-record__cascade) {
+    position: relative;
+}
+
+.matrix-entry--decoding .record .matrix-cell__final {
+    visibility: hidden;
+}
+
+.matrix-entry--decoding .record .matrix-cell--decoded .matrix-cell__final {
+    visibility: visible;
+}
+
+.matrix-cell__cipher {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    color: #f0fff2;
+    white-space: pre-wrap;
+    text-shadow: 0 0 6px #9affb2, 0 0 18px #47ff78;
+    pointer-events: none;
+}
+
+.record__type .matrix-cell__cipher {
+    inset: 1px 5px;
+}
+
+.matrix-record__cascade {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.matrix-record__cascade > span {
+    position: absolute;
+    top: -120px;
+    color: #d2ffdb;
+    font: 16px/.9 'JetBrains Mono', monospace;
+    text-shadow: 0 0 8px #81ff9a, 0 0 22px #55ff7b;
+    white-space: pre;
+    animation: matrix-record-rain .85s ease-in both;
+}
+
+@keyframes matrix-record-rain {
+    0% { opacity: 0; transform: translateY(-50px); }
+    25% { opacity: .9; }
+    75% { opacity: .6; }
+    100% { opacity: 0; transform: translateY(220px); }
+}
+
+.matrix-record--glitch {
+    animation: matrix-record-glitch .52s steps(2, end);
+}
+
+@keyframes matrix-record-glitch {
+    0%, 100% { transform: none; filter: none; }
+    20% { transform: translateX(3px) skewX(-1deg); filter: brightness(1.8); }
+    34% { transform: translateX(-2px); }
+    45% { transform: translateX(4px) skewX(1deg); filter: brightness(2.4); }
+    62% { transform: translateX(-1px); filter: none; }
 }
 
 .matrix-feed .plain-output {
@@ -568,8 +686,7 @@
     .matrix-query label,
     .matrix-query input,
     .interface--matrix.is-decoding .matrix-query::after,
-    .matrix-feed .entry--decoded.is-decoding-rows .record,
-    .matrix-feed .entry--decoded .plain-output {
+    .matrix-record--glitch {
         animation: none;
     }
 

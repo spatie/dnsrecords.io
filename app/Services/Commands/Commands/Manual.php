@@ -29,7 +29,7 @@ class Manual implements Command
             "Enter 'doom' to play Doom.",
         ])
             ->when(in_array($theme, [Theme::Classic, Theme::Lcars, Theme::Matrix, Theme::System7, Theme::WinXp]), fn ($lines) => $lines->push(
-                'Enter \'exit\' to return to the <a href="'.Theme::Crt->homeUrl().'">regular terminal</a>.',
+                'Enter \'exit\' to return to the <a href="'.Theme::Crt->selectionUrl().'">regular terminal</a>.',
             ))
             ->when($theme === Theme::Crt, fn ($lines) => $lines->push(
                 "Enter 'green', 'amber' or 'white' to swap the phosphor, 'default' to go back to green.",
@@ -53,7 +53,7 @@ class Manual implements Command
                 "Enter 'copy' to copy the records of the last response.",
                 "Enter 'what are my chances' for an honest assessment.",
                 "Enter 'special order 937' for orders that are not meant for you.",
-                'Enter \'exit\' to return to the <a href="'.Theme::Crt->homeUrl().'">regular terminal</a>.',
+                'Enter \'exit\' to return to the <a href="'.Theme::Crt->selectionUrl().'">regular terminal</a>.',
                 'Enter \'matrix\', \'system7\' or \'winxp\' to switch interfaces.',
             ))
             ->push(
@@ -65,6 +65,6 @@ class Manual implements Command
 
         flash()->message($manualText, 'info');
 
-        return $theme->redirectHome();
+        return response()->view($theme->view());
     }
 }

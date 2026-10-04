@@ -48,12 +48,11 @@ class ThemeCommandsTest extends TestCase
     #[Test]
     public function it_mentions_mother_and_lcars_in_the_terminal_manual(): void
     {
-        $this->sendCommand('help');
-
-        $flashMessage = $this->getFlashMessage();
-
-        $this->assertStringContainsString("Enter 'muthur' to talk to <a href=\"https://dnsrecords.io.dev/muthur\">MU/TH/UR 6000</a>.", $flashMessage);
-        $this->assertStringContainsString("Enter 'lcars' to open the <a href=\"https://dnsrecords.io.dev/lcars\">LCARS console</a>.", $flashMessage);
+        $this
+            ->sendCommand('help')
+            ->assertSuccessful()
+            ->assertSee('href="https://dnsrecords.io.dev/muthur"', false)
+            ->assertSee('href="https://dnsrecords.io.dev/lcars"', false);
     }
 
     #[Test]
@@ -126,7 +125,7 @@ class ThemeCommandsTest extends TestCase
             foreach (['exit', 'home', 'terminal', 'default'] as $command) {
                 $this
                     ->sendCommand($command, "{$interface}/{$command}")
-                    ->assertRedirect('/');
+                    ->assertRedirect('/?theme=terminal');
             }
         }
     }
@@ -137,28 +136,22 @@ class ThemeCommandsTest extends TestCase
         foreach (['matrix', 'system7', 'winxp'] as $interface) {
             $this
                 ->sendCommand('exit', "/{$interface}/exit")
-                ->assertRedirect('/');
+                ->assertRedirect('/?theme=terminal');
         }
     }
 
     #[Test]
     public function it_mentions_the_way_back_in_the_lcars_and_old_manual(): void
     {
-        $this->sendCommand('help', '/lcars/help');
+        $this->sendCommand('help', '/lcars/help')->assertSee('return to the');
 
-        $this->assertStringContainsString("Enter 'exit' to return to the", $this->getFlashMessage());
-
-        $this->sendCommand('help', '/old/help');
-
-        $this->assertStringContainsString("Enter 'exit' to return to the", $this->getFlashMessage());
+        $this->sendCommand('help', '/old/help')->assertSee('return to the');
     }
 
     #[Test]
     public function it_mentions_the_default_phosphor_in_the_terminal_manual(): void
     {
-        $this->sendCommand('help');
-
-        $this->assertStringContainsString("'default' to go back to green", $this->getFlashMessage());
+        $this->sendCommand('help')->assertSee('to go back to green');
     }
 
     #[Test]
