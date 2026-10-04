@@ -22,7 +22,8 @@ class CrtInterfaceTest extends TestCase
             ->assertSee('data-phosphor="green"', false)
             ->assertDontSee('id="fx-toggle"', false)
             ->assertSee('prefers-reduced-motion', false)
-            ->assertSee('href="https://dnsrecords.io.dev/old"', false);
+            ->assertSee('href="https://dnsrecords.io.dev/old"', false)
+            ->assertSee('href="https://github.com/spatie/dnsrecords.io"', false);
     }
 
     #[Test]
@@ -80,6 +81,7 @@ class CrtInterfaceTest extends TestCase
         $this->assertStringContainsString("'green', 'amber' or 'white'", $flashMessage);
         $this->assertStringNotContainsString('fx off', $flashMessage);
         $this->assertStringContainsString('legend--mx', $flashMessage);
+        $this->assertStringContainsString('<strong>INTERFACES</strong>', $flashMessage);
         $this->assertStringContainsString('/old', $flashMessage);
     }
 

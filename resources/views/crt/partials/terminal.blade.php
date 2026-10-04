@@ -47,6 +47,6 @@
     </main>
 
     <footer class="terminal-footer">
-        <p>(c) <a href="https://spatie.be/open-source">spatie</a> {{ date('Y') }}. type <button type="button" class="inline-command" data-command="help">help</button> <a class="terminal-footer__old" href="{{ route('old.home') }}">/old</a></p>
+        <p>(c) <a href="https://spatie.be/open-source">spatie</a> {{ date('Y') }}. type <button type="button" class="inline-command" data-command="help">help</button> <a class="terminal-footer__old" href="{{ route('old.home') }}">/old</a> <a href="https://github.com/spatie/dnsrecords.io">source code</a></p>
     </footer>
 </div>

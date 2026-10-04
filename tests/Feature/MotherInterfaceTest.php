@@ -23,7 +23,7 @@ class MotherInterfaceTest extends TestCase
             ->assertSee('<meta name="robots" content="noindex, nofollow">', false)
             ->assertSee('Root server address matrix')
             ->assertSee('198.41.0.4')
-            ->assertSee('<a class="mother-exit" href="https://dnsrecords.io.dev">Exit to terminal</a>', false)
+            ->assertDontSee('mother-footer', false)
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 

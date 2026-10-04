@@ -23,7 +23,7 @@
             @foreach($terminalOutput->lines() as $line)
                 @if($line->isRecord())
                     <div class="record" data-raw="{{ $line->text }}">
-                        <span class="record__type" data-label="Type">{{ $line->type }}</span>
+                        <span class="record__type" data-label="Type" data-type="{{ $line->type }}">{{ $line->type }}</span>
                         <span class="record__name" data-label="Name">{{ $line->name }}</span>
                         <span class="record__ttl" data-label="TTL">{{ $line->ttl }}</span>
                         <span class="record__value" data-label="Value">{{ $line->value }}</span>

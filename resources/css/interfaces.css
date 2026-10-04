@@ -274,9 +274,6 @@ a {
 }
 
 .lookup {
-    position: sticky;
-    top: 0;
-    z-index: 2;
     padding: 10px 0 12px;
     background: var(--surface);
 }
@@ -519,7 +516,7 @@ a {
 .entry {
     display: grid;
     gap: 8px;
-    scroll-margin-top: 110px;
+    scroll-margin-top: 12px;
 }
 
 .entry__command {
@@ -669,9 +666,9 @@ a {
 .interface--system7 .window {
     position: absolute;
     top: 52px;
-    left: clamp(24px, 6vw, 100px);
-    width: min(980px, calc(100vw - 72px));
-    height: min(620px, calc(100dvh - 96px));
+    left: max(48px, calc((100vw - 1500px) / 2));
+    width: min(1500px, calc(100vw - 96px));
+    height: min(820px, calc(100dvh - 135px));
     min-width: 360px;
     min-height: 280px;
     max-height: none;
@@ -949,7 +946,7 @@ a {
     --error: #b32424;
     --taskbar: linear-gradient(#80aafa 0%, #2467dc 8%, #1554c3 45%, #1d5bc9 92%, #123d9b 100%);
     --taskbar-ink: #fff;
-    background: #4b9fdb url('../images/xp-hills.jpg') center center / cover fixed no-repeat;
+    background: #4b9fdb url('../images/xp-bliss.jpg') center center / cover fixed no-repeat;
 }
 
 .interface--winxp .desktop {
@@ -983,10 +980,10 @@ a {
 
 .interface--winxp .window {
     position: absolute;
-    top: clamp(38px, 8vh, 78px);
-    left: max(38px, calc((100vw - 940px) / 2));
-    width: min(940px, calc(100vw - 76px));
-    height: min(620px, calc(100dvh - 120px));
+    top: clamp(48px, 5vh, 80px);
+    left: max(48px, calc((100vw - 1500px) / 2));
+    width: min(1500px, calc(100vw - 96px));
+    height: min(820px, calc(100dvh - 135px));
     min-width: 430px;
     min-height: 320px;
     max-height: none;
@@ -1098,6 +1095,16 @@ a {
 .interface--winxp .record-head {
     background: #eff5ff;
 }
+
+.interface--winxp .record__type[data-type='A'] { background: #2d64c8; }
+.interface--winxp .record__type[data-type='AAAA'] { background: #1882ad; }
+.interface--winxp .record__type[data-type='NS'] { background: #27804c; }
+.interface--winxp .record__type[data-type='MX'] { background: #a46613; }
+.interface--winxp .record__type[data-type='TXT'] { background: #844686; }
+.interface--winxp .record__type[data-type='CNAME'] { background: #6255a3; }
+.interface--winxp .record__type[data-type='SOA'] { background: #a45135; }
+.interface--winxp .record__type[data-type='CAA'] { background: #555a73; }
+.interface--winxp .record__type[data-type='SRV'] { background: #287a73; }
 
 .interface--winxp .window__statusbar {
     align-items: center;
@@ -1570,7 +1577,7 @@ a {
     }
 
     .entry {
-        scroll-margin-top: 170px;
+        scroll-margin-top: 12px;
     }
 
     .record {

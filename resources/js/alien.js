@@ -73,30 +73,6 @@ function report(message) {
     }
 }
 
-function setLargeText(enabled) {
-    const button = document.getElementById('mother-text-size');
-
-    root.setAttribute('data-text-size', enabled ? 'large' : 'standard');
-    button.setAttribute('aria-pressed', String(enabled));
-    button.textContent = enabled ? 'Standard text' : 'Larger text';
-
-    try {
-        localStorage.setItem('mother-large-text', enabled ? '1' : '0');
-    } catch (error) {
-        // The choice still applies to this page when storage is unavailable.
-    }
-}
-
-document.getElementById('mother-text-size').addEventListener('click', () => {
-    finishWriting();
-    setLargeText(root.getAttribute('data-text-size') !== 'large');
-
-    requestAnimationFrame(() => {
-        element.content().scrollTop = element.content().scrollHeight;
-        focusInput();
-    });
-});
-
 function latestExchange() {
     const exchanges = element.transcript().querySelectorAll('.exchange');
 
@@ -837,16 +813,6 @@ function loadGlass() {
 }
 
 function init() {
-    let largeText = false;
-
-    try {
-        largeText = localStorage.getItem('mother-large-text') === '1';
-    } catch (error) {
-        // The standard size remains available without storage.
-    }
-
-    setLargeText(largeText);
-
     window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', event => {
         root.setAttribute('data-motion', event.matches ? 'calm' : 'full');
     });
