@@ -8,9 +8,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Mother implements Command
 {
+    /** @var array<int, string> */
+    protected array $names = ['muthur', 'mu-th-ur', 'mother'];
+
     public function canPerform(string $command): bool
     {
-        return $command === 'mother';
+        return in_array($command, $this->names, true);
     }
 
     public function perform(string $command): Response

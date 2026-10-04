@@ -10,7 +10,8 @@ class RenamedThemeRedirectController extends Controller
 {
     /** @var array<string, string> */
     protected array $renamedPaths = [
-        '/alien' => '/mother',
+        '/alien' => '/muthur',
+        '/mother' => '/muthur',
         '/startrek' => '/lcars',
     ];
 

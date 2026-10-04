@@ -12,7 +12,7 @@ class ThemeCommandsTest extends TestCase
     {
         $this
             ->sendCommand('mother')
-            ->assertRedirect('/mother');
+            ->assertRedirect('/muthur');
 
         $this
             ->sendCommand('lcars')
@@ -24,7 +24,7 @@ class ThemeCommandsTest extends TestCase
     {
         $this
             ->sendCommand('mother', '/old/mother')
-            ->assertRedirect('/mother');
+            ->assertRedirect('/muthur');
 
         $this
             ->sendCommand('lcars', '/old/lcars')
@@ -38,7 +38,7 @@ class ThemeCommandsTest extends TestCase
 
         $flashMessage = $this->getFlashMessage();
 
-        $this->assertStringContainsString("Enter 'mother' to talk to <a href=\"https://dnsrecords.io.dev/mother\">MU/TH/UR 6000</a>.", $flashMessage);
+        $this->assertStringContainsString("Enter 'muthur' to talk to <a href=\"https://dnsrecords.io.dev/muthur\">MU/TH/UR 6000</a>.", $flashMessage);
         $this->assertStringContainsString("Enter 'lcars' to open the <a href=\"https://dnsrecords.io.dev/lcars\">LCARS console</a>.", $flashMessage);
     }
 
@@ -48,7 +48,7 @@ class ThemeCommandsTest extends TestCase
         $this
             ->get("{$this->baseUrl}/alien")
             ->assertStatus(301)
-            ->assertRedirect('/mother')
+            ->assertRedirect('/muthur')
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 
         $this
@@ -59,7 +59,7 @@ class ThemeCommandsTest extends TestCase
         $this
             ->get("{$this->baseUrl}/alien/spatie.be?ref=bookmark")
             ->assertStatus(301)
-            ->assertRedirect('/mother/spatie.be?ref=bookmark');
+            ->assertRedirect('/muthur/spatie.be?ref=bookmark');
 
         $this
             ->get("{$this->baseUrl}/startrek/spatie.be%2Fen%2Fvacancies")
@@ -77,7 +77,7 @@ class ThemeCommandsTest extends TestCase
 
         $this
             ->withHeader('User-Agent', 'ClaudeBot/1.0')
-            ->get("{$this->baseUrl}/mother/spatie.be")
+            ->get("{$this->baseUrl}/muthur/spatie.be")
             ->assertForbidden();
     }
 
@@ -93,11 +93,11 @@ class ThemeCommandsTest extends TestCase
             ->assertSee('data-interface="terminal"', false);
 
         $this
-            ->get("{$this->baseUrl}/mother")
+            ->get("{$this->baseUrl}/muthur")
             ->assertSee('data-interface="mother"', false);
 
         $this
-            ->get("{$this->baseUrl}/mother/spatie.be")
+            ->get("{$this->baseUrl}/muthur/spatie.be")
             ->assertSee('data-interface="mother"', false);
 
         $this
@@ -108,7 +108,7 @@ class ThemeCommandsTest extends TestCase
     #[Test]
     public function it_goes_back_to_the_terminal_from_every_other_interface(): void
     {
-        foreach (['/lcars', '/old', '/mother'] as $interface) {
+        foreach (['/lcars', '/old', '/muthur'] as $interface) {
             foreach (['exit', 'home', 'terminal', 'default'] as $command) {
                 $this
                     ->sendCommand($command, "{$interface}/{$command}")
@@ -135,5 +135,44 @@ class ThemeCommandsTest extends TestCase
         $this->sendCommand('help');
 
         $this->assertStringContainsString("'default' to go back to green", $this->getFlashMessage());
+    }
+
+    #[Test]
+    public function it_opens_mother_with_every_name_of_hers()
+    {
+        foreach (['muthur', 'MUTHUR', 'mu-th-ur', 'mother'] as $command) {
+            $this
+                ->sendCommand($command)
+                ->assertRedirect('/muthur');
+        }
+
+        $this
+            ->sendCommand('mother', '/old/mother')
+            ->assertRedirect('/muthur');
+    }
+
+    #[Test]
+    public function it_moved_mother_to_muthur_permanently()
+    {
+        $this
+            ->get("{$this->baseUrl}/mother")
+            ->assertStatus(301)
+            ->assertRedirect('/muthur')
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+
+        $this
+            ->get("{$this->baseUrl}/mother/spatie.be?ref=bookmark")
+            ->assertStatus(301)
+            ->assertRedirect('/muthur/spatie.be?ref=bookmark');
+
+        $this
+            ->withHeader('User-Agent', 'ClaudeBot/1.0')
+            ->get("{$this->baseUrl}/mother/spatie.be")
+            ->assertForbidden();
+
+        $this
+            ->get("{$this->baseUrl}/muthur")
+            ->assertSuccessful()
+            ->assertSee('data-interface="mother"', false);
     }
 }
