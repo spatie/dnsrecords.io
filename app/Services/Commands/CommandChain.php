@@ -12,6 +12,7 @@ use App\Services\Commands\Commands\Localhost;
 use App\Services\Commands\Commands\Manual;
 use App\Services\Commands\Commands\Mother;
 use App\Services\Commands\Commands\Old;
+use App\Services\Commands\Commands\SwitchTheme;
 use Symfony\Component\HttpFoundation\Response;
 
 class CommandChain
@@ -23,6 +24,7 @@ class CommandChain
         Ip::class,
         Doom::class,
         Old::class,
+        SwitchTheme::class,
         Mother::class,
         Lcars::class,
         ExitToTerminal::class,

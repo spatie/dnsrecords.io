@@ -13,6 +13,8 @@ export default defineConfig({
                 'resources/js/startrek.js',
                 'resources/css/alien.css',
                 'resources/js/alien.js',
+                'resources/css/interfaces.css',
+                'resources/js/interfaces.js',
             ],
             refresh: true,
         }),

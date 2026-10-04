@@ -25,7 +25,7 @@ class Manual implements Command
             "Enter 'clear' to wipe the screen.",
             "Enter 'doom' to play Doom.",
         ])
-            ->when(in_array($theme, [Theme::Classic, Theme::Lcars]), fn ($lines) => $lines->push(
+            ->when(in_array($theme, [Theme::Classic, Theme::Lcars, Theme::Matrix, Theme::System7, Theme::WinXp]), fn ($lines) => $lines->push(
                 'Enter \'exit\' to return to the <a href="'.Theme::Crt->homeUrl().'">regular terminal</a>.',
             ))
             ->when($theme === Theme::Crt, fn ($lines) => $lines->push(
@@ -36,12 +36,16 @@ class Manual implements Command
                 "Enter 'old' to go back to the <a href=\"{$oldHomeUrl}\">old interface</a>.",
                 'Enter \'muthur\' to talk to <a href="'.Theme::Mother->homeUrl().'">MU/TH/UR 6000</a>.',
                 'Enter \'lcars\' to open the <a href="'.Theme::Lcars->homeUrl().'">LCARS console</a>.',
+                'Enter \'matrix\' to open <a href="'.Theme::Matrix->homeUrl().'">the Matrix</a>.',
+                'Enter \'system7\' to open <a href="'.Theme::System7->homeUrl().'">System 7</a>.',
+                'Enter \'winxp\' to open <a href="'.Theme::WinXp->homeUrl().'">Windows XP</a>.',
             ))
             ->when($theme === Theme::Mother, fn ($lines) => $lines->push(
                 "Enter 'copy' to copy the records of the last response.",
                 "Enter 'what are my chances' for an honest assessment.",
                 "Enter 'special order 937' for orders that are not meant for you.",
                 'Enter \'exit\' to return to the <a href="'.Theme::Crt->homeUrl().'">regular terminal</a>.',
+                'Enter \'matrix\', \'system7\' or \'winxp\' to switch interfaces.',
             ))
             ->push("Drag this bookmarklet to your toolbar to <a class=\"bookmarklet\" href=\"javascript:location.href='https://dnsrecords.io/'+location.hostname;\">lookup DNS records</a> for sites you're visiting.")
             ->implode('<br>');

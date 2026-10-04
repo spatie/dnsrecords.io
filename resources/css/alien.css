@@ -15,10 +15,19 @@
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+@font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url('../fonts/jetbrains-mono-latin.woff2') format('woff2');
+}
+
 :root {
     color-scheme: dark;
 
     --font-mother: 'Stint Ultra Expanded', 'Rockwell Extra Bold', Rockwell, 'Courier New', serif;
+    --font-data: 'JetBrains Mono', 'Courier New', monospace;
 
     --room: #070807;
     --bg: #000;
@@ -30,8 +39,9 @@
 
     --glow: 0 0 .32em rgba(0, 210, 80, .45);
 
-    --size-large: clamp(17px, min(2.9cqw, 5.2cqh), 62px);
-    --size-small: max(12px, calc(var(--size-large) * .46));
+    --size-large: clamp(22px, min(2.4cqw, 4.4cqh), 48px);
+    --size-small: clamp(15px, 1.35cqw, 20px);
+    --size-data: clamp(16px, 1.45cqw, 20px);
     --margin-x: max(18px, 4.8cqw);
     --margin-top: max(28px, 8cqh);
     --underline: underline .075em solid currentColor;
@@ -39,6 +49,12 @@
     --screen-inset: clamp(18px, 5.5vmin, 72px);
     --screen-width: min(100vw - 2 * var(--screen-inset), (100dvh - 2 * var(--screen-inset)) * 1.5);
     --radius: clamp(18px, 3.6vmin, 42px);
+}
+
+:root[data-text-size='large'] {
+    --size-large: clamp(26px, min(2.9cqw, 5cqh), 58px);
+    --size-small: clamp(18px, 1.6cqw, 24px);
+    --size-data: clamp(19px, 1.7cqw, 24px);
 }
 
 *,
@@ -193,7 +209,7 @@ button {
     flex: 1 0 auto;
     text-shadow: var(--glow);
     text-transform: uppercase;
-    letter-spacing: .2em;
+    letter-spacing: .12em;
 }
 
 /*
@@ -248,7 +264,15 @@ button {
 }
 
 .mother-line--manual {
-    line-height: 1.9;
+    font-family: var(--font-data);
+    line-height: 1.7;
+    letter-spacing: 0;
+}
+
+.mother-hint {
+    font-family: var(--font-data);
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .mother-line--end {
@@ -303,6 +327,17 @@ button {
 
 .inquiry .mother-ready {
     margin-bottom: min(1.4em, 5cqh);
+}
+
+.inquiry__hint {
+    display: block;
+    margin: 0 0 .65em;
+    color: var(--fg);
+    font-family: var(--font-data);
+    font-size: var(--size-small);
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: .75;
 }
 
 /* Hidden with opacity, so the inquiry keeps focus and takes typing while Mother writes. */
@@ -496,10 +531,16 @@ button {
 .roots {
     display: grid;
     column-gap: 2.2em;
+    font-family: var(--font-data);
+    font-size: var(--size-data);
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.55;
+    text-transform: none;
 }
 
 .records {
-    grid-template-columns: minmax(8em, max-content) max-content max-content minmax(0, 1fr);
+    grid-template-columns: minmax(0, 18ch) 6ch 6ch minmax(0, 1fr);
 }
 
 .roots {
@@ -515,6 +556,10 @@ button {
 
 .record__ttl {
     text-align: right;
+}
+
+.record__name {
+    overflow-wrap: anywhere;
 }
 
 .record__value {
@@ -601,7 +646,7 @@ button {
     flex: 0 0 auto;
     padding-top: 1.6em;
     color: var(--faint);
-    font-size: max(10px, .62em);
+    font-size: max(12px, .72em);
     letter-spacing: .2em;
     text-shadow: none;
     text-transform: uppercase;
@@ -609,6 +654,16 @@ button {
 
 .mother-footer p {
     margin: 0;
+}
+
+.mother-footer button {
+    color: var(--fg);
+    text-decoration: var(--underline);
+    text-underline-offset: .25em;
+}
+
+.mother-footer button:hover {
+    color: var(--bright);
 }
 
 /* The way back, plain to see. */
@@ -646,8 +701,9 @@ button {
         --screen-inset: 0px;
         --screen-width: 100vw;
         --radius: 0px;
-        --size-large: clamp(15px, 4.6cqw, 26px);
-        --size-small: max(11px, calc(var(--size-large) * .62));
+        --size-large: clamp(20px, 4.6cqw, 29px);
+        --size-small: clamp(15px, 3.6cqw, 18px);
+        --size-data: clamp(15px, 3.6cqw, 18px);
         --margin-x: 6cqw;
         --margin-top: max(24px, 7cqh);
     }
@@ -680,7 +736,7 @@ button {
     .record__name {
         grid-column: 1 / -1;
         grid-row: 1;
-        font-size: .86em;
+        font-size: 1em;
     }
 
     .record__ttl {
@@ -704,6 +760,10 @@ button {
 
     .roots__operator {
         display: none;
+    }
+
+    :root[data-text-size='large'] .roots {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
