@@ -15,7 +15,7 @@ class LcarsInterfaceTest extends TestCase
             ->assertSuccessful()
             ->assertSee('<body class="lcars">', false)
             ->assertSee('action="https://dnsrecords.io.dev/lcars"', false)
-            ->assertSee('name="_token"', false)
+            ->assertDontSee('name="_token"', false)
             ->assertSee('<meta name="robots" content="noindex">', false)
             ->assertSee('data-page="home"', false)
             ->assertSee('Standing by')
@@ -78,7 +78,7 @@ class LcarsInterfaceTest extends TestCase
     public function it_shows_failed_lookups_as_an_alert(): void
     {
         $this
-            ->get("{$this->baseUrl}/lcars/nothing-here.be")
+            ->get("{$this->baseUrl}/lcars/nothing-here.be?lookup=1")
             ->assertNotFound()
             ->assertSee('<body class="lcars">', false)
             ->assertSee('alert--danger', false)
@@ -87,7 +87,8 @@ class LcarsInterfaceTest extends TestCase
 
         $this
             ->sendCommand('nothing-here.be', '/lcars/nothing-here.be')
-            ->assertRedirect('/lcars');
+            ->assertNotFound()
+            ->assertSee('Could not fetch dns records', false);
     }
 
     #[Test]
@@ -131,13 +132,13 @@ class LcarsInterfaceTest extends TestCase
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)')
-            ->get("{$this->baseUrl}/lcars/spatie.be")
+            ->get("{$this->baseUrl}/lcars/spatie.be?lookup=1")
             ->assertForbidden()
             ->assertDontSee('103.133.1.1');
 
         $this
             ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-            ->get("{$this->baseUrl}/lcars/spatie.be")
+            ->get("{$this->baseUrl}/lcars/spatie.be?lookup=1")
             ->assertSuccessful()
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
@@ -146,13 +147,13 @@ class LcarsInterfaceTest extends TestCase
     public function it_shares_the_lookup_rate_limit_with_the_main_interface(): void
     {
         foreach (range(1, 10) as $attempt) {
-            $this->get("{$this->baseUrl}/spatie.be")->assertSuccessful();
+            $this->get("{$this->baseUrl}/spatie.be?lookup=1")->assertSuccessful();
 
-            $this->get("{$this->baseUrl}/lcars/spatie.be")->assertSuccessful();
+            $this->get("{$this->baseUrl}/lcars/spatie.be?lookup=1")->assertSuccessful();
         }
 
         $this
-            ->get("{$this->baseUrl}/lcars/spatie.be")
+            ->get("{$this->baseUrl}/lcars/spatie.be?lookup=1")
             ->assertTooManyRequests();
     }
 
@@ -165,7 +166,7 @@ class LcarsInterfaceTest extends TestCase
             ->assertDontSee('placeholder="spatie.be"', false);
 
         $this
-            ->get("{$this->baseUrl}/lcars/spatie.be")
+            ->get("{$this->baseUrl}/lcars/spatie.be?lookup=1")
             ->assertSee('placeholder="yourdomain.com"', false);
     }
 }

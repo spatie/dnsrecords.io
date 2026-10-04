@@ -31,17 +31,19 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
-    public function it_redirects_to_home_when_the_domain_lookup_is_invalid(): void
+    public function it_answers_invalid_domain_lookups_on_the_home_screen(): void
     {
         $this->withoutExceptionHandling();
 
         $this
             ->sendCommand('..')
-            ->assertRedirect('/');
+            ->assertNotFound()
+            ->assertSee('data-page="home"', false);
 
         $this
             ->sendCommand('?')
-            ->assertRedirect('/');
+            ->assertNotFound()
+            ->assertSee('data-page="home"', false);
     }
 
     #[Test]
@@ -68,12 +70,12 @@ class DnsLookupTest extends TestCase
     public function it_answers_unsanitized_lookup_urls_directly(): void
     {
         $this
-            ->get("{$this->baseUrl}/spatie.be%2Fen%2Fvacancies")
+            ->get("{$this->baseUrl}/spatie.be%2Fen%2Fvacancies?lookup=1")
             ->assertSuccessful()
             ->assertSee('103.133.1.1');
 
         $this
-            ->get("{$this->baseUrl}/Spatie.be")
+            ->get("{$this->baseUrl}/Spatie.be?lookup=1")
             ->assertSuccessful()
             ->assertSee('103.133.1.1');
     }
@@ -82,12 +84,12 @@ class DnsLookupTest extends TestCase
     public function it_answers_lookup_urls_without_records_directly(): void
     {
         $this
-            ->get("{$this->baseUrl}/unknown-domain.be")
+            ->get("{$this->baseUrl}/unknown-domain.be?lookup=1")
             ->assertNotFound()
             ->assertSee('Could not fetch dns records', false);
 
         $this
-            ->get("{$this->baseUrl}/%3Ciframe%3E")
+            ->get("{$this->baseUrl}/%3Ciframe%3E?lookup=1")
             ->assertNotFound();
     }
 

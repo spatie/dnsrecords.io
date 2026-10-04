@@ -20,8 +20,6 @@
     @include('layout._partials.flash')
 
     <form id="form" method="post" action="{{ route('old.home') }}">
-        @csrf
-
         <span class="carret -green">&rarr;</span>
         <input
             id="url"

@@ -15,7 +15,7 @@ class OldInterfaceTest extends TestCase
             ->assertSuccessful()
             ->assertSee('<body class="layout">', false)
             ->assertSee('action="https://dnsrecords.io.dev/old"', false)
-            ->assertSee('name="_token"', false)
+            ->assertDontSee('name="_token"', false)
             ->assertDontSee('class="monitor"', false)
             ->assertHeaderMissing('X-Robots-Tag');
     }
@@ -32,7 +32,7 @@ class OldInterfaceTest extends TestCase
 
         $this
             ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-            ->get("{$this->baseUrl}/old/spatie.be")
+            ->get("{$this->baseUrl}/old/spatie.be?lookup=1")
             ->assertSuccessful()
             ->assertSee('<pre class="main__results">', false)
             ->assertSee('103.133.1.1');
@@ -78,11 +78,12 @@ class OldInterfaceTest extends TestCase
     }
 
     #[Test]
-    public function it_redirects_failed_old_lookups_to_the_old_homepage(): void
+    public function it_answers_failed_old_lookups_with_the_old_interface(): void
     {
         $this
             ->sendCommand('nothing-here.be', '/old/nothing-here.be')
-            ->assertRedirect('/old');
+            ->assertNotFound()
+            ->assertSee('<body class="layout">', false);
     }
 
     #[Test]
@@ -90,14 +91,14 @@ class OldInterfaceTest extends TestCase
     {
         $this
             ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-            ->get("{$this->baseUrl}/old/nothing-here.be")
+            ->get("{$this->baseUrl}/old/nothing-here.be?lookup=1")
             ->assertNotFound()
             ->assertSee('<body class="layout">', false)
             ->assertSee('Could not fetch dns records', false);
 
         $this
             ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-            ->get("{$this->baseUrl}/old/<iframe>")
+            ->get("{$this->baseUrl}/old/<iframe>?lookup=1")
             ->assertNotFound()
             ->assertSee('<body class="layout">', false);
     }
@@ -107,13 +108,13 @@ class OldInterfaceTest extends TestCase
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)')
-            ->get("{$this->baseUrl}/old/spatie.be")
+            ->get("{$this->baseUrl}/old/spatie.be?lookup=1")
             ->assertForbidden()
             ->assertDontSee('103.133.1.1');
 
         $this
             ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-            ->get("{$this->baseUrl}/old/spatie.be")
+            ->get("{$this->baseUrl}/old/spatie.be?lookup=1")
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
@@ -123,18 +124,18 @@ class OldInterfaceTest extends TestCase
         foreach (range(1, 10) as $attempt) {
             $this
                 ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-                ->get("{$this->baseUrl}/spatie.be")
+                ->get("{$this->baseUrl}/spatie.be?lookup=1")
                 ->assertSuccessful();
 
             $this
                 ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-                ->get("{$this->baseUrl}/old/spatie.be")
+                ->get("{$this->baseUrl}/old/spatie.be?lookup=1")
                 ->assertSuccessful();
         }
 
         $this
             ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-            ->get("{$this->baseUrl}/old/spatie.be")
+            ->get("{$this->baseUrl}/old/spatie.be?lookup=1")
             ->assertTooManyRequests();
     }
 }

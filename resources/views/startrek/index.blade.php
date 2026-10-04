@@ -17,6 +17,8 @@
 
 <head>
     <meta charset="utf-8">
+    @include('layout._partials.rememberTheme')
+    @include('layout._partials.lookupUrl')
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="dark">
     <meta name="robots" content="noindex">
@@ -74,8 +76,6 @@
                 </header>
 
                 <form id="scan-form" class="scan" method="post" action="{{ route('lcars.home') }}">
-                    @csrf
-
                     <label for="domain" class="scan__label">Domain</label>
 
                     <input

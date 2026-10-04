@@ -17,7 +17,7 @@ class CrtInterfaceTest extends TestCase
             ->assertSee('<title>DNS records lookup ~ dnsrecords.io</title>', false)
             ->assertSee('<meta name="description" content="DNS record lookups just as you like &#039;em" />', false)
             ->assertSee('action="https://dnsrecords.io.dev"', false)
-            ->assertSee('name="_token"', false)
+            ->assertDontSee('name="_token"', false)
             ->assertSee('data-page="home"', false)
             ->assertSee('data-phosphor="green"', false)
             ->assertDontSee('id="fx-toggle"', false)
@@ -61,7 +61,7 @@ class CrtInterfaceTest extends TestCase
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36')
-            ->get("{$this->baseUrl}/nothing-here.be")
+            ->get("{$this->baseUrl}/nothing-here.be?lookup=1")
             ->assertNotFound()
             ->assertSee('class="screen"', false)
             ->assertSee('<span class="message__label">err</span>', false)

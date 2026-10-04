@@ -18,6 +18,8 @@
 <html lang="en" class="no-js" data-interface="matrix" @if($terminalOutput) data-matrix-booting @endif>
 <head>
     <meta charset="utf-8">
+    @include('layout._partials.rememberTheme')
+    @include('layout._partials.lookupUrl')
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow">
     <title>{{ isset($domain) ? $domain . ' DNS records' : 'DNS records lookup' }} ~ The Matrix ~ dnsrecords.io</title>
@@ -38,7 +40,6 @@
         <h1 class="matrix-visually-hidden">DNS records lookup</h1>
 
         <form id="form" class="matrix-query" method="post" action="{{ $theme->homeUrl() }}" data-matrix-construct>
-            @csrf
             <label for="url"><span aria-hidden="true">&gt;_</span> <span data-matrix-scramble>DOMAIN OR COMMAND</span></label>
             <div class="matrix-query__line">
                 <div class="matrix-query__input"><input id="url" name="command" aria-label="Domain or command" placeholder="example.com" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" autofocus><span class="matrix-query__energy" aria-hidden="true"></span></div>

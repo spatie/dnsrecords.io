@@ -86,11 +86,11 @@ class ThemeCommandsTest extends TestCase
         $this
             ->withHeader('User-Agent', 'ClaudeBot/1.0')
             ->get("{$this->baseUrl}/alien/spatie.be")
-            ->assertForbidden();
+            ->assertRedirect('/muthur/spatie.be');
 
         $this
             ->withHeader('User-Agent', 'ClaudeBot/1.0')
-            ->get("{$this->baseUrl}/muthur/spatie.be")
+            ->get("{$this->baseUrl}/muthur/spatie.be?lookup=1")
             ->assertForbidden();
     }
 
@@ -102,7 +102,7 @@ class ThemeCommandsTest extends TestCase
             ->assertSee('data-interface="terminal"', false);
 
         $this
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertSee('data-interface="terminal"', false);
 
         $this
@@ -110,7 +110,7 @@ class ThemeCommandsTest extends TestCase
             ->assertSee('data-interface="mother"', false);
 
         $this
-            ->get("{$this->baseUrl}/muthur/spatie.be")
+            ->get("{$this->baseUrl}/muthur/spatie.be?lookup=1")
             ->assertSee('data-interface="mother"', false);
 
         $this
@@ -204,7 +204,12 @@ class ThemeCommandsTest extends TestCase
 
         $this
             ->withHeader('User-Agent', 'ClaudeBot/1.0')
-            ->get("{$this->baseUrl}/mother/spatie.be")
+            ->get("{$this->baseUrl}/mother/spatie.be?lookup=1")
+            ->assertRedirect('/muthur/spatie.be?lookup=1');
+
+        $this
+            ->withHeader('User-Agent', 'ClaudeBot/1.0')
+            ->get("{$this->baseUrl}/muthur/spatie.be?lookup=1")
             ->assertForbidden();
 
         $this

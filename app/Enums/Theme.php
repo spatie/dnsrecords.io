@@ -33,6 +33,11 @@ enum Theme
         return self::fromRequest(request());
     }
 
+    public function cookieValue(): string
+    {
+        return strtolower($this->name);
+    }
+
     public function view(): string
     {
         return match ($this) {

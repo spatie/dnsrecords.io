@@ -13,7 +13,7 @@ class CrawlerProtectionTest extends TestCase
     {
         $this
             ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertSuccessful()
             ->assertSee('103.133.1.1')
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
@@ -35,7 +35,7 @@ class CrawlerProtectionTest extends TestCase
     {
         $this
             ->withHeader('User-Agent', $userAgent)
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertForbidden()
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
             ->assertDontSee('103.133.1.1');
@@ -46,7 +46,7 @@ class CrawlerProtectionTest extends TestCase
     {
         $this
             ->withHeader('User-Agent', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)')
-            ->get("{$this->baseUrl}/spatie.be%2Fen%2Fvacancies")
+            ->get("{$this->baseUrl}/spatie.be%2Fen%2Fvacancies?lookup=1")
             ->assertForbidden();
     }
 
@@ -55,7 +55,7 @@ class CrawlerProtectionTest extends TestCase
     {
         $this
             ->withHeader('User-Agent', '')
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertForbidden();
     }
 
@@ -75,19 +75,19 @@ class CrawlerProtectionTest extends TestCase
         foreach (range(1, 20) as $attempt) {
             $this
                 ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-                ->get("{$this->baseUrl}/spatie.be")
+                ->get("{$this->baseUrl}/spatie.be?lookup=1")
                 ->assertSuccessful();
         }
 
         $this
             ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertTooManyRequests();
 
         $this
             ->withHeader('User-Agent', $this->browserHeaders['User-Agent'])
             ->withServerVariables(['REMOTE_ADDR' => '10.0.0.2'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertSuccessful();
     }
 

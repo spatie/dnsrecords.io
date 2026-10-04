@@ -17,7 +17,7 @@ class ClassicInterfacesTest extends TestCase
                 ->assertSee("data-interface=\"{$interface}\"", false)
                 ->assertSee("action=\"{$this->baseUrl}/{$interface}\"", false)
                 ->assertSee('id="entries"', false)
-                ->assertSee('name="_token"', false)
+                ->assertDontSee('name="_token"', false)
                 ->assertSee('Interfaces');
         }
     }
@@ -27,7 +27,7 @@ class ClassicInterfacesTest extends TestCase
     {
         foreach (['matrix', 'system7', 'winxp'] as $interface) {
             $response = $this
-                ->get("{$this->baseUrl}/{$interface}/spatie.be")
+                ->get("{$this->baseUrl}/{$interface}/spatie.be?lookup=1")
                 ->assertSuccessful()
                 ->assertSee("data-interface=\"{$interface}\"", false)
                 ->assertSee('2 records')
@@ -53,7 +53,7 @@ class ClassicInterfacesTest extends TestCase
     {
         foreach (['matrix', 'system7', 'winxp'] as $interface) {
             $this
-                ->get("{$this->baseUrl}/{$interface}/nothing-here.be")
+                ->get("{$this->baseUrl}/{$interface}/nothing-here.be?lookup=1")
                 ->assertNotFound()
                 ->assertSee('Could not fetch dns records');
 

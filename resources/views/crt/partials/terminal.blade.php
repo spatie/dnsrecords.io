@@ -22,8 +22,6 @@
         </div>
 
         <form id="form" class="prompt" method="post" action="{{ route('home') }}">
-            {{ csrf_field() }}
-
             <label for="url" class="prompt__label">
                 <span aria-hidden="true">&rarr;</span>
                 <span class="visually-hidden">Domain or command</span>

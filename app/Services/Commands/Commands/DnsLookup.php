@@ -34,9 +34,7 @@ class DnsLookup implements Command
 
             flash()->error($errorText);
 
-            return request()->isMethod('GET')
-                ? response()->view($theme->view(), [], 404)
-                : $theme->redirectHome();
+            return response()->view($theme->view(), [], 404);
         }
 
         return response()->view($theme->view(), ['output' => $dnsRecords, 'domain' => $domain]);

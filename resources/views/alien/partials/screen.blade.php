@@ -82,8 +82,6 @@
         </div>
 
         <form id="form" class="inquiry" method="post" action="{{ route('mother.home') }}">
-            @csrf
-
             <p class="mother-ready">Interface 2037 ready for inquiry</p>
 
             <label for="url" class="inquiry__hint">Domain or command</label>
