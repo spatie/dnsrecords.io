@@ -106,8 +106,4 @@
         <p class="mother-status" id="resolving" aria-live="polite"></p>
     </main>
 
-    <footer class="mother-footer">
-        <a class="mother-exit" href="{{ route('home') }}">Exit to terminal</a>
-        <p><button type="button" id="mother-text-size" aria-pressed="false">Larger text</button> &nbsp; (c) <a href="https://spatie.be/open-source">Spatie</a> {{ date('Y') }} &nbsp; <a href="{{ route('old.home') }}">Old</a></p>
-    </footer>
 </div>

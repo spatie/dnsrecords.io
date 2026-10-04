@@ -51,12 +51,6 @@
     --radius: clamp(18px, 3.6vmin, 42px);
 }
 
-:root[data-text-size='large'] {
-    --size-large: clamp(26px, min(2.9cqw, 5cqh), 58px);
-    --size-small: clamp(18px, 1.6cqw, 24px);
-    --size-data: clamp(19px, 1.7cqw, 24px);
-}
-
 *,
 *::before,
 *::after {
@@ -282,8 +276,7 @@ button {
     margin-top: 1.6em;
 }
 
-.mother-line a,
-.mother-footer a {
+.mother-line a {
     text-decoration-thickness: .075em;
     text-underline-offset: .25em;
 }
@@ -598,8 +591,7 @@ button {
 .mother-line,
 .matrix__title,
 .record,
-.roots__row,
-.mother-footer p {
+.roots__row {
     isolation: isolate;
 }
 
@@ -638,47 +630,6 @@ button {
     text-shadow:
         -2px 0 rgba(255, 40, 90, .55),
         2px 0 rgba(40, 210, 255, .55) !important;
-}
-
-/* Footer. */
-
-.mother-footer {
-    flex: 0 0 auto;
-    padding-top: 1.6em;
-    color: var(--faint);
-    font-size: max(12px, .72em);
-    letter-spacing: .2em;
-    text-shadow: none;
-    text-transform: uppercase;
-}
-
-.mother-footer p {
-    margin: 0;
-}
-
-.mother-footer button {
-    color: var(--fg);
-    text-decoration: var(--underline);
-    text-underline-offset: .25em;
-}
-
-.mother-footer button:hover {
-    color: var(--bright);
-}
-
-/* The way back, plain to see. */
-.mother-exit {
-    display: inline-block;
-    margin-bottom: 1.2em;
-    color: var(--fg);
-    font-size: max(12px, 1.4em);
-    text-decoration: var(--underline);
-    text-underline-offset: .25em;
-    text-shadow: var(--glow);
-}
-
-.mother-exit:hover {
-    color: var(--bright);
 }
 
 .no-js .mother-hint .mother-action,
@@ -762,9 +713,6 @@ button {
         display: none;
     }
 
-    :root[data-text-size='large'] .roots {
-        grid-template-columns: minmax(0, 1fr);
-    }
 }
 
 [data-crt='gl'] .screen__picture {
