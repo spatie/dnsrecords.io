@@ -40,7 +40,8 @@ enum Theme
             self::Classic => 'home.index',
             self::Lcars => 'startrek.index',
             self::Mother => 'alien.index',
-            self::Matrix, self::System7, self::WinXp => 'interfaces.index',
+            self::Matrix => 'interfaces.matrix',
+            self::System7, self::WinXp => 'interfaces.index',
         };
     }
 

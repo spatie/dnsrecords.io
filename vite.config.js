@@ -14,6 +14,7 @@ export default defineConfig({
                 'resources/css/alien.css',
                 'resources/js/alien.js',
                 'resources/css/interfaces.css',
+                'resources/css/matrix.css',
                 'resources/js/interfaces.js',
             ],
             refresh: true,
