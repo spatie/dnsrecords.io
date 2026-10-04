@@ -54,8 +54,7 @@
         <div class="entries matrix-feed" id="entries">
             @if($terminalOutput)
                 <div class="entry entry--decoded">
-                    <p class="entry__command">&gt; {{ $domain ?? request()->route('command') }}</p>
-                    @include('interfaces.partials.result', ['terminalOutput' => $terminalOutput])
+                    @include('interfaces.partials.matrix-signal', ['terminalOutput' => $terminalOutput])
                 </div>
             @endif
 

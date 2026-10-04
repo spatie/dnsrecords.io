@@ -292,6 +292,10 @@ export function createGlass(screen, picture, onReady) {
     let textLayer = null;
     let shaderTextLife = null;
     let isTextReady = false;
+    let ghostScroll = 0;
+    let ghostLastAt = -Infinity;
+    let lastScrollTop = 0;
+    let lastScrollAt = -Infinity;
     let reveal = { startedAt: -1, longestDelay: 1, box: [0, 0, 1, 1] };
     let frameTimes = [];
 
@@ -735,6 +739,11 @@ export function createGlass(screen, picture, onReady) {
         const { lineA, lineB } = shaderTextLife.lineEffects();
         const { caret, colour } = caretValues();
         const revealElapsed = reveal.startedAt < 0 ? -1 : now() - reveal.startedAt;
+        const ghostAge = performance.now() - ghostLastAt;
+        const ghostDistance = Math.abs(textLayer.ring[2] - ghostScroll);
+        const ghostStrength = isAnimated() && ghostAge < 1400 && ghostDistance < screen.clientHeight * .8
+            ? .8 * Math.pow(1 - ghostAge / 1400, 1.25)
+            : 0;
 
         if (revealElapsed > reveal.longestDelay + .6) {
             reveal.startedAt = -1;
@@ -755,6 +764,8 @@ export function createGlass(screen, picture, onReady) {
             reveal: [reveal.startedAt < 0 ? -1 : revealElapsed, reveal.longestDelay, 0, 0],
             revealBox: reveal.box,
             scroll: textLayer.scrollOffset,
+            ghostScroll,
+            ghostStrength,
             ring: textLayer.ring,
             burnBox: textLayer.burn.box,
             caret,
@@ -791,6 +802,7 @@ export function createGlass(screen, picture, onReady) {
         shaderTextLife = createShaderTextLife(textLayer, { maximumEffects: maximumLineEffects });
 
         const content = () => document.getElementById('screen-content');
+        lastScrollTop = content()?.scrollTop || 0;
         let phosphorUntil = 0;
 
         new MutationObserver(mutations => {
@@ -840,7 +852,25 @@ export function createGlass(screen, picture, onReady) {
         });
 
         document.fonts.addEventListener('loadingdone', () => textLayer.invalidate());
-        document.addEventListener('scroll', wake, { capture: true, passive: true });
+        document.addEventListener('scroll', event => {
+            if (event.target === content()) {
+                const scroll = content().scrollTop;
+
+                if (Math.abs(scroll - lastScrollTop) > .5) {
+                    const at = performance.now();
+
+                    if (at - lastScrollAt > 130) {
+                        ghostScroll = lastScrollTop;
+                    }
+
+                    lastScrollTop = scroll;
+                    lastScrollAt = at;
+                    ghostLastAt = at;
+                }
+            }
+
+            wake();
+        }, { capture: true, passive: true });
 
         setInterval(() => {
             const root = content();
