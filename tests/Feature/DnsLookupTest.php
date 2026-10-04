@@ -14,7 +14,7 @@ class DnsLookupTest extends TestCase
     {
         $this
             ->sendCommand('spatie.be')
-            ->assertSee('<pre class="results__output" id="results">', false)
+            ->assertSee('<pre class="results__output">', false)
             ->assertSee('103.133.1.1');
     }
 
