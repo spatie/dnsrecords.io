@@ -11,11 +11,10 @@ const phosphors = ['white', 'green', 'amber'];
 const element = {
     content: () => document.getElementById('screen-content'),
     form: () => document.getElementById('form'),
+    history: () => document.getElementById('terminal-history'),
     input: () => document.getElementById('url'),
     resolving: () => document.getElementById('resolving'),
-    results: () => document.getElementById('results'),
 };
-
 
 let isAwake = true;
 
@@ -36,13 +35,11 @@ function restartClass(target, className, duration) {
     return setTimeout(() => target.classList.remove(className), duration);
 }
 let lookupInProgress = null;
+const snapshots = new Map();
+let snapshotNumber = 0;
 
 function prefersReducedMotion() {
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
-function hasFullMotion() {
-    return ! prefersReducedMotion();
 }
 
 function remember(key, value) {
@@ -227,23 +224,49 @@ function showResolving(command) {
     fadeIn(resolving, 300);
 }
 
-/**
- * Once the glass shader paints the text, the DOM text is transparent and
- * only its opacity matters, so the decay skips the filter, which would
- * still be painted (slowly in Safari) for nothing.
- */
-function decayFrame(opacity, brightness, blur) {
-    if (root.getAttribute('data-text') === 'gl') {
-        return { opacity };
-    }
+function saveSnapshot(url, method = 'pushState') {
+    const snapshot = ++snapshotNumber;
 
-    return { opacity, filter: `brightness(${brightness}) blur(${blur}px)` };
+    snapshots.set(snapshot, {
+        html: element.history().innerHTML,
+        title: document.title,
+        description: document.querySelector('meta[name="description"]').getAttribute('content'),
+        page: root.getAttribute('data-page'),
+    });
+
+    window.history[method]({ crt: true, snapshot }, '', url);
 }
 
-async function swapScreen(screenPage) {
-    isSwapping = true;
+function restoreSnapshot(snapshot) {
+    lookupInProgress = null;
+    element.history().innerHTML = snapshot.html;
+    document.title = snapshot.title;
+    document.querySelector('meta[name="description"]').setAttribute('content', snapshot.description);
+    root.setAttribute('data-page', snapshot.page);
+    element.input().value = '';
+    element.input().readOnly = false;
+    report('');
+    mountContent();
+    signal('lookup-end');
+}
 
-    const content = element.content();
+function clearScreen() {
+    lookupInProgress = null;
+    element.history().replaceChildren();
+    element.input().value = '';
+    element.input().readOnly = false;
+    report('');
+    root.setAttribute('data-page', 'home');
+    document.title = 'DNS records lookup ~ dnsrecords.io';
+    document.querySelector('meta[name="description"]').setAttribute('content', "DNS record lookups just as you like 'em");
+    saveSnapshot(element.form().getAttribute('action'));
+    signal('lookup-end');
+    output.follow({ smooth: false });
+    focusInput();
+}
+
+function appendScreen(screenPage) {
+    isSwapping = true;
 
     document.title = screenPage.title;
 
@@ -253,28 +276,20 @@ async function swapScreen(screenPage) {
         description.setAttribute('content', screenPage.description);
     }
 
-    const decay = hasFullMotion() && ! prefersReducedMotion()
-        ? [
-            decayFrame(1, 1, 0),
-            { ...decayFrame(.55, 1.5, .4), offset: .25 },
-            decayFrame(0, 1.1, 1.5),
-        ]
-        : [{ opacity: 1 }, { opacity: 0 }];
-
-    await content.animate(decay, { duration: hasFullMotion() ? 320 : 180, easing: 'cubic-bezier(.3, 0, .6, 1)', fill: 'forwards' }).finished.catch(() => {});
-
     root.setAttribute('data-page', screenPage.page);
+    report('');
 
-    const nextContent = document.adoptNode(screenPage.content);
+    if (screenPage.entries) {
+        element.history().append(...document.adoptNode(screenPage.entries).childNodes);
+    }
 
-    content.replaceWith(nextContent);
-    nextContent.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.22, 1, .36, 1)' });
+    element.input().value = '';
 
     mountContent();
     signal('lookup-end');
     setTimeout(() => {
         isSwapping = false;
-    }, 1500);
+    }, 900);
 
     if (screenPage.announcement) {
         announce(screenPage.announcement);
@@ -282,12 +297,17 @@ async function swapScreen(screenPage) {
 }
 
 async function lookup(command) {
+    if (lookupInProgress !== null) {
+        return;
+    }
+
     const url = lookupUrl(element.form(), command);
     const attempt = Symbol('lookup');
 
     showResolving(command);
     signal('lookup-start');
     lookupInProgress = attempt;
+    element.input().readOnly = true;
 
     const result = await fetchScreen(url);
 
@@ -296,6 +316,7 @@ async function lookup(command) {
     }
 
     lookupInProgress = null;
+    element.input().readOnly = false;
 
     if (result.type !== 'screen') {
         signal('lookup-end');
@@ -314,15 +335,20 @@ async function lookup(command) {
         return;
     }
 
-    history.pushState({ crt: true }, '', result.url);
-
-    await swapScreen(result.screen);
+    appendScreen(result.screen);
+    saveSnapshot(result.url);
 }
 
 function run(command) {
     const trimmed = command.trim();
 
     if (trimmed === '') {
+        return;
+    }
+
+    if (trimmed.toLowerCase() === 'clear') {
+        clearScreen();
+
         return;
     }
 
@@ -363,7 +389,16 @@ document.addEventListener('click', event => {
         return;
     }
 
-    const copyAll = event.target.closest('#copy-results');
+    const clearLink = event.target.closest('.results__actions a');
+
+    if (clearLink) {
+        event.preventDefault();
+        clearScreen();
+
+        return;
+    }
+
+    const copyAll = event.target.closest('.copy-results');
 
     if (copyAll) {
         copyResults(copyAll);
@@ -387,17 +422,15 @@ document.addEventListener('click', event => {
 });
 
 window.addEventListener('popstate', event => {
-    if (event.state && event.state.crt) {
-        fetchScreen(window.location.href).then(result => {
-            if (result.type !== 'screen') {
-                window.location.reload();
+    const snapshot = event.state && snapshots.get(event.state.snapshot);
 
-                return;
-            }
+    if (snapshot) {
+        restoreSnapshot(snapshot);
 
-            swapScreen(result.screen);
-        });
+        return;
     }
+
+    window.location.reload();
 });
 
 function copyText(text, trigger, onCopied) {
@@ -417,7 +450,7 @@ function copyText(text, trigger, onCopied) {
 }
 
 function copyResults(button) {
-    const results = element.results();
+    const results = button.closest('.results').querySelector('.results__output');
 
     if (! results) {
         return;
@@ -476,11 +509,7 @@ document.addEventListener('keydown', event => {
 
 function mountContent() {
     const content = element.content();
-    const copyButton = document.getElementById('copy-results');
-
-    if (copyButton) {
-        copyButton.hidden = false;
-    }
+    content.querySelectorAll('.copy-results').forEach(button => button.hidden = false);
 
     content.querySelectorAll('.line--record').forEach(line => {
         if (line.querySelector('.line__copy')) {
@@ -509,10 +538,8 @@ function init() {
         root.setAttribute('data-motion', event.matches ? 'calm' : 'full');
     });
 
-    history.replaceState({ crt: true }, '', window.location.href);
-
-
     mountContent();
+    saveSnapshot(window.location.href, 'replaceState');
     loadGlass();
     scheduleDegauss();
 }

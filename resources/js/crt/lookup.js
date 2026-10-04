@@ -33,6 +33,7 @@ function parseScreen(html) {
 
     return {
         content,
+        entries: content.querySelector('#terminal-history'),
         title: page.title,
         description: description ? description.getAttribute('content') : null,
         page: page.documentElement.getAttribute('data-page') || 'home',

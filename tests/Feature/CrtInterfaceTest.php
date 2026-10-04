@@ -45,7 +45,7 @@ class CrtInterfaceTest extends TestCase
     {
         $content = $this->sendCommand('spatie.be')->getContent();
 
-        preg_match('/<pre class="results__output" id="results">(.*?)<\/pre>/s', $content, $matches);
+        preg_match('/<pre class="results__output">(.*?)<\/pre>/s', $content, $matches);
 
         $copyableText = html_entity_decode(strip_tags($matches[1]), ENT_QUOTES);
 
@@ -143,7 +143,7 @@ class CrtInterfaceTest extends TestCase
             ->sendCommand('spatie.be')
             ->assertSuccessful()
             ->assertSee('<span class="results__count">2 records</span>', false)
-            ->assertSee('id="copy-results"', false)
+            ->assertSee('class="text-action copy-results" aria-label="Copy spatie.be DNS results"', false)
             ->assertSee('<span class="line__gap">', false);
     }
 }

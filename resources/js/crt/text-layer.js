@@ -853,7 +853,7 @@ export function createTextLayer(picture) {
          */
         resultLines() {
             const root = content();
-            const results = root ? root.querySelector('.results__output') : null;
+            const results = root ? root.querySelector('.results:last-child .results__output') : null;
 
             if (! results) {
                 return null;

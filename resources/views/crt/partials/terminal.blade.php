@@ -6,18 +6,20 @@
             <span class="visually-hidden">DNS record lookups just as you like 'em</span>
         </h1>
 
-        @if($terminalOutput)
-            @include('crt.partials.results', ['terminalOutput' => $terminalOutput])
-        @endif
+        <div id="terminal-history">
+            @if($terminalOutput)
+                @include('crt.partials.results', ['terminalOutput' => $terminalOutput])
+            @endif
 
-        @if($errors->has('input'))
-            <p class="message message--danger" role="alert">
-                <span class="message__label">err</span>
-                {{ $errors->first('input') }}
-            </p>
-        @endif
+            @if($errors->has('input'))
+                <p class="message message--danger" role="alert">
+                    <span class="message__label">err</span>
+                    {{ $errors->first('input') }}
+                </p>
+            @endif
 
-        @include('crt.partials.flash')
+            @include('crt.partials.flash')
+        </div>
 
         <form id="form" class="prompt" method="post" action="{{ route('home') }}">
             {{ csrf_field() }}
