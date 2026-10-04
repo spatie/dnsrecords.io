@@ -85,7 +85,7 @@
 
             <p class="mother-ready">Interface 2037 ready for inquiry</p>
 
-            <label for="url" class="visually-hidden">Inquiry: a domain name or a command</label>
+            <label for="url" class="inquiry__hint">Domain or command</label>
 
             <span class="inquiry__field">
                 <input
@@ -108,6 +108,6 @@
 
     <footer class="mother-footer">
         <a class="mother-exit" href="{{ route('home') }}">Exit to terminal</a>
-        <p>(c) <a href="https://spatie.be/open-source">Spatie</a> {{ date('Y') }} &nbsp; <a href="{{ route('old.home') }}">Old</a></p>
+        <p><button type="button" id="mother-text-size" aria-pressed="false">Larger text</button> &nbsp; (c) <a href="https://spatie.be/open-source">Spatie</a> {{ date('Y') }} &nbsp; <a href="{{ route('old.home') }}">Old</a></p>
     </footer>
 </div>

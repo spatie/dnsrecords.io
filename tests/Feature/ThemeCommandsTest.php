@@ -20,6 +20,20 @@ class ThemeCommandsTest extends TestCase
     }
 
     #[Test]
+    public function it_opens_the_new_interfaces_from_any_theme(): void
+    {
+        foreach (['matrix', 'system7', 'winxp'] as $interface) {
+            $this
+                ->sendCommand($interface)
+                ->assertRedirect("/{$interface}");
+
+            $this
+                ->sendCommand($interface, "/muthur/{$interface}")
+                ->assertRedirect("/{$interface}");
+        }
+    }
+
+    #[Test]
     public function it_opens_mother_and_lcars_from_the_old_interface(): void
     {
         $this
@@ -114,6 +128,16 @@ class ThemeCommandsTest extends TestCase
                     ->sendCommand($command, "{$interface}/{$command}")
                     ->assertRedirect('/');
             }
+        }
+    }
+
+    #[Test]
+    public function it_returns_to_the_terminal_from_the_new_interfaces(): void
+    {
+        foreach (['matrix', 'system7', 'winxp'] as $interface) {
+            $this
+                ->sendCommand('exit', "/{$interface}/exit")
+                ->assertRedirect('/');
         }
     }
 

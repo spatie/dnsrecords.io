@@ -1,0 +1,304 @@
+import { fetchScreen, lookupUrl } from './crt/lookup.js';
+
+const root = document.documentElement;
+const form = document.getElementById('form');
+const input = document.getElementById('url');
+const entries = document.getElementById('entries');
+const status = document.getElementById('status');
+const windowStatus = document.getElementById('window-status');
+const submitButton = form.querySelector('button[type="submit"]');
+const windowBody = document.querySelector('.window__body');
+const system7Thumb = document.getElementById('system7-scroll-thumb');
+const system7Count = document.getElementById('system7-count');
+const homeTitle = document.title.replace(/^.* DNS records/, 'DNS records lookup');
+const homeDescription = 'Look up DNS records in a different interface';
+const snapshots = new Map();
+
+let snapshotNumber = 0;
+let lookupInProgress = null;
+
+root.classList.replace('no-js', 'js');
+entries.querySelectorAll('.copy-records').forEach(button => button.hidden = false);
+
+function setStatus(message) {
+    status.textContent = message;
+    windowStatus.textContent = message;
+}
+
+function updateSystem7Scroll() {
+    if (! system7Thumb) {
+        return;
+    }
+
+    const track = system7Thumb.parentElement;
+    const maximum = Math.max(0, windowBody.scrollHeight - windowBody.clientHeight);
+    const height = Math.max(22, track.clientHeight * windowBody.clientHeight / windowBody.scrollHeight);
+
+    system7Thumb.style.height = `${Math.min(track.clientHeight, height)}px`;
+    system7Thumb.style.top = `${maximum ? windowBody.scrollTop / maximum * (track.clientHeight - height) : 0}px`;
+}
+
+function saveSnapshot(url, method = 'pushState') {
+    const snapshot = ++snapshotNumber;
+
+    snapshots.set(snapshot, {
+        html: entries.innerHTML,
+        title: document.title,
+        description: document.querySelector('meta[name="description"]').content,
+        status: status.textContent,
+    });
+
+    window.history[method]({ interface: root.getAttribute('data-interface'), snapshot }, '', url);
+}
+
+function clearResults() {
+    entries.replaceChildren();
+    input.value = '';
+    input.readOnly = false;
+    submitButton.disabled = false;
+    lookupInProgress = null;
+    document.title = homeTitle;
+    document.querySelector('meta[name="description"]').content = homeDescription;
+    setStatus('Ready for a domain');
+    if (system7Count) {
+        system7Count.textContent = '0 items';
+    }
+    saveSnapshot(form.action);
+    input.focus({ preventScroll: true });
+    requestAnimationFrame(updateSystem7Scroll);
+}
+
+function addNotice(message) {
+    const notice = document.createElement('p');
+
+    notice.className = 'notice notice--error';
+    notice.setAttribute('role', 'alert');
+    notice.textContent = message;
+    entries.prepend(notice);
+    setStatus(message);
+}
+
+function addResponse(screenPage, command) {
+    const responseEntries = screenPage.content.querySelector('#entries');
+
+    if (! responseEntries) {
+        return false;
+    }
+
+    const answer = document.createElement('div');
+    const commandLine = document.createElement('p');
+
+    answer.className = 'entry';
+    commandLine.className = 'entry__command';
+    commandLine.textContent = `> ${command}`;
+    answer.append(commandLine, ...Array.from(document.adoptNode(responseEntries).children));
+
+    if (answer.childElementCount === 1) {
+        addNotice(`No output for ${command}.`);
+
+        return true;
+    }
+
+    answer.querySelectorAll('.copy-records').forEach(button => button.hidden = false);
+    entries.prepend(answer);
+    answer.scrollIntoView({ block: 'start', behavior: 'auto' });
+
+    document.title = screenPage.title;
+
+    if (screenPage.description !== null) {
+        document.querySelector('meta[name="description"]').content = screenPage.description;
+    }
+
+    const count = answer.querySelectorAll('.record:not(.record--continued)').length;
+
+    setStatus(count ? `${count} records found` : 'Response received');
+    if (system7Count) {
+        system7Count.textContent = `${count} items`;
+    }
+    requestAnimationFrame(updateSystem7Scroll);
+
+    return true;
+}
+
+async function lookup(command) {
+    if (lookupInProgress !== null) {
+        return;
+    }
+
+    const attempt = Symbol('lookup');
+
+    lookupInProgress = attempt;
+    input.readOnly = true;
+    submitButton.disabled = true;
+    setStatus(`Looking up ${command}…`);
+
+    const result = await fetchScreen(lookupUrl(form, command));
+
+    if (lookupInProgress !== attempt) {
+        return;
+    }
+
+    lookupInProgress = null;
+    input.readOnly = false;
+    submitButton.disabled = false;
+
+    if (result.type === 'navigate') {
+        window.location.assign(result.url);
+
+        return;
+    }
+
+    if (result.type === 'message') {
+        addNotice(result.message);
+
+        return;
+    }
+
+    if (! addResponse(result.screen, command)) {
+        window.location.assign(result.url);
+
+        return;
+    }
+
+    input.value = '';
+    input.focus({ preventScroll: true });
+    saveSnapshot(result.url);
+}
+
+form.addEventListener('submit', event => {
+    event.preventDefault();
+
+    const command = input.value.trim();
+
+    if (command === '') {
+        input.focus();
+
+        return;
+    }
+
+    if (command.toLowerCase() === 'clear') {
+        clearResults();
+
+        return;
+    }
+
+    lookup(command);
+});
+
+document.addEventListener('click', event => {
+    const lookupLink = event.target.closest('a[href="#url"]');
+
+    if (lookupLink) {
+        event.preventDefault();
+        const menu = lookupLink.closest('details');
+
+        if (menu) {
+            menu.open = false;
+        }
+
+        input.focus();
+
+        return;
+    }
+
+    const clearLink = event.target.closest('#clear-results, [data-clear]');
+
+    if (clearLink) {
+        event.preventDefault();
+        clearResults();
+
+        return;
+    }
+
+    const scrollButton = event.target.closest('[data-scroll]');
+
+    if (scrollButton) {
+        windowBody.scrollBy({ top: scrollButton.dataset.scroll === 'up' ? -windowBody.clientHeight * .8 : windowBody.clientHeight * .8 });
+
+        return;
+    }
+
+    const copyLatest = event.target.closest('[data-copy-latest]');
+
+    if (copyLatest) {
+        const menu = copyLatest.closest('details');
+
+        if (menu) {
+            menu.open = false;
+        }
+
+        const latestCopy = entries.querySelector('.result .copy-records');
+
+        if (latestCopy) {
+            latestCopy.click();
+        } else {
+            setStatus('No records to copy');
+        }
+
+        return;
+    }
+
+    const copyButton = event.target.closest('.copy-records');
+
+    if (! copyButton) {
+        return;
+    }
+
+    const result = copyButton.closest('.result');
+    const text = Array.from(result.querySelectorAll('[data-raw]'))
+        .map(record => record.getAttribute('data-raw'))
+        .join('\n');
+
+    if (! navigator.clipboard?.writeText) {
+        setStatus('Select the records and press Cmd+C or Ctrl+C to copy.');
+
+        return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+        copyButton.textContent = 'Copied';
+        setStatus('Records copied');
+        setTimeout(() => copyButton.textContent = 'Copy records', 1500);
+    }, () => setStatus('Select the records and press Cmd+C or Ctrl+C to copy.'));
+});
+
+window.addEventListener('popstate', event => {
+    const snapshot = event.state && snapshots.get(event.state.snapshot);
+
+    if (! snapshot) {
+        window.location.reload();
+
+        return;
+    }
+
+    entries.innerHTML = snapshot.html;
+    document.title = snapshot.title;
+    document.querySelector('meta[name="description"]').content = snapshot.description;
+    input.value = '';
+    input.readOnly = false;
+    submitButton.disabled = false;
+    lookupInProgress = null;
+    setStatus(snapshot.status);
+    if (system7Count) {
+        system7Count.textContent = `${entries.querySelectorAll('.record:not(.record--continued)').length} items`;
+    }
+    input.focus({ preventScroll: true });
+    requestAnimationFrame(updateSystem7Scroll);
+});
+
+function updateClock() {
+    document.getElementById('clock').textContent = new Intl.DateTimeFormat(undefined, {
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(new Date());
+}
+
+updateClock();
+setInterval(updateClock, 30000);
+saveSnapshot(window.location.href, 'replaceState');
+
+if (system7Thumb) {
+    windowBody.addEventListener('scroll', updateSystem7Scroll, { passive: true });
+    new ResizeObserver(updateSystem7Scroll).observe(windowBody);
+    updateSystem7Scroll();
+}

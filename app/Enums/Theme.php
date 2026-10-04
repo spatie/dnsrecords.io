@@ -11,6 +11,9 @@ enum Theme
     case Classic;
     case Lcars;
     case Mother;
+    case Matrix;
+    case System7;
+    case WinXp;
 
     public static function fromRequest(Request $request): self
     {
@@ -18,6 +21,9 @@ enum Theme
             $request->routeIs('old.*') => self::Classic,
             $request->routeIs('lcars.*') => self::Lcars,
             $request->routeIs('mother.*') => self::Mother,
+            $request->routeIs('matrix.*') => self::Matrix,
+            $request->routeIs('system7.*') => self::System7,
+            $request->routeIs('winxp.*') => self::WinXp,
             default => self::Crt,
         };
     }
@@ -34,6 +40,7 @@ enum Theme
             self::Classic => 'home.index',
             self::Lcars => 'startrek.index',
             self::Mother => 'alien.index',
+            self::Matrix, self::System7, self::WinXp => 'interfaces.index',
         };
     }
 
@@ -44,6 +51,9 @@ enum Theme
             self::Classic => route('old.home'),
             self::Lcars => route('lcars.home'),
             self::Mother => route('mother.home'),
+            self::Matrix => route('matrix.home'),
+            self::System7 => route('system7.home'),
+            self::WinXp => route('winxp.home'),
         };
     }
 
@@ -54,6 +64,9 @@ enum Theme
             self::Classic => route('old.command', ['command' => $command]),
             self::Lcars => route('lcars.command', ['command' => $command]),
             self::Mother => route('mother.command', ['command' => $command]),
+            self::Matrix => route('matrix.command', ['command' => $command]),
+            self::System7 => route('system7.command', ['command' => $command]),
+            self::WinXp => route('winxp.command', ['command' => $command]),
         };
     }
 
