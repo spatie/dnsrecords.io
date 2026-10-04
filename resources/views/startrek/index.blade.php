@@ -1,3 +1,4 @@
+@use('App\Enums\Theme')
 @use('App\Support\TerminalOutput')
 
 @php
@@ -126,7 +127,7 @@
                 <a class="block block--orange nav__item" href="{{ route('lcars.command', ['command' => 'ip']) }}" rel="nofollow" data-command="ip"><span class="block__code" aria-hidden="true">03</span>My ip</a>
                 <a class="block block--tan nav__item" href="{{ route('lcars.command', ['command' => 'help']) }}" rel="nofollow" data-command="help"><span class="block__code" aria-hidden="true">04</span>Help</a>
                 <a class="block block--blue nav__item" href="{{ route('lcars.home') }}" data-command="clear"><span class="block__code" aria-hidden="true">05</span>Clear</a>
-                <a class="block block--violet nav__item" href="{{ route('home') }}"><span class="block__code" aria-hidden="true">06</span>Terminal</a>
+                <a class="block block--violet nav__item" href="{{ Theme::Crt->selectionUrl() }}"><span class="block__code" aria-hidden="true">06</span>Terminal</a>
                 <a class="block block--peach nav__item" href="{{ route('old.home') }}"><span class="block__code" aria-hidden="true">07</span>Classic</a>
                 <span class="block block--lilac block--grow" aria-hidden="true"><span class="block__code">08-7208</span></span>
             </nav>

@@ -218,7 +218,7 @@ const phosphorColors = {
     amber: [1, .76, .4],
 };
 
-export function createGlass(screen, picture) {
+export function createGlass(screen, picture, onReady) {
     const root = document.documentElement;
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl2', {
@@ -879,6 +879,8 @@ export function createGlass(screen, picture) {
         isHandoverPending = false;
         root.setAttribute('data-crt', 'gl');
         root.setAttribute('data-text', 'gl');
+        root.removeAttribute('data-glass-pending');
+        onReady();
     }
 
     function adapt(delta) {
@@ -996,6 +998,7 @@ export function createGlass(screen, picture) {
         isLost = true;
         root.removeAttribute('data-crt');
         root.removeAttribute('data-text');
+        root.removeAttribute('data-glass-pending');
     });
 
     resize();
@@ -1007,11 +1010,18 @@ export function createGlass(screen, picture) {
                 startText();
                 wake();
             }
+        }).catch(() => {
+            root.removeAttribute('data-glass-pending');
+            onReady();
         });
     }
 
     if (! textPass) {
-        requestAnimationFrame(() => root.setAttribute('data-crt', 'gl'));
+        requestAnimationFrame(() => {
+            root.setAttribute('data-crt', 'gl');
+            root.removeAttribute('data-glass-pending');
+            onReady();
+        });
     }
 
     return {

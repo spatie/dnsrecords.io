@@ -68,9 +68,8 @@ class OldInterfaceTest extends TestCase
 
         $this
             ->sendCommand('help', '/old/help')
-            ->assertRedirect('/old');
-
-        $this->assertStringNotContainsString('degauss', $this->getFlashMessage());
+            ->assertSuccessful()
+            ->assertDontSee('degauss');
 
         $this
             ->sendCommand('ip', '/old/ip')

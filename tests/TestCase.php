@@ -60,10 +60,4 @@ abstract class TestCase extends BaseTestCase
         return $this->post($url, ['command' => $command]);
     }
 
-    protected function getFlashMessage(): ?string
-    {
-        $flashNotifications = session('flash_notification');
-
-        return $flashNotifications?->first()->message;
-    }
 }

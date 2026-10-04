@@ -100,20 +100,15 @@ class MotherInterfaceTest extends TestCase
     #[Test]
     public function it_clarifies_the_commands_on_the_mother_terminal(): void
     {
-        $this
+        $response = $this
             ->sendCommand('help', '/muthur/help')
-            ->assertRedirect('/muthur');
-
-        $flashMessage = $this->getFlashMessage();
-
-        $this->assertStringContainsString('special order 937', $flashMessage);
-        $this->assertStringContainsString("Enter 'exit' to return to the", $flashMessage);
-        $this->assertStringNotContainsString('degauss', $flashMessage);
-
-        $this
-            ->get("{$this->baseUrl}/muthur")
+            ->assertSuccessful()
             ->assertSee('Clarification follows.')
-            ->assertSee('Enter a domain name to retrieve all DNS records.');
+            ->assertSee('Enter a domain name to retrieve all DNS records.')
+            ->assertSee('special order 937');
+
+        $this->assertStringContainsString("Enter 'exit' to return to the", html_entity_decode($response->getContent()));
+        $this->assertStringNotContainsString('degauss', $response->getContent());
     }
 
     #[Test]

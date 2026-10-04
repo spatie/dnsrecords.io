@@ -47,14 +47,14 @@
             @if($theme === Theme::System7)
                 <details class="classic-menu system7-apple-menu">
                     <summary aria-label="Apple menu"><span class="system7-apple" aria-hidden="true"></span></summary>
-                    <nav><a href="{{ $theme->commandUrl('help') }}">About DNS Records</a><a href="{{ route('home') }}">Terminal</a></nav>
+                    <nav><a href="{{ $theme->commandUrl('help') }}">About DNS Records</a><a href="{{ Theme::Crt->selectionUrl() }}">Terminal</a></nav>
                 </details>
                 <details class="classic-menu">
                     <summary>File</summary>
                     <nav>
                         <a href="#url">Look Up…</a>
                         <a href="{{ $theme->homeUrl() }}" data-clear>Clear Results</a>
-                        <a href="{{ route('home') }}">Close</a>
+                        <a href="{{ Theme::Crt->selectionUrl() }}">Close</a>
                     </nav>
                 </details>
                 <details class="classic-menu">
@@ -69,7 +69,7 @@
                 <summary>{{ $theme === Theme::System7 ? 'View' : 'Interfaces' }}</summary>
                 <nav aria-label="Interfaces">
                     @foreach($interfaces as [$label, $interface])
-                        <a href="{{ $interface->homeUrl() }}" @if($theme === $interface) aria-current="page" @endif>{{ $label }}</a>
+                        <a href="{{ $interface->selectionUrl() }}" @if($theme === $interface) aria-current="page" @endif>{{ $label }}</a>
                     @endforeach
                 </nav>
             </details>
@@ -79,7 +79,7 @@
                     <summary>Special</summary>
                     <nav>
                         <a href="{{ $theme->commandUrl('help') }}">Help</a>
-                        <a href="{{ route('home') }}">Return to Terminal</a>
+                        <a href="{{ Theme::Crt->selectionUrl() }}">Return to Terminal</a>
                     </nav>
                 </details>
                 <a class="system7-help" href="{{ $theme->commandUrl('help') }}" aria-label="Help"></a>
@@ -117,7 +117,7 @@
                 <nav class="xp-window-menu" aria-label="Application menu">
                     <details class="classic-menu">
                         <summary>File</summary>
-                        <nav><a href="#url">New Lookup</a><a href="{{ $theme->homeUrl() }}" data-clear>Clear Results</a><a href="{{ route('home') }}">Exit</a></nav>
+                        <nav><a href="#url">New Lookup</a><a href="{{ $theme->homeUrl() }}" data-clear>Clear Results</a><a href="{{ Theme::Crt->selectionUrl() }}">Exit</a></nav>
                     </details>
                     <details class="classic-menu">
                         <summary>Edit</summary>
@@ -127,7 +127,7 @@
                         <summary>View</summary>
                         <nav aria-label="Interfaces">
                             @foreach($interfaces as [$label, $interface])
-                                <a href="{{ $interface->homeUrl() }}" @if($theme === $interface) aria-current="page" @endif>{{ $label }}</a>
+                                <a href="{{ $interface->selectionUrl() }}" @if($theme === $interface) aria-current="page" @endif>{{ $label }}</a>
                             @endforeach
                         </nav>
                     </details>
@@ -139,7 +139,7 @@
                     <a href="{{ $theme->homeUrl() }}" data-clear><span class="xp-toolbar__round" aria-hidden="true">←</span> Back</a>
                     <span class="xp-toolbar__divider" aria-hidden="true"></span>
                     <a href="#url"><span class="xp-toolbar__search" aria-hidden="true"></span> Search</a>
-                    <a href="{{ route('home') }}"><span class="xp-toolbar__folder" aria-hidden="true"></span> Terminal</a>
+                    <a href="{{ Theme::Crt->selectionUrl() }}"><span class="xp-toolbar__folder" aria-hidden="true"></span> Terminal</a>
                 </div>
                 <div class="xp-address"><span>Address</span><span class="xp-address__path">dnsrecords.io\DNS Records</span><a href="#url">Go</a></div>
             @endif
@@ -152,7 +152,7 @@
                 @if($theme === Theme::WinXp)
                     <aside class="xp-sidebar" aria-label="DNS tasks">
                         <section><h2>DNS Tasks</h2><a href="#url">New lookup</a><a href="{{ $theme->homeUrl() }}" data-clear>Clear results</a></section>
-                        <section><h2>Other Places</h2><a href="{{ route('home') }}">Terminal</a><a href="{{ route('matrix.home') }}">Matrix</a><a href="{{ route('system7.home') }}">System 7</a></section>
+                        <section><h2>Other Places</h2><a href="{{ Theme::Crt->selectionUrl() }}">Terminal</a><a href="{{ route('matrix.home') }}">Matrix</a><a href="{{ route('system7.home') }}">System 7</a></section>
                     </aside>
                 @endif
 
@@ -219,19 +219,19 @@
                         <div class="xp-start__header"><span class="xp-start__avatar" aria-hidden="true">◈</span><strong>DNS Records</strong></div>
                         <div class="xp-start__columns">
                             <div><a href="#url">New Lookup</a><a href="{{ route('matrix.home') }}">Matrix</a><a href="{{ route('system7.home') }}">System 7</a><a href="{{ route('mother.home') }}">MU/TH/UR</a><a href="{{ route('lcars.home') }}">LCARS</a><a href="{{ route('old.home') }}">Classic</a></div>
-                            <div><a href="{{ $theme->homeUrl() }}">DNS Records</a><a href="{{ route('home') }}">Terminal</a><a href="{{ $theme->commandUrl('help') }}">Help</a><a href="{{ $theme->homeUrl() }}" data-clear>Clear Results</a></div>
+                            <div><a href="{{ $theme->homeUrl() }}">DNS Records</a><a href="{{ Theme::Crt->selectionUrl() }}">Terminal</a><a href="{{ $theme->commandUrl('help') }}">Help</a><a href="{{ $theme->homeUrl() }}" data-clear>Clear Results</a></div>
                         </div>
-                        <div class="xp-start__footer"><a href="{{ route('home') }}">Exit to Terminal</a></div>
+                        <div class="xp-start__footer"><a href="{{ Theme::Crt->selectionUrl() }}">Exit to Terminal</a></div>
                     </nav>
                 </details>
             @else
-                <a class="taskbar__home" href="{{ route('home') }}">Terminal</a>
+                <a class="taskbar__home" href="{{ Theme::Crt->selectionUrl() }}">Terminal</a>
             @endif
             <details class="theme-menu taskbar__menu">
                 <summary>Interfaces</summary>
                 <nav aria-label="Interfaces">
                     @foreach($interfaces as [$label, $interface])
-                        <a href="{{ $interface->homeUrl() }}" @if($theme === $interface) aria-current="page" @endif>{{ $label }}</a>
+                        <a href="{{ $interface->selectionUrl() }}" @if($theme === $interface) aria-current="page" @endif>{{ $label }}</a>
                     @endforeach
                 </nav>
             </details>

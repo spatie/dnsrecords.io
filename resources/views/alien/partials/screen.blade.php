@@ -1,3 +1,4 @@
+@use('App\Enums\Theme')
 @use('Illuminate\Support\Str')
 
 
@@ -23,7 +24,7 @@
                 <div class="exchange exchange--boot">
                     @include('alien.partials.root-matrix')
 
-                    <p class="mother-line mother-hint" data-line>Enter a domain for inquiry. Enter <button type="button" class="mother-action" data-command="help">help</button> for clarification, <a href="{{ route('home') }}">exit</a> to return to the terminal.</p>
+                    <p class="mother-line mother-hint" data-line>Enter a domain for inquiry. Enter <button type="button" class="mother-action" data-command="help">help</button> for clarification, <a href="{{ Theme::Crt->selectionUrl() }}">exit</a> to return to the terminal.</p>
                 </div>
             @else
                 <section class="turn">
