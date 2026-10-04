@@ -1,4 +1,8 @@
 import { fetchScreen, lookupUrl } from './crt/lookup.js';
+import './interfaces/window-controls.js';
+import './interfaces/matrix-rain.js';
+import { construct } from './interfaces/matrix-construct.js';
+import './interfaces/matrix-input-effects.js';
 
 const root = document.documentElement;
 const form = document.getElementById('form');
@@ -10,6 +14,7 @@ const submitButton = form.querySelector('button[type="submit"]');
 const windowBody = document.querySelector('.window__body');
 const system7Thumb = document.getElementById('system7-scroll-thumb');
 const system7Count = document.getElementById('system7-count');
+const clearResultsLink = document.getElementById('clear-results');
 const homeTitle = document.title.replace(/^.* DNS records/, 'DNS records lookup');
 const homeDescription = 'Look up DNS records in a different interface';
 const snapshots = new Map();
@@ -22,7 +27,12 @@ entries.querySelectorAll('.copy-records').forEach(button => button.hidden = fals
 
 function setStatus(message) {
     status.textContent = message;
-    windowStatus.textContent = message;
+    if (root.dataset.interface === 'matrix') {
+        status.parentElement.hidden = message === 'Ready';
+    }
+    if (windowStatus) {
+        windowStatus.textContent = message;
+    }
 }
 
 function updateSystem7Scroll() {
@@ -52,6 +62,7 @@ function saveSnapshot(url, method = 'pushState') {
 }
 
 function clearResults() {
+    root.classList.remove('is-decoding');
     entries.replaceChildren();
     input.value = '';
     input.readOnly = false;
@@ -59,7 +70,10 @@ function clearResults() {
     lookupInProgress = null;
     document.title = homeTitle;
     document.querySelector('meta[name="description"]').content = homeDescription;
-    setStatus('Ready for a domain');
+    setStatus(root.dataset.interface === 'matrix' ? 'Ready' : 'Ready for a domain');
+    if (root.dataset.interface === 'matrix') {
+        clearResultsLink.hidden = true;
+    }
     if (system7Count) {
         system7Count.textContent = '0 items';
     }
@@ -75,6 +89,9 @@ function addNotice(message) {
     notice.setAttribute('role', 'alert');
     notice.textContent = message;
     entries.prepend(notice);
+    if (root.dataset.interface === 'matrix') {
+        clearResultsLink.hidden = false;
+    }
     setStatus(message);
 }
 
@@ -89,9 +106,17 @@ function addResponse(screenPage, command) {
     const commandLine = document.createElement('p');
 
     answer.className = 'entry';
+    if (root.dataset.interface === 'matrix') {
+        answer.classList.add('entry--decoded');
+    }
     commandLine.className = 'entry__command';
     commandLine.textContent = `> ${command}`;
     answer.append(commandLine, ...Array.from(document.adoptNode(responseEntries).children));
+    if (root.dataset.interface === 'matrix') {
+        answer.querySelectorAll('.record').forEach((record, index) => {
+            record.style.setProperty('--reveal-index', Math.min(index, 24));
+        });
+    }
 
     if (answer.childElementCount === 1) {
         addNotice(`No output for ${command}.`);
@@ -101,6 +126,12 @@ function addResponse(screenPage, command) {
 
     answer.querySelectorAll('.copy-records').forEach(button => button.hidden = false);
     entries.prepend(answer);
+    if (root.dataset.interface === 'matrix') {
+        clearResultsLink.hidden = false;
+        construct(answer);
+        window.setTimeout(() => answer.classList.add('is-decoding-rows'), 250);
+    }
+    root.classList.remove('is-decoding');
     answer.scrollIntoView({ block: 'start', behavior: 'auto' });
 
     document.title = screenPage.title;
@@ -128,6 +159,7 @@ async function lookup(command) {
     const attempt = Symbol('lookup');
 
     lookupInProgress = attempt;
+    root.classList.toggle('is-decoding', root.dataset.interface === 'matrix');
     input.readOnly = true;
     submitButton.disabled = true;
     setStatus(`Looking up ${command}…`);
@@ -139,6 +171,7 @@ async function lookup(command) {
     }
 
     lookupInProgress = null;
+    root.classList.remove('is-decoding');
     input.readOnly = false;
     submitButton.disabled = false;
 
@@ -272,6 +305,9 @@ window.addEventListener('popstate', event => {
     }
 
     entries.innerHTML = snapshot.html;
+    if (root.dataset.interface === 'matrix') {
+        clearResultsLink.hidden = entries.children.length === 0;
+    }
     document.title = snapshot.title;
     document.querySelector('meta[name="description"]').content = snapshot.description;
     input.value = '';
@@ -287,7 +323,13 @@ window.addEventListener('popstate', event => {
 });
 
 function updateClock() {
-    document.getElementById('clock').textContent = new Intl.DateTimeFormat(undefined, {
+    const clock = document.getElementById('clock');
+
+    if (! clock) {
+        return;
+    }
+
+    clock.textContent = new Intl.DateTimeFormat(undefined, {
         hour: 'numeric',
         minute: '2-digit',
     }).format(new Date());

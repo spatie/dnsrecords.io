@@ -8,16 +8,13 @@
     $recordCount = $terminalOutput?->recordCount() ?? 0;
     $flashMessages = collect(session('flash_notification', collect())->toArray());
     $title = match ($theme) {
-        Theme::Matrix => 'The Matrix',
         Theme::System7 => 'System 7',
         Theme::WinXp => 'Windows XP',
     };
     $themeColor = match ($theme) {
-        Theme::Matrix => '#050d09',
         Theme::System7 => '#bdbdbd',
         Theme::WinXp => '#2456b7',
     };
-    $rainGlyphs = ['ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘ', 'ﾌﾊｷﾐﾑﾊﾗﾄｶﾏｻﾜﾂ', '0 1 0 1 1 0 0 1 1', 'ﾕﾗﾁﾇﾘﾓｻﾎﾜﾂﾆｽ'];
     $interfaces = [
         ['Terminal', Theme::Crt],
         ['MU/TH/UR', Theme::Mother],
@@ -43,20 +40,15 @@
 <body class="interface interface--{{ $slug }}">
     @include('googletagmanager::script')
 
-    @if($theme === Theme::Matrix)
-        <div class="matrix-rain" aria-hidden="true">
-            @for($column = 0; $column < 20; $column++)
-                <span style="--column: {{ $column }}; --duration: {{ 12 + ($column % 7) * 2 }}s">{{ $rainGlyphs[$column % 4] }}</span>
-            @endfor
-        </div>
-    @endif
-
     <a class="skip-link" href="#url">Skip to domain lookup</a>
 
     <div class="desktop">
         <header class="menu-bar">
             @if($theme === Theme::System7)
-                <span class="menu-bar__brand system7-apple" aria-hidden="true">&#63743;</span>
+                <details class="classic-menu system7-apple-menu">
+                    <summary aria-label="Apple menu"><span class="system7-apple" aria-hidden="true"></span></summary>
+                    <nav><a href="{{ $theme->commandUrl('help') }}">About DNS Records</a><a href="{{ route('home') }}">Terminal</a></nav>
+                </details>
                 <details class="classic-menu">
                     <summary>File</summary>
                     <nav>
@@ -90,28 +82,35 @@
                         <a href="{{ route('home') }}">Return to Terminal</a>
                     </nav>
                 </details>
-                <a class="system7-help" href="{{ $theme->commandUrl('help') }}" aria-label="Help">?</a>
-                <span class="menu-bar__right system7-application" aria-label="DNS Records application">▣</span>
+                <a class="system7-help" href="{{ $theme->commandUrl('help') }}" aria-label="Help"></a>
+                <span class="menu-bar__right system7-application" aria-label="DNS Records application"></span>
             @else
                 <span class="menu-bar__right" aria-hidden="true">{{ $title }}</span>
             @endif
         </header>
 
         @if($theme === Theme::System7)
-            <div class="system7-desktop-icons" aria-hidden="true">
-                <div class="system7-desktop-icon system7-desktop-icon--disk"><div class="system7-disk"></div><span>DNS Disk</span></div>
-                <div class="system7-desktop-icon system7-desktop-icon--trash"><div class="system7-trash"></div><span>Trash</span></div>
+            <div class="system7-desktop-icons">
+                <button class="system7-desktop-icon system7-desktop-icon--disk" type="button" data-window-restore><span class="system7-disk" aria-hidden="true"></span><span>DNS Disk</span></button>
+                <div class="system7-desktop-icon system7-desktop-icon--trash" aria-hidden="true"><span class="system7-trash"></span><span>Trash</span></div>
             </div>
         @endif
 
         <main class="window" id="screen-content">
             <div class="window__titlebar">
-                <span class="window__controls" aria-hidden="true"><i></i><i></i><i></i></span>
-                <span class="window__title">{{ $theme === Theme::Matrix ? 'DNS :: ACCESS TERMINAL' : 'DNS Records' }}</span>
+                <span class="window__controls">
+                    @if($theme === Theme::System7)
+                        <button type="button" data-window-action="close" aria-label="Close window"></button>
+                    @elseif($theme === Theme::WinXp)
+                        <button type="button" data-window-action="minimize" aria-label="Minimize window"></button>
+                        <button type="button" data-window-action="maximize" aria-label="Maximize window"></button>
+                        <button type="button" data-window-action="close" aria-label="Close window"></button>
+                    @endif
+                </span>
+                <span class="window__title">DNS Records</span>
                 @if($theme === Theme::System7)
-                    <span class="window__zoom" aria-hidden="true"></span>
+                    <button type="button" class="window__zoom" data-window-action="maximize" aria-label="Zoom window"></button>
                 @endif
-                <span class="window__title-end" aria-hidden="true">{{ $theme === Theme::Matrix ? 'SYS/01' : ' ' }}</span>
             </div>
 
             @if($theme === Theme::WinXp)
@@ -132,12 +131,15 @@
                             @endforeach
                         </nav>
                     </details>
+                    <details class="classic-menu"><summary>Favorites</summary><nav><a href="{{ route('matrix.home') }}">Matrix</a><a href="{{ route('system7.home') }}">System 7</a><a href="{{ route('mother.home') }}">MU/TH/UR</a></nav></details>
+                    <details class="classic-menu"><summary>Tools</summary><nav><a href="{{ $theme->homeUrl() }}" data-clear>Clear Results</a></nav></details>
                     <a href="{{ $theme->commandUrl('help') }}">Help</a>
                 </nav>
                 <div class="xp-toolbar">
-                    <a href="{{ $theme->homeUrl() }}" data-clear><span aria-hidden="true">‹</span> Back</a>
-                    <a href="#url"><span aria-hidden="true">⌕</span> Search</a>
-                    <a href="{{ route('home') }}">Terminal</a>
+                    <a href="{{ $theme->homeUrl() }}" data-clear><span class="xp-toolbar__round" aria-hidden="true">←</span> Back</a>
+                    <span class="xp-toolbar__divider" aria-hidden="true"></span>
+                    <a href="#url"><span class="xp-toolbar__search" aria-hidden="true"></span> Search</a>
+                    <a href="{{ route('home') }}"><span class="xp-toolbar__folder" aria-hidden="true"></span> Terminal</a>
                 </div>
                 <div class="xp-address"><span>Address</span><span class="xp-address__path">dnsrecords.io\DNS Records</span><a href="#url">Go</a></div>
             @endif
@@ -156,10 +158,10 @@
 
                 <div class="window__body">
                     <header class="app-heading">
-                        <span class="app-heading__icon" aria-hidden="true">{{ $theme === Theme::Matrix ? '>' : ($theme === Theme::System7 ? '⌘' : '◈') }}</span>
+                        <span class="app-heading__icon" aria-hidden="true">{{ $theme === Theme::System7 ? '⌘' : '◈' }}</span>
                         <div>
                             <h1>DNS Records</h1>
-                            <p>{{ $theme === Theme::Matrix ? 'Follow the record.' : 'Look up a domain and inspect its records.' }}</p>
+                            <p>Look up a domain and inspect its records.</p>
                         </div>
                     </header>
 
@@ -168,7 +170,7 @@
                         <label for="url">Domain or command</label>
                         <div class="lookup__controls">
                             <input id="url" name="command" placeholder="example.com" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" autofocus>
-                            <button type="submit">{{ $theme === Theme::Matrix ? 'DECODE' : 'Look up' }}</button>
+                            <button type="submit">Look up</button>
                         </div>
                     </form>
 
@@ -203,14 +205,28 @@
             </div>
 
             @if($theme === Theme::System7)
-                <div class="system7-bottom" aria-hidden="true"><span>◀</span><span class="system7-bottom__track"></span><span>▶</span><span class="system7-bottom__size"></span></div>
+                <div class="system7-bottom"><span aria-hidden="true">◀</span><span class="system7-bottom__track" aria-hidden="true"></span><span aria-hidden="true">▶</span><button type="button" class="system7-bottom__size" data-window-resize aria-label="Resize window"></button></div>
             @endif
 
-            <footer class="window__statusbar"><span id="window-status">{{ $terminalOutput ? "{$recordCount} records" : 'Ready' }}</span><span>dnsrecords.io</span></footer>
+            <footer class="window__statusbar"><span id="window-status">{{ $terminalOutput ? "{$recordCount} records" : 'Ready' }}</span><span>dnsrecords.io</span>@if($theme === Theme::WinXp)<button type="button" class="xp-resize" data-window-resize aria-label="Resize window"></button>@endif</footer>
         </main>
 
         <footer class="taskbar">
-            <a class="taskbar__home" href="{{ route('home') }}">{{ $theme === Theme::WinXp ? 'Start' : 'Terminal' }}</a>
+            @if($theme === Theme::WinXp)
+                <details class="xp-start">
+                    <summary class="taskbar__home"><span class="xp-start__flag" aria-hidden="true"></span>start</summary>
+                    <nav class="xp-start__panel" aria-label="Start menu">
+                        <div class="xp-start__header"><span class="xp-start__avatar" aria-hidden="true">◈</span><strong>DNS Records</strong></div>
+                        <div class="xp-start__columns">
+                            <div><a href="#url">New Lookup</a><a href="{{ route('matrix.home') }}">Matrix</a><a href="{{ route('system7.home') }}">System 7</a><a href="{{ route('mother.home') }}">MU/TH/UR</a><a href="{{ route('lcars.home') }}">LCARS</a><a href="{{ route('old.home') }}">Classic</a></div>
+                            <div><a href="{{ $theme->homeUrl() }}">DNS Records</a><a href="{{ route('home') }}">Terminal</a><a href="{{ $theme->commandUrl('help') }}">Help</a><a href="{{ $theme->homeUrl() }}" data-clear>Clear Results</a></div>
+                        </div>
+                        <div class="xp-start__footer"><a href="{{ route('home') }}">Exit to Terminal</a></div>
+                    </nav>
+                </details>
+            @else
+                <a class="taskbar__home" href="{{ route('home') }}">Terminal</a>
+            @endif
             <details class="theme-menu taskbar__menu">
                 <summary>Interfaces</summary>
                 <nav aria-label="Interfaces">
@@ -219,7 +235,7 @@
                     @endforeach
                 </nav>
             </details>
-            <span class="taskbar__active">DNS Records</span>
+            @if($theme === Theme::WinXp)<button type="button" class="taskbar__active" data-window-restore>DNS Records</button>@else<span class="taskbar__active">DNS Records</span>@endif
             <span class="taskbar__clock" id="clock" aria-label="Current time"></span>
         </footer>
     </div>
