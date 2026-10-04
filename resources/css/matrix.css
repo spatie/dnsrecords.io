@@ -193,44 +193,23 @@
 
 .matrix-query button {
     position: relative;
-    overflow: hidden;
-    isolation: isolate;
     flex: none;
     min-width: 166px;
     min-height: 74px;
     padding: 14px;
-    border: 1px solid #bbffcc;
+    border: 0;
     border-radius: 0;
-    background: rgba(134, 255, 162, .95);
-    box-shadow: 0 0 28px rgba(101, 255, 134, .38), inset 0 0 0 2px rgba(0, 50, 10, .1);
-    color: #001c08;
+    background: transparent;
+    box-shadow: none;
+    color: #d8ffe2;
     cursor: pointer;
     font: 800 15px/1.2 'JetBrains Mono', monospace;
     letter-spacing: .04em;
+    text-shadow: 0 0 10px #75ff98, 0 0 28px #4aff79;
 }
 
 .matrix-query.is-built button {
     animation: matrix-button-assemble .8s cubic-bezier(.2, 0, 0, 1) both, matrix-button-charge 2.7s ease-in-out .8s infinite;
-}
-
-.matrix-query button::before {
-    content: '';
-    position: absolute;
-    z-index: 0;
-    inset: -40% auto -40% -70%;
-    width: 45%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .85), transparent);
-    transform: skewX(-20deg);
-    animation: matrix-button-sheen 3s ease-in-out 1.1s infinite;
-}
-
-.matrix-query button::after {
-    content: '';
-    position: absolute;
-    z-index: 2;
-    inset: 3px;
-    border: 1px solid rgba(0, 49, 13, .45);
-    pointer-events: none;
 }
 
 @keyframes matrix-button-assemble {
@@ -239,18 +218,12 @@
 }
 
 @keyframes matrix-button-charge {
-    50% { box-shadow: 0 0 46px rgba(142, 255, 163, .78), 0 0 13px rgba(193, 255, 207, .65), inset 0 0 0 2px rgba(0, 50, 10, .1); }
-}
-
-@keyframes matrix-button-sheen {
-    0%, 12% { left: -70%; opacity: 0; }
-    18% { opacity: .8; }
-    44%, 100% { left: 140%; opacity: 0; }
+    50% { color: #fff; text-shadow: 0 0 18px #aaffba, 0 0 42px #61ff85, 0 0 70px #37ff6b; }
 }
 
 .matrix-query button:hover {
-    background: #e3ffe9;
-    box-shadow: 0 0 42px rgba(131, 255, 157, .6);
+    color: #fff;
+    text-shadow: 0 0 20px #aaffba, 0 0 48px #61ff85;
 }
 
 .matrix-query button:active {
@@ -265,12 +238,12 @@
 .matrix-query button span {
     position: relative;
     z-index: 1;
-    color: #1c7130;
+    color: inherit;
 }
 
 .interface--matrix.is-decoding .matrix-query button {
-    background: #e8ffed;
-    box-shadow: 0 0 54px rgba(151, 255, 174, .82);
+    color: #fff;
+    text-shadow: 0 0 20px #aaffba, 0 0 60px #61ff85;
 }
 
 .interface--matrix.is-decoding .matrix-query__energy::after {
@@ -341,203 +314,83 @@
 }
 
 .matrix-feed .entry {
-    gap: 14px;
+    gap: 10px;
     scroll-margin-top: 50px;
 }
 
-.matrix-feed .entry__command {
-    margin: 0;
-    color: #90e5a5;
-    font-size: 12px;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-}
-
-.matrix-feed .result,
-.matrix-feed .notice {
+.matrix-feed .matrix-signal {
+    position: relative;
+    min-height: 240px;
     border: 0;
-    border-top: 1px solid #69e789;
-    background: rgba(0, 11, 3, .68);
+    background: transparent;
     box-shadow: none;
 }
 
-.matrix-feed .result__heading {
-    padding: 22px 0;
-    border-bottom: 1px solid rgba(98, 235, 128, .4);
+.matrix-signal__canvas {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
-.matrix-feed .result__eyebrow {
-    color: #8eeaa6;
-    letter-spacing: .16em;
-}
-
-.matrix-feed .result__heading h2 {
-    color: #e1ffe8;
-    font-size: clamp(24px, 4vw, 42px);
-    text-shadow: 0 0 22px rgba(91, 255, 123, .32);
-}
-
-.matrix-feed .result__actions {
-    color: #a7e6b6;
-}
-
-.matrix-feed .copy-records {
-    min-height: 34px;
-    border: 1px solid #64bd77;
-    background: rgba(10, 46, 18, .8);
-    color: #d8ffe0;
-    box-shadow: none;
-}
-
-.matrix-feed .record-head {
-    color: #8dd9a2;
-}
-
-.matrix-feed .record {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    border-top: 1px solid rgba(92, 197, 113, .24);
-    background: linear-gradient(90deg, rgba(0, 14, 4, .82), rgba(2, 32, 10, .33) 50%, rgba(0, 14, 4, .82));
-    color: #d3ffdc;
-    transition: background-color .2s, box-shadow .2s;
-}
-
-.matrix-feed .record:hover {
-    background-color: rgba(38, 116, 52, .4);
-    box-shadow: inset 2px 0 0 #a2ffb5, 0 0 22px rgba(66, 255, 102, .13);
-}
-
-.matrix-feed .record__type {
-    background: #276539;
-    color: #e3ffe9;
-}
-
-.matrix-entry--decoding .matrix-heading--decoding {
-    opacity: 0;
-    filter: blur(12px) brightness(3);
-    transform: translateY(-18px) skewX(-8deg);
-}
-
-.matrix-entry--decoding .result__heading,
-.matrix-entry--decoding .record-head {
-    transition: opacity .45s, filter .45s, transform .45s;
-}
-
-.matrix-entry--decoding .matrix-record--queued {
-    opacity: 0;
-}
-
-.matrix-entry--decoding .matrix-record--assembling {
-    animation: matrix-record-enter .7s steps(7, end) both;
-}
-
-.matrix-entry--decoding .matrix-record--assembling::before {
-    content: '';
-    position: absolute;
-    z-index: 4;
-    inset: 0;
-    background: linear-gradient(180deg, transparent 0%, rgba(150, 255, 172, .12) 48%, #e1ffe8 50%, rgba(52, 255, 101, .35) 54%, transparent 100%);
-    box-shadow: 0 0 20px #6dff8a;
-    pointer-events: none;
-    animation: matrix-record-scan .76s linear both;
-}
-
-.matrix-entry--decoding .matrix-record--assembling::after {
-    content: '';
-    position: absolute;
-    z-index: 3;
-    inset: 0;
-    border-left: 2px solid #d9ffe1;
-    box-shadow: inset 12px 0 22px rgba(110, 255, 136, .3), 0 0 20px rgba(114, 255, 142, .45);
-    pointer-events: none;
-    animation: matrix-record-edge .75s ease-out both;
-}
-
-@keyframes matrix-record-enter {
-    0% { opacity: 0; transform: translateY(-24px) scaleY(.12); filter: blur(11px) brightness(4); clip-path: inset(0 0 90% 0); }
-    28% { opacity: 1; transform: translateY(4px) scaleY(1.15) skewX(-3deg); filter: blur(2px) brightness(2); clip-path: inset(0 0 0 0); }
-    44% { transform: translateY(-2px) skewX(2deg); }
-    64% { transform: translateY(1px) skewX(-1deg); filter: blur(0) brightness(1.2); }
-    100% { opacity: 1; transform: none; filter: none; clip-path: inset(0 0 0 0); }
-}
-
-@keyframes matrix-record-scan {
-    from { transform: translateY(-110%); opacity: 0; }
-    20% { opacity: 1; }
-    to { transform: translateY(110%); opacity: 0; }
-}
-
-@keyframes matrix-record-edge {
-    from { transform: translateX(-100%); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-}
-
-.matrix-entry--decoding .record > span:not(.matrix-record__cascade) {
-    position: relative;
-}
-
-.matrix-entry--decoding .record .matrix-cell__final {
-    visibility: hidden;
-}
-
-.matrix-entry--decoding .record .matrix-cell--decoded .matrix-cell__final {
-    visibility: visible;
-}
-
-.matrix-cell__cipher {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    color: #f0fff2;
+.matrix-signal__accessible {
+    padding: 20px 10px;
+    color: #bafbc8;
+    font: 14px/1.7 'JetBrains Mono', monospace;
     white-space: pre-wrap;
-    text-shadow: 0 0 6px #9affb2, 0 0 18px #47ff78;
-    pointer-events: none;
+    overflow-wrap: anywhere;
 }
 
-.record__type .matrix-cell__cipher {
-    inset: 1px 5px;
+.js .matrix-signal__accessible {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 
-.matrix-record__cascade {
+.js .matrix-signal[data-failed] .matrix-signal__accessible {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 20px 10px;
+    clip-path: none;
+    white-space: pre-wrap;
+}
+
+.js .matrix-signal[data-failed] .matrix-signal__canvas {
+    display: none;
+}
+
+.matrix-feed .matrix-signal__copy {
     position: absolute;
     z-index: 2;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
+    top: 9px;
+    right: 8px;
+    min-height: 26px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: #baffc9;
+    font: 700 12px/1.4 'JetBrains Mono', monospace;
+    letter-spacing: .07em;
+    text-shadow: 0 0 10px rgba(116, 255, 146, .7);
 }
 
-.matrix-record__cascade > span {
-    position: absolute;
-    top: -120px;
-    color: #d2ffdb;
-    font: 16px/.9 'JetBrains Mono', monospace;
-    text-shadow: 0 0 8px #81ff9a, 0 0 22px #55ff7b;
-    white-space: pre;
-    animation: matrix-record-rain .85s ease-in both;
+.matrix-feed .matrix-signal__copy:hover,
+.matrix-feed .matrix-signal__copy:focus-visible {
+    color: #fff;
+    text-shadow: 0 0 22px #86ff9d;
 }
 
-@keyframes matrix-record-rain {
-    0% { opacity: 0; transform: translateY(-50px); }
-    25% { opacity: .9; }
-    75% { opacity: .6; }
-    100% { opacity: 0; transform: translateY(220px); }
-}
-
-.matrix-record--glitch {
-    animation: matrix-record-glitch .52s steps(2, end);
-}
-
-@keyframes matrix-record-glitch {
-    0%, 100% { transform: none; filter: none; }
-    20% { transform: translateX(3px) skewX(-1deg); filter: brightness(1.8); }
-    34% { transform: translateX(-2px); }
-    45% { transform: translateX(4px) skewX(1deg); filter: brightness(2.4); }
-    62% { transform: translateX(-1px); filter: none; }
-}
-
-.matrix-feed .plain-output {
-    color: #d0ffda;
+.matrix-feed .notice {
+    border: 0;
+    background: transparent;
+    color: #bdffc9;
+    font: 14px/1.7 'JetBrains Mono', monospace;
+    white-space: pre-wrap;
 }
 
 .matrix-switcher {
@@ -666,8 +519,9 @@
         margin-top: 45px;
     }
 
-    .matrix-feed .result__heading {
-        padding: 18px 0;
+    .matrix-feed .matrix-signal__copy {
+        position: static;
+        margin: 0 0 14px 10px;
     }
 
     .matrix-switcher {
@@ -679,14 +533,12 @@
 @media (prefers-reduced-motion: reduce) {
     .matrix-code-curtain span,
     .matrix-query.is-built button,
-    .matrix-query button::before,
     .matrix-query.is-built .matrix-query__energy,
     .matrix-query__energy::after,
     .matrix-switcher summary::before,
     .matrix-query label,
     .matrix-query input,
-    .interface--matrix.is-decoding .matrix-query::after,
-    .matrix-record--glitch {
+    .interface--matrix.is-decoding .matrix-query::after {
         animation: none;
     }
 

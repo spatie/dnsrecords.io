@@ -356,7 +356,7 @@ chances.forEach(question => {
 });
 
 exitCommands.forEach(command => {
-    localCommands[command] = () => window.location.assign('/');
+    localCommands[command] = () => window.location.assign('/?theme=terminal');
 });
 
 function specialOrder(inquiry) {

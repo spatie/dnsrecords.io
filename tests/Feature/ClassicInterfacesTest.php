@@ -26,13 +26,20 @@ class ClassicInterfacesTest extends TestCase
     public function it_keeps_results_in_the_selected_interface(): void
     {
         foreach (['matrix', 'system7', 'winxp'] as $interface) {
-            $this
+            $response = $this
                 ->get("{$this->baseUrl}/{$interface}/spatie.be")
                 ->assertSuccessful()
                 ->assertSee("data-interface=\"{$interface}\"", false)
                 ->assertSee('2 records')
-                ->assertSee('103.133.1.1')
-                ->assertSee('data-raw=', false);
+                ->assertSee('103.133.1.1');
+
+            if ($interface === 'matrix') {
+                $response
+                    ->assertSee('class="matrix-signal__canvas"', false)
+                    ->assertDontSee('class="record-head"', false);
+            } else {
+                $response->assertSee('data-raw=', false);
+            }
 
             $this
                 ->post("{$this->baseUrl}/{$interface}", ['command' => 'spatie.be'])

@@ -141,6 +141,26 @@ class ThemeCommandsTest extends TestCase
     }
 
     #[Test]
+    public function it_switches_between_all_interfaces(): void
+    {
+        $switches = [
+            ['/system7', 'system7', '/system7'],
+            ['/system7/muthur', 'muthur', '/muthur'],
+            ['/muthur/matrix', 'matrix', '/matrix'],
+            ['/matrix/winxp', 'winxp', '/winxp'],
+            ['/winxp/lcars', 'lcars', '/lcars'],
+            ['/lcars/old', 'old', '/old'],
+            ['/old/default', 'default', '/?theme=terminal'],
+        ];
+
+        foreach ($switches as [$path, $command, $destination]) {
+            $this
+                ->sendCommand($command, $path)
+                ->assertRedirect($destination);
+        }
+    }
+
+    #[Test]
     public function it_mentions_the_way_back_in_the_lcars_and_old_manual(): void
     {
         $this->sendCommand('help', '/lcars/help')->assertSee('return to the');

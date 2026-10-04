@@ -42,6 +42,8 @@ uniform vec4 uLineB[${maximumLineEffects}];
 uniform vec4 uReveal;
 uniform vec4 uRevealBox;
 uniform float uScroll;
+uniform float uGhostScroll;
+uniform float uGhostStrength;
 uniform vec4 uCaret;
 uniform vec4 uCaretColour;
 
@@ -69,7 +71,7 @@ vec2 picturePoint(vec2 screenPoint, float curve) {
  * The painted text is a ring of the scrolling content: a row of the content
  * lives on that row modulo the height of the ring.
  */
-vec4 sampleText(vec2 point, float lod) {
+vec4 sampleTextAtScroll(vec2 point, float scroll, float lod) {
     float across = point.x / uPicture.z;
     float row = point.y - uRing.x;
 
@@ -77,7 +79,11 @@ vec4 sampleText(vec2 point, float lod) {
         return vec4(0.0);
     }
 
-    return textureLod(uText, vec2(across, mod(row + uRing.z, uRing.y) / uRing.y), lod);
+    return textureLod(uText, vec2(across, mod(row + scroll, uRing.y) / uRing.y), lod);
+}
+
+vec4 sampleText(vec2 point, float lod) {
+    return sampleTextAtScroll(point, uRing.z, lod);
 }
 
 vec4 sampleBurn(vec2 point) {
@@ -174,8 +180,14 @@ void main() {
     vec4 blue = textAt(screenPoint, uCurve * (1.0 - uFringe), 1.0);
 
     vec4 text = vec4(red.r, green.g, blue.b, max(green.a, max(red.a, blue.a)));
-
     vec2 point = picturePoint(screenPoint, uCurve);
+
+    if (uGhostStrength > 0.0) {
+        vec4 ghost = sampleTextAtScroll(point, uGhostScroll, 1.0);
+
+        text.rgb += ghost.rgb * uGhostStrength * (1.0 - min(text.a, 1.0) * 0.7);
+        text.a = max(text.a, ghost.a * uGhostStrength * 0.65);
+    }
 
     if (uCaretColour.a > 0.0 && point.x >= uCaret.x && point.x <= uCaret.x + uCaret.z && point.y >= uCaret.y && point.y <= uCaret.y + uCaret.w) {
         text = vec4(uCaretColour.rgb, 1.0);
@@ -370,6 +382,8 @@ export function createTextPass(gl) {
             gl.uniform4f(uniforms.uReveal, ...values.reveal);
             gl.uniform4f(uniforms.uRevealBox, ...values.revealBox);
             gl.uniform1f(uniforms.uScroll, values.scroll);
+            gl.uniform1f(uniforms.uGhostScroll, values.ghostScroll);
+            gl.uniform1f(uniforms.uGhostStrength, values.ghostStrength);
             gl.uniform4f(uniforms.uCaret, ...values.caret);
             gl.uniform4f(uniforms.uCaretColour, ...values.caretColour);
 

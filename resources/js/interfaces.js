@@ -2,7 +2,7 @@ import { fetchScreen, lookupUrl } from './crt/lookup.js';
 import './interfaces/window-controls.js';
 import './interfaces/matrix-rain.js';
 import './interfaces/matrix-construct.js';
-import { decodeEntry } from './interfaces/matrix-decode.js';
+import { mountSignals } from './interfaces/matrix-signal.js';
 import './interfaces/matrix-input-effects.js';
 
 const root = document.documentElement;
@@ -112,12 +112,22 @@ function addResponse(screenPage, command) {
     }
     commandLine.className = 'entry__command';
     commandLine.textContent = `> ${command}`;
-    answer.append(commandLine, ...Array.from(document.adoptNode(responseEntries).children));
-    if (answer.childElementCount === 1) {
+    const responseChildren = Array.from(document.adoptNode(responseEntries).children);
+    const matrixEntry = root.dataset.interface === 'matrix'
+        ? responseChildren.find(child => child.matches('.entry--decoded'))
+        : null;
+
+    const outputChildren = matrixEntry
+        ? [...matrixEntry.children].filter(child => ! child.matches('.entry__command')).concat(responseChildren.filter(child => child !== matrixEntry))
+        : responseChildren;
+
+    if (! outputChildren.length) {
         addNotice(`No output for ${command}.`);
 
         return true;
     }
+
+    answer.append(...(root.dataset.interface === 'matrix' ? [] : [commandLine]), ...outputChildren);
 
     answer.querySelectorAll('.copy-records').forEach(button => button.hidden = false);
     entries.prepend(answer);
@@ -133,7 +143,8 @@ function addResponse(screenPage, command) {
         document.querySelector('meta[name="description"]').content = screenPage.description;
     }
 
-    const count = answer.querySelectorAll('.record:not(.record--continued)').length;
+    const count = Number(answer.querySelector('.matrix-signal')?.dataset.recordCount
+        ?? answer.querySelectorAll('.record:not(.record--continued)').length);
 
     setStatus(count ? `${count} records found` : 'Response received');
     if (system7Count) {
@@ -190,7 +201,7 @@ async function lookup(command) {
     input.focus({ preventScroll: true });
     saveSnapshot(result.url);
     if (root.dataset.interface === 'matrix') {
-        decodeEntry(entries.firstElementChild);
+        mountSignals(entries.firstElementChild);
     }
 }
 
@@ -274,9 +285,12 @@ document.addEventListener('click', event => {
     }
 
     const result = copyButton.closest('.result');
-    const text = Array.from(result.querySelectorAll('[data-raw]'))
-        .map(record => record.getAttribute('data-raw'))
-        .join('\n');
+    const signalData = result.querySelector('.matrix-signal__data');
+    const text = signalData
+        ? JSON.parse(signalData.textContent).raw
+        : Array.from(result.querySelectorAll('[data-raw]'))
+            .map(record => record.getAttribute('data-raw'))
+            .join('\n');
 
     if (! navigator.clipboard?.writeText) {
         setStatus('Select the records and press Cmd+C or Ctrl+C to copy.');
@@ -285,9 +299,9 @@ document.addEventListener('click', event => {
     }
 
     navigator.clipboard.writeText(text).then(() => {
-        copyButton.textContent = 'Copied';
+        copyButton.textContent = signalData ? '[ COPIED ]' : 'Copied';
         setStatus('Records copied');
-        setTimeout(() => copyButton.textContent = 'Copy records', 1500);
+        setTimeout(() => copyButton.textContent = signalData ? '[ COPY RECORDS ]' : 'Copy records', 1500);
     }, () => setStatus('Select the records and press Cmd+C or Ctrl+C to copy.'));
 });
 
@@ -306,7 +320,7 @@ window.addEventListener('popstate', event => {
         const restoredEntry = entries.querySelector('.entry--decoded');
 
         if (restoredEntry) {
-            decodeEntry(restoredEntry);
+            mountSignals(restoredEntry);
         }
     }
     document.title = snapshot.title;
@@ -344,7 +358,7 @@ if (root.dataset.interface === 'matrix') {
     const initialEntry = entries.querySelector('.entry--decoded');
 
     if (initialEntry) {
-        decodeEntry(initialEntry);
+        mountSignals(initialEntry);
     } else {
         root.removeAttribute('data-matrix-booting');
     }
