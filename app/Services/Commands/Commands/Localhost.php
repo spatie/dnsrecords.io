@@ -2,6 +2,7 @@
 
 namespace App\Services\Commands\Commands;
 
+use App\Enums\Theme;
 use App\Services\Commands\Command;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,6 +17,6 @@ class Localhost implements Command
     {
         flash()->error("Please try someone else's domain.");
 
-        return back();
+        return response()->view(Theme::current()->view());
     }
 }

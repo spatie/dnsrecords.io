@@ -26,7 +26,7 @@ class BotProtectionTest extends TestCase
         Log::spy();
 
         $this
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertSuccessful();
 
         Log::shouldNotHaveReceived('info');
@@ -42,7 +42,7 @@ class BotProtectionTest extends TestCase
         $this
             ->withoutHeader('Sec-Fetch-Mode')
             ->withServerVariables(['REMOTE_ADDR' => '10.0.1.20'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertSuccessful()
             ->assertSee('103.133.1.1');
 
@@ -58,7 +58,7 @@ class BotProtectionTest extends TestCase
 
         $this
             ->withoutHeader('Sec-Fetch-Mode')
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertForbidden();
 
         Log::shouldHaveReceived('info')->withArgs(fn (string $message) => str_starts_with($message, 'bot-protection blocked=missingSecFetchHeaders signals=missingSecFetchHeaders ip=127.0.0.1'));
@@ -71,7 +71,7 @@ class BotProtectionTest extends TestCase
 
         $this
             ->withoutHeader('Sec-Fetch-Mode')
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertForbidden()
             ->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
             ->assertSee('Automated DNS lookups are not allowed')
@@ -85,7 +85,7 @@ class BotProtectionTest extends TestCase
 
         $this
             ->withHeader('Accept-Language', '')
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertForbidden();
     }
 
@@ -96,18 +96,18 @@ class BotProtectionTest extends TestCase
 
         $this
             ->withServerVariables(['REMOTE_ADDR' => '10.0.3.7'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertForbidden()
             ->assertSee('cloud and hosting networks');
 
         $this
             ->withServerVariables(['REMOTE_ADDR' => '2a01:4f8:c17:1::1'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertForbidden();
 
         $this
             ->withServerVariables(['REMOTE_ADDR' => '10.0.2.7'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertSuccessful();
     }
 
@@ -121,18 +121,18 @@ class BotProtectionTest extends TestCase
         foreach (['10.0.5.1', '10.0.5.2'] as $ip) {
             $this
                 ->withServerVariables(['REMOTE_ADDR' => $ip])
-                ->get("{$this->baseUrl}/spatie.be")
+                ->get("{$this->baseUrl}/spatie.be?lookup=1")
                 ->assertSuccessful();
         }
 
         $this
             ->withServerVariables(['REMOTE_ADDR' => '10.0.5.3'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertTooManyRequests();
 
         $this
             ->withServerVariables(['REMOTE_ADDR' => '10.0.6.1'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertSuccessful();
     }
 
@@ -143,16 +143,16 @@ class BotProtectionTest extends TestCase
 
         config()->set('bot-protection.lookups_per_day_per_ip', 2);
 
-        $this->get("{$this->baseUrl}/spatie.be")->assertSuccessful();
-        $this->get("{$this->baseUrl}/spatie.be")->assertSuccessful();
+        $this->get("{$this->baseUrl}/spatie.be?lookup=1")->assertSuccessful();
+        $this->get("{$this->baseUrl}/spatie.be?lookup=1")->assertSuccessful();
 
         $this->travel(23)->hours();
 
-        $this->get("{$this->baseUrl}/spatie.be")->assertTooManyRequests();
+        $this->get("{$this->baseUrl}/spatie.be?lookup=1")->assertTooManyRequests();
 
         $this->travel(2)->hours();
 
-        $this->get("{$this->baseUrl}/spatie.be")->assertSuccessful();
+        $this->get("{$this->baseUrl}/spatie.be?lookup=1")->assertSuccessful();
     }
 
     #[Test]
@@ -174,7 +174,7 @@ class BotProtectionTest extends TestCase
             ->assertRedirect('/spatie.be');
 
         $this
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertSuccessful()
             ->assertSee('103.133.1.1');
     }
@@ -185,19 +185,19 @@ class BotProtectionTest extends TestCase
         $this
             ->withHeaders(['User-Agent' => 'curl/8.7.1'])
             ->withoutHeader('Sec-Fetch-Mode')
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertForbidden();
 
         $this
             ->withServerVariables(['REMOTE_ADDR' => '10.0.3.7'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertForbidden();
 
         $this
             ->withHeaders($this->browserHeaders)
             ->withHeader('Accept-Language', '')
             ->withServerVariables(['REMOTE_ADDR' => '10.0.2.7'])
-            ->get("{$this->baseUrl}/spatie.be")
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
             ->assertSuccessful();
     }
 

@@ -2,6 +2,8 @@
  * The LCARS console swaps scan results into the lower deck without a page
  * load. Anything that is not an LCARS page falls back to normal navigation.
  */
+import { withLookupParameter, withoutLookupParameter } from './crt/lookup.js';
+
 const root = document.documentElement;
 const body = document.body;
 const form = document.getElementById('scan-form');
@@ -66,7 +68,7 @@ async function fetchPage(url) {
     let response;
 
     try {
-        response = await fetch(url, {
+        response = await fetch(withLookupParameter(url), {
             credentials: 'same-origin',
             headers: { Accept: 'text/html' },
         });
@@ -74,19 +76,21 @@ async function fetchPage(url) {
         return { type: 'navigate', url };
     }
 
+    const responseUrl = withoutLookupParameter(response.url || url);
+
     if (response.status === 429) {
         return { type: 'message', message: (await response.text()).trim() || 'Too many DNS lookups, please try again later.' };
     }
 
     if (! (response.headers.get('Content-Type') || '').includes('text/html')) {
-        return { type: 'navigate', url: response.url || url };
+        return { type: 'navigate', url: responseUrl };
     }
 
     const page = parsePage(await response.text());
 
     return page
-        ? { type: 'page', url: response.url || url, page }
-        : { type: 'navigate', url: response.url || url };
+        ? { type: 'page', url: responseUrl, page }
+        : { type: 'navigate', url: responseUrl };
 }
 
 function render(page) {

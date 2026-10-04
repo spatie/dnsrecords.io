@@ -28,6 +28,8 @@
 <html lang="en" class="no-js" data-interface="{{ $slug }}">
 <head>
     <meta charset="utf-8">
+    @include('layout._partials.rememberTheme')
+    @include('layout._partials.lookupUrl')
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow">
     <title>{{ isset($domain) ? $domain . ' DNS records' : 'DNS records lookup' }} ~ {{ $title }} ~ dnsrecords.io</title>
@@ -166,7 +168,6 @@
                     </header>
 
                     <form id="form" class="lookup" method="post" action="{{ $theme->homeUrl() }}">
-                        @csrf
                         <label for="url">Domain or command</label>
                         <div class="lookup__controls">
                             <input id="url" name="command" placeholder="example.com" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" autofocus>
