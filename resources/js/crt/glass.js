@@ -660,7 +660,9 @@ export function createGlass(screen, picture) {
         }
 
         const warm = warmth();
-        const textAlpha = (1 + (shaderTextLife.frame(time, life) - 1) * warm) * pictureOpacity() * contentOpacity();
+        const textAlpha = root.hasAttribute('data-output-stream')
+            ? 0
+            : (1 + (shaderTextLife.frame(time, life) - 1) * warm) * pictureOpacity() * contentOpacity();
 
         drawText(curve, pictureShift, textAlpha, warm);
 
@@ -886,6 +888,10 @@ export function createGlass(screen, picture) {
      * text, so the page never flashes or goes blank in between.
      */
     function handOver() {
+        if (root.hasAttribute('data-output-stream')) {
+            return;
+        }
+
         isHandoverPending = false;
         warmStartedAt = now();
         root.setAttribute('data-crt', 'gl');
@@ -969,7 +975,7 @@ export function createGlass(screen, picture) {
     reducedMotion.addEventListener('change', wake);
 
     document.addEventListener('crt', event => {
-        const { type } = event.detail || {};
+        const { type, progressive } = event.detail || {};
 
         if (type === 'lookup-start') {
             state.disturbTarget = .9;
@@ -981,7 +987,7 @@ export function createGlass(screen, picture) {
 
             if (isTextReady) {
                 textLayer.invalidate();
-                isRevealPending = true;
+                isRevealPending = ! progressive;
             }
 
             if (isAnimated()) {

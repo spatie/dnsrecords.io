@@ -21,8 +21,8 @@ let isAwake = true;
 const output = followOutput(() => document.getElementById('screen-content'), () => document.getElementById('terminal'));
 let powerTimer = null;
 
-function signal(type) {
-    document.dispatchEvent(new CustomEvent('crt', { detail: { type } }));
+function signal(type, detail = {}) {
+    document.dispatchEvent(new CustomEvent('crt', { detail: { type, ...detail } }));
 }
 
 function restartClass(target, className, duration) {
@@ -37,6 +37,8 @@ function restartClass(target, className, duration) {
 let lookupInProgress = null;
 const snapshots = new Map();
 let snapshotNumber = 0;
+let textHandover = 0;
+let shaderTextReady = false;
 
 function prefersReducedMotion() {
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -115,7 +117,6 @@ function degauss() {
 }
 
 let lastKeyAt = 0;
-let isSwapping = false;
 
 /**
  * Degausses at random moments, a few minutes apart, but never while someone
@@ -123,7 +124,7 @@ let isSwapping = false;
  */
 function scheduleDegauss(delay = 150000 + -Math.log(1 - Math.random()) * 150000) {
     setTimeout(() => {
-        const isBusy = document.hidden || ! isAwake || lookupInProgress !== null || isSwapping || performance.now() - lastKeyAt < 4000;
+        const isBusy = document.hidden || ! isAwake || lookupInProgress !== null || performance.now() - lastKeyAt < 4000;
 
         if (prefersReducedMotion()) {
             scheduleDegauss();
@@ -237,8 +238,39 @@ function saveSnapshot(url, method = 'pushState') {
     window.history[method]({ crt: true, snapshot }, '', url);
 }
 
+function showGrowingOutput() {
+    textHandover++;
+    root.setAttribute('data-output-stream', '');
+
+    if (root.getAttribute('data-text') === 'gl') {
+        shaderTextReady = true;
+        root.removeAttribute('data-text');
+    }
+}
+
+async function finishGrowingOutput() {
+    if (! root.hasAttribute('data-output-stream')) {
+        return;
+    }
+
+    const handover = ++textHandover;
+
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    if (handover !== textHandover) {
+        return;
+    }
+
+    if (shaderTextReady && root.getAttribute('data-crt') === 'gl') {
+        root.setAttribute('data-text', 'gl');
+    }
+
+    root.removeAttribute('data-output-stream');
+}
+
 function restoreSnapshot(snapshot) {
     lookupInProgress = null;
+    textHandover++;
     element.history().innerHTML = snapshot.html;
     document.title = snapshot.title;
     document.querySelector('meta[name="description"]').setAttribute('content', snapshot.description);
@@ -248,10 +280,12 @@ function restoreSnapshot(snapshot) {
     report('');
     mountContent();
     signal('lookup-end');
+    finishGrowingOutput();
 }
 
 function clearScreen() {
     lookupInProgress = null;
+    textHandover++;
     element.history().replaceChildren();
     element.input().value = '';
     element.input().readOnly = false;
@@ -261,13 +295,42 @@ function clearScreen() {
     document.querySelector('meta[name="description"]').setAttribute('content', "DNS record lookups just as you like 'em");
     saveSnapshot(element.form().getAttribute('action'));
     signal('lookup-end');
+    finishGrowingOutput();
     output.follow({ smooth: false });
     focusInput();
 }
 
-function appendScreen(screenPage) {
-    isSwapping = true;
+function commandLine(command) {
+    const line = document.createElement('div');
+    const arrow = document.createElement('span');
+    const value = document.createElement('span');
 
+    line.className = 'prompt prompt--history';
+    arrow.className = 'prompt__label';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '→';
+    value.className = 'prompt__value';
+    value.textContent = command;
+    line.append(arrow, value);
+
+    return line;
+}
+
+function addCopyButton(line) {
+    if (! line.matches('.line--record') || line.querySelector('.line__copy')) {
+        return;
+    }
+
+    const button = document.createElement('button');
+
+    button.type = 'button';
+    button.className = 'line__copy';
+    button.setAttribute('aria-label', `Copy ${line.querySelector('.line__type').textContent} record value`);
+    button.setAttribute('data-label', 'copy');
+    line.appendChild(button);
+}
+
+async function appendScreen(screenPage, command, attempt) {
     document.title = screenPage.title;
 
     const description = document.querySelector('meta[name="description"]');
@@ -278,22 +341,66 @@ function appendScreen(screenPage) {
 
     root.setAttribute('data-page', screenPage.page);
     report('');
+    showGrowingOutput();
 
-    if (screenPage.entries) {
-        element.history().append(...document.adoptNode(screenPage.entries).childNodes);
-    }
+    const entries = document.adoptNode(screenPage.entries);
+    const rows = Array.from(entries.querySelectorAll('.results__output')).flatMap(pre => {
+        const lines = Array.from(pre.querySelectorAll(':scope > .line'));
+        const resultRows = lines.map(line => ({
+            pre,
+            line,
+            newline: line.nextSibling && line.nextSibling.nodeType === Node.TEXT_NODE ? line.nextSibling : null,
+        }));
+
+        pre.replaceChildren();
+
+        return resultRows;
+    });
+
+    element.history().append(commandLine(command), ...entries.childNodes);
 
     element.input().value = '';
 
-    mountContent();
-    signal('lookup-end');
-    setTimeout(() => {
-        isSwapping = false;
-    }, 900);
+    mountContent({ smooth: false });
+
+    const batchSize = Math.max(1, Math.ceil(rows.length / 20));
+
+    for (let index = 0; index < rows.length; index += batchSize) {
+        for (const { pre, line, newline } of rows.slice(index, index + batchSize)) {
+            if (lookupInProgress !== attempt) {
+                return false;
+            }
+
+            line.style.setProperty('--delay', '0ms');
+            addCopyButton(line);
+            pre.append(line, ...(newline ? [newline] : []));
+        }
+
+        if (! prefersReducedMotion() && index + batchSize < rows.length) {
+            await new Promise(resolve => setTimeout(resolve, 45));
+        }
+    }
+
+    if (lookupInProgress !== attempt) {
+        return false;
+    }
+
+    signal('lookup-end', { progressive: true });
+    await finishGrowingOutput();
+
+    if (lookupInProgress !== attempt) {
+        return false;
+    }
+
+    lookupInProgress = null;
+    element.input().readOnly = false;
+    focusInput();
 
     if (screenPage.announcement) {
         announce(screenPage.announcement);
     }
+
+    return true;
 }
 
 async function lookup(command) {
@@ -315,10 +422,9 @@ async function lookup(command) {
         return;
     }
 
-    lookupInProgress = null;
-    element.input().readOnly = false;
-
     if (result.type !== 'screen') {
+        lookupInProgress = null;
+        element.input().readOnly = false;
         signal('lookup-end');
     }
 
@@ -335,7 +441,16 @@ async function lookup(command) {
         return;
     }
 
-    appendScreen(result.screen);
+    if (! result.screen.entries) {
+        window.location.assign(result.url);
+
+        return;
+    }
+
+    if (! await appendScreen(result.screen, command, attempt)) {
+        return;
+    }
+
     saveSnapshot(result.url);
 }
 
@@ -507,25 +622,12 @@ document.addEventListener('keydown', event => {
     }
 });
 
-function mountContent() {
+function mountContent({ smooth = true } = {}) {
     const content = element.content();
     content.querySelectorAll('.copy-results').forEach(button => button.hidden = false);
+    content.querySelectorAll('.line--record').forEach(addCopyButton);
 
-    content.querySelectorAll('.line--record').forEach(line => {
-        if (line.querySelector('.line__copy')) {
-            return;
-        }
-
-        const button = document.createElement('button');
-
-        button.type = 'button';
-        button.className = 'line__copy';
-        button.setAttribute('aria-label', `Copy ${line.querySelector('.line__type').textContent} record value`);
-        button.setAttribute('data-label', 'copy');
-        line.appendChild(button);
-    });
-
-    output.follow();
+    output.follow({ smooth });
     focusInput();
 }
 
