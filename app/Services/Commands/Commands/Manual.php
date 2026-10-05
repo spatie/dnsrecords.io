@@ -48,7 +48,7 @@ class Manual implements Command
                 'Enter \'muthur\' to talk to <a href="'.Theme::Mother->homeUrl().'">MU/TH/UR 6000</a>.',
                 'Enter \'lcars\' to open the <a href="'.Theme::Lcars->homeUrl().'">LCARS console</a>.',
                 'Enter \'matrix\' to open <a href="'.Theme::Matrix->homeUrl().'">the Matrix</a>.',
-                'Enter \'system7\' to open <a href="'.Theme::System7->homeUrl().'">System 7</a>.',
+                'Enter \'system7\' or \'mac\' to open <a href="'.Theme::System7->homeUrl().'">System 7</a>.',
                 'Enter \'winxp\' to open <a href="'.Theme::WinXp->homeUrl().'">Windows XP</a>.',
             ))
             ->when($theme === Theme::Mother, fn ($lines) => $lines->push(

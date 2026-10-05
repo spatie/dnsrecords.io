@@ -10,14 +10,14 @@ class SwitchTheme implements Command
 {
     public function canPerform(string $command): bool
     {
-        return in_array($command, ['matrix', 'system7', 'winxp'], true);
+        return in_array($command, ['matrix', 'system7', 'mac', 'winxp'], true);
     }
 
     public function perform(string $command): Response
     {
         return match ($command) {
             'matrix' => Theme::Matrix->redirectHome(),
-            'system7' => Theme::System7->redirectHome(),
+            'system7', 'mac' => Theme::System7->redirectHome(),
             'winxp' => Theme::WinXp->redirectHome(),
         };
     }
