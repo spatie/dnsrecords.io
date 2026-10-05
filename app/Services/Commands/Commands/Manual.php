@@ -4,6 +4,7 @@ namespace App\Services\Commands\Commands;
 
 use App\Enums\Theme;
 use App\Services\Commands\Command;
+use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\Response;
 
 class Manual implements Command
@@ -17,7 +18,13 @@ class Manual implements Command
     {
         $theme = Theme::current();
 
+        $terminalUrl = Theme::Crt->selectionUrl();
         $oldHomeUrl = Theme::Classic->homeUrl();
+        $motherHomeUrl = Theme::Mother->homeUrl();
+        $lcarsHomeUrl = Theme::Lcars->homeUrl();
+        $matrixHomeUrl = Theme::Matrix->homeUrl();
+        $system7HomeUrl = Theme::System7->homeUrl();
+        $winXpHomeUrl = Theme::WinXp->homeUrl();
 
         $manualText = collect([
             '<strong>LOOKUP</strong>',
@@ -28,14 +35,14 @@ class Manual implements Command
             "Enter 'clear' to wipe the screen.",
             "Enter 'doom' to play Doom.",
         ])
-            ->when($theme !== Theme::Crt, fn ($lines) => $lines->push(
+            ->when($theme !== Theme::Crt, fn (Collection $lines) => $lines->push(
                 '',
                 '<strong>INTERFACES</strong>',
-                'Enter \'exit\' to return to the <a href="'.Theme::Crt->selectionUrl().'">regular terminal</a>.',
+                "Enter 'exit' to return to the <a href=\"{$terminalUrl}\">regular terminal</a>.",
                 "Enter 'default' to return to the regular terminal too.",
                 "Enter 'old', 'lcars', 'muthur', 'matrix', 'system7' or 'winxp' to switch interfaces.",
             ))
-            ->when($theme === Theme::Crt, fn ($lines) => $lines->push(
+            ->when($theme === Theme::Crt, fn (Collection $lines) => $lines->push(
                 "Enter 'green', 'amber' or 'white' to swap the phosphor, 'default' to go back to green.",
                 "Enter 'time' to see the time.",
                 "Enter 'power off' to put the screen to sleep.",
@@ -45,13 +52,13 @@ class Manual implements Command
                 '',
                 '<strong>INTERFACES</strong>',
                 "Enter 'old' to go back to the <a href=\"{$oldHomeUrl}\">old interface</a>.",
-                'Enter \'muthur\' to talk to <a href="'.Theme::Mother->homeUrl().'">MU/TH/UR 6000</a>.',
-                'Enter \'lcars\' to open the <a href="'.Theme::Lcars->homeUrl().'">LCARS console</a>.',
-                'Enter \'matrix\' to open <a href="'.Theme::Matrix->homeUrl().'">the Matrix</a>.',
-                'Enter \'system7\' or \'mac\' to open <a href="'.Theme::System7->homeUrl().'">System 7</a>.',
-                'Enter \'winxp\' to open <a href="'.Theme::WinXp->homeUrl().'">Windows XP</a>.',
+                "Enter 'muthur' to talk to <a href=\"{$motherHomeUrl}\">MU/TH/UR 6000</a>.",
+                "Enter 'lcars' to open the <a href=\"{$lcarsHomeUrl}\">LCARS console</a>.",
+                "Enter 'matrix' to open <a href=\"{$matrixHomeUrl}\">the Matrix</a>.",
+                "Enter 'system7' or 'mac' to open <a href=\"{$system7HomeUrl}\">System 7</a>.",
+                "Enter 'winxp' to open <a href=\"{$winXpHomeUrl}\">Windows XP</a>.",
             ))
-            ->when($theme === Theme::Mother, fn ($lines) => $lines->push(
+            ->when($theme === Theme::Mother, fn (Collection $lines) => $lines->push(
                 '',
                 '<strong>MU/TH/UR</strong>',
                 "Enter 'copy' to copy the records of the last response.",

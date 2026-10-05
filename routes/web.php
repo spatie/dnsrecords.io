@@ -30,26 +30,17 @@ Route::middleware('cacheAtEdge')->withoutMiddleware([StartSession::class, ShareE
 });
 
 Route::middleware(['blockCrawlers', 'throttle:lookups', 'noIndex', 'sanitizeCommand', 'logRequest'])->group(function () {
-    Route::prefix('old')->name('old.')->group(function () {
-        Route::post('/', PerformCommandController::class);
+    $interfaces = [
+        'old' => 'old',
+        'lcars' => 'lcars',
+        'muthur' => 'mother',
+        'matrix' => 'matrix',
+        'system7' => 'system7',
+        'winxp' => 'winxp',
+    ];
 
-        Route::match(['get', 'post'], '{command}', PerformCommandController::class)->where('command', '.+')->name('command');
-    });
-
-    Route::prefix('lcars')->name('lcars.')->group(function () {
-        Route::post('/', PerformCommandController::class);
-
-        Route::match(['get', 'post'], '{command}', PerformCommandController::class)->where('command', '.+')->name('command');
-    });
-
-    Route::prefix('muthur')->name('mother.')->group(function () {
-        Route::post('/', PerformCommandController::class);
-
-        Route::match(['get', 'post'], '{command}', PerformCommandController::class)->where('command', '.+')->name('command');
-    });
-
-    foreach (['matrix', 'system7', 'winxp'] as $interface) {
-        Route::prefix($interface)->name("{$interface}.")->group(function () {
+    foreach ($interfaces as $prefix => $routeName) {
+        Route::prefix($prefix)->name("{$routeName}.")->group(function () {
             Route::post('/', PerformCommandController::class);
 
             Route::match(['get', 'post'], '{command}', PerformCommandController::class)->where('command', '.+')->name('command');

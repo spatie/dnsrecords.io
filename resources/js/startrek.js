@@ -252,11 +252,13 @@ document.addEventListener('click', event => {
         event.preventDefault();
         flash(commandLink);
 
-        if (switchTheme(commandLink.getAttribute('data-command'))) {
+        const command = commandLink.getAttribute('data-command');
+
+        if (switchTheme(command)) {
             return;
         }
 
-        scan(commandLink.getAttribute('data-command'));
+        scan(command);
 
         return;
     }

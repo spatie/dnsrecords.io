@@ -94,6 +94,10 @@ export function createPhosphor(canvas, screen) {
         canvas.height = Math.max(1, Math.round(screen.clientHeight * ratio));
     }
 
+    function fontSizeOf(element) {
+        return parseFloat(getComputedStyle(element).fontSize) || 16;
+    }
+
     function clear() {
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.globalCompositeOperation = 'source-over';
@@ -146,10 +150,7 @@ export function createPhosphor(canvas, screen) {
         });
 
         if (! effects.size) {
-            cancelAnimationFrame(frame);
-            frame = null;
-            clear();
-            canvas.classList.remove('is-active');
+            stopDrawing();
         }
     }
 
@@ -390,7 +391,7 @@ export function createPhosphor(canvas, screen) {
      */
     function flare(element) {
         const rect = localRect(element);
-        const fontSize = parseFloat(getComputedStyle(element).fontSize) || 16;
+        const fontSize = fontSizeOf(element);
         const y = rect.y + rect.height * .5 + fontSize * .62;
         const duration = .14;
 
@@ -445,7 +446,7 @@ export function createPhosphor(canvas, screen) {
      */
     function glitch(element) {
         const rect = localRect(element);
-        const fontSize = parseFloat(getComputedStyle(element).fontSize) || 16;
+        const fontSize = fontSizeOf(element);
         const life = random(.1, .2);
         const from = rect.x + rect.width * random(0, .4);
         const length = rect.width * random(.3, .8);
@@ -471,17 +472,25 @@ export function createPhosphor(canvas, screen) {
         });
     }
 
-    function stopAll() {
-        effects.forEach(effect => effect.resolve());
-        effects.clear();
+    function stopDrawing() {
         cancelAnimationFrame(frame);
         frame = null;
         clear();
         canvas.classList.remove('is-active');
     }
 
+    function stopAll() {
+        effects.forEach(effect => effect.resolve());
+        effects.clear();
+        stopDrawing();
+    }
+
+    function isBusy() {
+        return effects.size > 0;
+    }
+
     new ResizeObserver(resize).observe(screen);
     resize();
 
-    return { noise, beam, flare, sparks, glitch, stopAll, localRect, isBusy: () => effects.size > 0 };
+    return { noise, beam, flare, sparks, glitch, stopAll, localRect, isBusy };
 }

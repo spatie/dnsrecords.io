@@ -22,7 +22,7 @@
         <div class="transcript" id="transcript">
             @if($isIdle)
                 <div class="exchange exchange--boot">
-                    @include('alien.partials.root-matrix')
+                    @include('alien.partials.rootMatrix')
 
                     <p class="mother-line mother-hint" data-line>Enter a domain for inquiry. Enter <button type="button" class="mother-action" data-command="help">help</button> for clarification, <a href="{{ Theme::Crt->selectionUrl() }}">exit</a> to return to the terminal.</p>
                 </div>

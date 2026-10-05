@@ -59,5 +59,4 @@ abstract class TestCase extends BaseTestCase
 
         return $this->post($url, ['command' => $command]);
     }
-
 }

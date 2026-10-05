@@ -8,7 +8,7 @@
     <title>dnsrecords.io</title>
     <script>
         (function () {
-            var url = new URL(window.location.href);
+            const url = new URL(window.location.href);
 
             url.searchParams.set('{{ $lookupParameter }}', '1');
 
@@ -18,8 +18,8 @@
                 window.location.replace(url.toString());
             };
 
-            var isAutomated = navigator.webdriver || /headless/i.test(navigator.userAgent);
-            var wasBlocked = /(?:^|; ){{ $blockedCookieName }}=/.test(document.cookie);
+            const isAutomated = navigator.webdriver || /headless/i.test(navigator.userAgent);
+            const wasBlocked = /(?:^|; ){{ $blockedCookieName }}=/.test(document.cookie);
 
             if (isAutomated || wasBlocked) {
                 document.documentElement.setAttribute('data-blocked', '');

@@ -35,9 +35,4 @@ class TerminalLine
             default => $this->type,
         };
     }
-
-    public function length(): int
-    {
-        return mb_strlen(str_replace("\t", '    ', $this->text));
-    }
 }

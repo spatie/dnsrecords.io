@@ -20,15 +20,15 @@
 
     <script>
         (function () {
-            var root = document.documentElement;
-            var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const root = document.documentElement;
+            const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
             root.className = root.className.replace('no-js', 'js');
             root.setAttribute('data-motion', prefersReducedMotion ? 'calm' : 'full');
 
             if (! prefersReducedMotion) {
                 root.classList.add('mother-boot');
-                setTimeout(function () { root.classList.remove('mother-boot'); }, 3000);
+                setTimeout(() => root.classList.remove('mother-boot'), 3000);
             }
         })();
     </script>

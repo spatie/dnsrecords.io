@@ -55,7 +55,7 @@
         <div class="entries matrix-feed" id="entries">
             @if($terminalOutput)
                 <div class="entry entry--decoded">
-                    @include('interfaces.partials.matrix-signal', ['terminalOutput' => $terminalOutput])
+                    @include('interfaces.partials.matrixSignal', ['terminalOutput' => $terminalOutput])
                 </div>
             @endif
 

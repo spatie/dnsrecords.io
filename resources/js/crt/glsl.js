@@ -125,3 +125,28 @@ float dust(vec2 cssPoint, float seed, float cellSize, float chance) {
     return smoothstep(radius + 0.9, radius * 0.25, length(cssPoint - centre)) * mix(0.35, 1.0, pick / chance);
 }
 `;
+
+/**
+ * A single triangle that covers the whole screen, drawn without any vertex
+ * buffer by every pass of the glass.
+ */
+export const fullScreenVertexShader = `#version 300 es
+void main() {
+    vec2 position = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
+
+    gl_Position = vec4(position * 2.0 - 1.0, 0.0, 1.0);
+}
+`;
+
+export function compileShader(gl, type, source) {
+    const shader = gl.createShader(type);
+
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+
+    if (! gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        throw new Error(gl.getShaderInfoLog(shader));
+    }
+
+    return shader;
+}
