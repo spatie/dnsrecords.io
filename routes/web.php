@@ -1,11 +1,16 @@
 <?php
 
+use App\Http\Controllers\BuildAssetController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PerformCommandController;
 use App\Http\Controllers\RenamedThemeRedirectController;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+
+Route::get('static/{path}', BuildAssetController::class)
+    ->where('path', '.+')
+    ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class]);
 
 Route::middleware('cacheAtEdge')->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class])->group(function () {
     Route::get('/', HomeController::class)->name('home');
