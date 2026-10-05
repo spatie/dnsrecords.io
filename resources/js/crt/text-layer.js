@@ -1,4 +1,5 @@
 import { between } from './random.js';
+import { terminalLines } from './text-fx.js';
 
 /*
  * Paints the text of the terminal into a canvas, so the glass shader can
@@ -12,7 +13,6 @@ import { between } from './random.js';
  * Scrolling or typing only paints and uploads the rows that changed.
  */
 
-const lineSelector = '.line, .brand, .prompt, .resolving, .results__header, .message, .terminal-footer p';
 const skippedSelector = '.visually-hidden, .line__gap, [hidden], script, style';
 const pseudoSelector = '.text-action, .line__copy';
 const maximumPixels = 8000000;
@@ -53,7 +53,6 @@ export function createTextLayer(picture) {
     let paintedScroll = 0;
     let ringHeight = 1;
     let burnVersion = 0;
-    let version = 0;
     let isMeasured = false;
     let isPainted = false;
     let corruption = null;
@@ -86,7 +85,7 @@ export function createTextLayer(picture) {
     }
 
     function brightnessOf(element) {
-        const line = element.closest(lineSelector);
+        const line = element.closest(terminalLines);
 
         if (! line) {
             return 1;
@@ -150,10 +149,6 @@ export function createTextLayer(picture) {
     }
 
     /**
-     * Places every word on its own, which keeps tabs, spaces and wrapped
-     * lines exactly where the DOM has them.
-     */
-    /**
      * The box of the nearest ancestor that clips its overflow, like the
      * record names that are cut off with an ellipsis.
      */
@@ -174,6 +169,10 @@ export function createTextLayer(picture) {
         return overflowClips.get(element);
     }
 
+    /**
+     * Places every word on its own, which keeps tabs, spaces and wrapped
+     * lines exactly where the DOM has them.
+     */
     function measureTextNode(node, origin, root) {
         const element = node.parentElement;
         const style = getComputedStyle(element);
@@ -456,7 +455,7 @@ export function createTextLayer(picture) {
             measureBackground(node, origin, root);
             measurePseudo(node, origin, root);
 
-            if (node.matches(lineSelector)) {
+            if (node.matches(terminalLines)) {
                 const box = node.getBoundingClientRect();
 
                 if (box.height > 0) {
@@ -474,7 +473,7 @@ export function createTextLayer(picture) {
 
     function tagLines(newItems) {
         newItems.forEach(item => {
-            item.line = item.element ? item.element.closest(lineSelector) : null;
+            item.line = item.element ? item.element.closest(terminalLines) : null;
         });
     }
 
@@ -675,8 +674,6 @@ export function createTextLayer(picture) {
             context.restore();
         });
 
-        version++;
-
         return segments;
     }
 
@@ -713,14 +710,6 @@ export function createTextLayer(picture) {
     return {
         canvas,
 
-        get version() {
-            return version;
-        },
-
-        get scale() {
-            return scale;
-        },
-
         get size() {
             return { width: cssWidth, height: cssHeight };
         },
@@ -737,7 +726,7 @@ export function createTextLayer(picture) {
          * Measures and paints a single line again, for hovers.
          */
         invalidateLine(element) {
-            const line = element ? element.closest(lineSelector) : null;
+            const line = element ? element.closest(terminalLines) : null;
 
             if (line) {
                 pendingLines.add(line);

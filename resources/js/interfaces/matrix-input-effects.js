@@ -1,3 +1,5 @@
+import { glyph } from './matrix-construct.js';
+
 const form = document.querySelector('.matrix-query');
 
 if (form) {
@@ -8,7 +10,6 @@ if (form) {
     const button = form.querySelector('button');
     const buttonLabel = button.querySelector('[data-matrix-button-label]');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const glyphs = Array.from('ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ01345789');
 
     if (! context) {
         shell.classList.add('matrix-query__input--fallback');
@@ -23,10 +24,6 @@ if (form) {
         let frameId = null;
         let cursorVisible = true;
         let pulseUntil = 0;
-
-        function glyph() {
-            return glyphs[Math.floor(Math.random() * glyphs.length)];
-        }
 
         function sync() {
             const value = input.value || input.placeholder;
@@ -155,9 +152,7 @@ if (form) {
             }
         }
 
-        ['input', 'focus', 'blur', 'click', 'keyup', 'select'].forEach(type => input.addEventListener(type, () => {
-            sync();
-        }));
+        ['input', 'focus', 'blur', 'click', 'keyup', 'select'].forEach(type => input.addEventListener(type, sync));
         document.addEventListener('selectionchange', () => {
             if (document.activeElement === input) {
                 schedule();
@@ -199,10 +194,10 @@ if (form) {
 
     let scrambleTimer = null;
 
-    function glyph() {
-        const glyphs = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ01345789';
+    function buttonGlyph() {
+        const buttonGlyphs = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ01345789';
 
-        return glyphs[Math.floor(Math.random() * glyphs.length)];
+        return buttonGlyphs[Math.floor(Math.random() * buttonGlyphs.length)];
     }
 
     function scrambleButton() {
@@ -213,7 +208,7 @@ if (form) {
         let frame = 0;
 
         scrambleTimer = window.setInterval(() => {
-            buttonLabel.textContent = Array.from('DECODE', (_, index) => index < frame ? 'DECODE'[index] : glyph()).join('');
+            buttonLabel.textContent = Array.from('DECODE', (letter, index) => index < frame ? letter : buttonGlyph()).join('');
             frame++;
 
             if (frame > 7) {

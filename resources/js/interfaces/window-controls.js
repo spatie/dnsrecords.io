@@ -23,17 +23,21 @@ function rectAt(left, top, width, height) {
     };
 }
 
-function applyRect(rect) {
-    windowElement.style.left = `${rect.left}px`;
-    windowElement.style.top = `${rect.top}px`;
-    windowElement.style.width = `${rect.width}px`;
-    windowElement.style.height = `${rect.height}px`;
+function applyRect(rect, element = windowElement) {
+    element.style.left = `${rect.left}px`;
+    element.style.top = `${rect.top}px`;
+    element.style.width = `${rect.width}px`;
+    element.style.height = `${rect.height}px`;
 }
 
 function currentRect() {
     const rect = windowElement.getBoundingClientRect();
 
     return rectAt(rect.left, rect.top, rect.width, rect.height);
+}
+
+function zoomedRect() {
+    return rectAt(4, topInset, window.innerWidth - 8, window.innerHeight - topInset - bottomInset);
 }
 
 function fitRect(rect) {
@@ -71,12 +75,7 @@ function startInteraction(event, mode) {
 
     if (outline) {
         outline.className = 'system7-window-outline';
-        Object.assign(outline.style, {
-            left: `${initial.left}px`,
-            top: `${initial.top}px`,
-            width: `${initial.width}px`,
-            height: `${initial.height}px`,
-        });
+        applyRect(initial, outline);
         document.body.append(outline);
     }
 
@@ -98,16 +97,7 @@ function startInteraction(event, mode) {
                 clamp(initial.height + deltaY, minimumHeight, maxHeight));
         }
 
-        if (outline) {
-            Object.assign(outline.style, {
-                left: `${next.left}px`,
-                top: `${next.top}px`,
-                width: `${next.width}px`,
-                height: `${next.height}px`,
-            });
-        } else {
-            applyRect(next);
-        }
+        applyRect(next, outline ?? windowElement);
     }
 
     function finished(pointerEvent) {
@@ -148,7 +138,7 @@ function toggleZoom() {
     }
 
     unzoomed = currentRect();
-    applyRect(rectAt(4, topInset, window.innerWidth - 8, window.innerHeight - topInset - bottomInset));
+    applyRect(zoomedRect());
     root.setAttribute('data-window-zoomed', 'true');
 }
 
@@ -187,7 +177,7 @@ if (windowElement && (theme === 'system7' || theme === 'winxp')) {
         }
 
         if (unzoomed) {
-            applyRect(rectAt(4, topInset, window.innerWidth - 8, window.innerHeight - topInset - bottomInset));
+            applyRect(zoomedRect());
         } else {
             applyRect(fitRect(currentRect()));
         }

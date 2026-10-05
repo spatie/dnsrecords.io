@@ -1,3 +1,5 @@
+import { compileShader, fullScreenVertexShader } from './glsl.js';
+
 /*
  * The second pass of the glass: puts the painted text on the curved tube,
  * with the colour fringes, the glow and the line glitches, and lays the
@@ -7,14 +9,6 @@
  */
 
 export const maximumLineEffects = 8;
-
-const vertexShader = `#version 300 es
-void main() {
-    vec2 position = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
-
-    gl_Position = vec4(position * 2.0 - 1.0, 0.0, 1.0);
-}
-`;
 
 const fragmentShader = `#version 300 es
 precision highp float;
@@ -206,19 +200,6 @@ void main() {
 }
 `;
 
-function compile(gl, type, source) {
-    const shader = gl.createShader(type);
-
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-
-    if (! gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        throw new Error(gl.getShaderInfoLog(shader));
-    }
-
-    return shader;
-}
-
 function texture(gl, unit, filter) {
     const handle = gl.createTexture();
 
@@ -235,8 +216,8 @@ function texture(gl, unit, filter) {
 export function createTextPass(gl) {
     const program = gl.createProgram();
 
-    gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, vertexShader));
-    gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, fragmentShader));
+    gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, fullScreenVertexShader));
+    gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentShader));
     gl.linkProgram(program);
 
     if (! gl.getProgramParameter(program, gl.LINK_STATUS)) {
@@ -255,17 +236,16 @@ export function createTextPass(gl) {
     const textTexture = texture(gl, 1, gl.LINEAR_MIPMAP_LINEAR);
     const rowsTexture = texture(gl, 2, gl.NEAREST);
     const burnTexture = texture(gl, 3, gl.LINEAR);
+    const framebuffer = gl.createFramebuffer();
 
     gl.activeTexture(gl.TEXTURE1);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    const framebuffer = gl.createFramebuffer();
 
     gl.activeTexture(gl.TEXTURE2);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
 
     let glassWidth = 0;
     let glassHeight = 0;
-    let textVersion = -1;
     let textWidth = 0;
     let textHeight = 0;
     let burnVersion = -1;
@@ -308,7 +288,6 @@ export function createTextPass(gl) {
                 textHeight = layer.canvas.height;
             }
 
-            textVersion = layer.version;
             gl.generateMipmap(gl.TEXTURE_2D);
 
             const burn = layer.burn;

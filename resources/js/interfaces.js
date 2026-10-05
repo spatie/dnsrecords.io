@@ -17,6 +17,8 @@ const windowBody = document.querySelector('.window__body');
 const system7Thumb = document.getElementById('system7-scroll-thumb');
 const system7Count = document.getElementById('system7-count');
 const clearResultsLink = document.getElementById('clear-results');
+const descriptionMeta = document.querySelector('meta[name="description"]');
+const isMatrix = root.dataset.interface === 'matrix';
 const homeTitle = document.title.replace(/^.* DNS records/, 'DNS records lookup');
 const homeDescription = 'Look up DNS records in a different interface';
 const snapshots = new Map();
@@ -34,7 +36,7 @@ function clearInput() {
 
 function setStatus(message) {
     status.textContent = message;
-    if (root.dataset.interface === 'matrix') {
+    if (isMatrix) {
         status.parentElement.hidden = message === 'Ready';
     }
     if (windowStatus) {
@@ -61,11 +63,11 @@ function saveSnapshot(url, method = 'pushState') {
     snapshots.set(snapshot, {
         html: entries.innerHTML,
         title: document.title,
-        description: document.querySelector('meta[name="description"]').content,
+        description: descriptionMeta.content,
         status: status.textContent,
     });
 
-    window.history[method]({ interface: root.getAttribute('data-interface'), snapshot }, '', url);
+    window.history[method]({ interface: root.dataset.interface, snapshot }, '', url);
 }
 
 function clearResults() {
@@ -76,9 +78,9 @@ function clearResults() {
     submitButton.disabled = false;
     lookupInProgress = null;
     document.title = homeTitle;
-    document.querySelector('meta[name="description"]').content = homeDescription;
-    setStatus(root.dataset.interface === 'matrix' ? 'Ready' : 'Ready for a domain');
-    if (root.dataset.interface === 'matrix') {
+    descriptionMeta.content = homeDescription;
+    setStatus(isMatrix ? 'Ready' : 'Ready for a domain');
+    if (isMatrix) {
         clearResultsLink.hidden = true;
     }
     if (system7Count) {
@@ -96,7 +98,7 @@ function addNotice(message) {
     notice.setAttribute('role', 'alert');
     notice.textContent = message;
     entries.prepend(notice);
-    if (root.dataset.interface === 'matrix') {
+    if (isMatrix) {
         clearResultsLink.hidden = false;
     }
     setStatus(message);
@@ -113,13 +115,13 @@ function addResponse(screenPage, command) {
     const commandLine = document.createElement('p');
 
     answer.className = 'entry';
-    if (root.dataset.interface === 'matrix') {
+    if (isMatrix) {
         answer.classList.add('entry--decoded');
     }
     commandLine.className = 'entry__command';
     commandLine.textContent = `> ${command}`;
     const responseChildren = Array.from(document.adoptNode(responseEntries).children);
-    const matrixEntry = root.dataset.interface === 'matrix'
+    const matrixEntry = isMatrix
         ? responseChildren.find(child => child.matches('.entry--decoded'))
         : null;
 
@@ -133,11 +135,11 @@ function addResponse(screenPage, command) {
         return true;
     }
 
-    answer.append(...(root.dataset.interface === 'matrix' ? [] : [commandLine]), ...outputChildren);
+    answer.append(...(isMatrix ? [] : [commandLine]), ...outputChildren);
 
     answer.querySelectorAll('.copy-records').forEach(button => button.hidden = false);
     entries.prepend(answer);
-    if (root.dataset.interface === 'matrix') {
+    if (isMatrix) {
         clearResultsLink.hidden = false;
     }
     root.classList.remove('is-decoding');
@@ -146,7 +148,7 @@ function addResponse(screenPage, command) {
     document.title = screenPage.title;
 
     if (screenPage.description !== null) {
-        document.querySelector('meta[name="description"]').content = screenPage.description;
+        descriptionMeta.content = screenPage.description;
     }
 
     const count = Number(answer.querySelector('.matrix-signal')?.dataset.recordCount
@@ -169,7 +171,7 @@ async function lookup(command) {
     const attempt = Symbol('lookup');
 
     lookupInProgress = attempt;
-    root.classList.toggle('is-decoding', root.dataset.interface === 'matrix');
+    root.classList.toggle('is-decoding', isMatrix);
     input.readOnly = true;
     submitButton.disabled = true;
     setStatus(`Looking up ${command}…`);
@@ -206,7 +208,7 @@ async function lookup(command) {
     clearInput();
     input.focus({ preventScroll: true });
     saveSnapshot(result.url);
-    if (root.dataset.interface === 'matrix') {
+    if (isMatrix) {
         mountSignals(entries.firstElementChild);
     }
 }
@@ -325,7 +327,7 @@ window.addEventListener('popstate', event => {
     }
 
     entries.innerHTML = snapshot.html;
-    if (root.dataset.interface === 'matrix') {
+    if (isMatrix) {
         clearResultsLink.hidden = entries.children.length === 0;
         const restoredEntry = entries.querySelector('.entry--decoded');
 
@@ -334,7 +336,7 @@ window.addEventListener('popstate', event => {
         }
     }
     document.title = snapshot.title;
-    document.querySelector('meta[name="description"]').content = snapshot.description;
+    descriptionMeta.content = snapshot.description;
     clearInput();
     input.readOnly = false;
     submitButton.disabled = false;
@@ -364,7 +366,7 @@ updateClock();
 setInterval(updateClock, 30000);
 saveSnapshot(window.location.href, 'replaceState');
 
-if (root.dataset.interface === 'matrix') {
+if (isMatrix) {
     const initialEntry = entries.querySelector('.entry--decoded');
 
     if (initialEntry) {

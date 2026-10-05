@@ -1,16 +1,13 @@
+import { glyph } from './matrix-construct.js';
+
 const root = document.documentElement;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-const glyphs = Array.from('ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ01345789');
 const ink = {
     bright: '#e5ffeb',
     main: '#a8ffba',
     dim: '#6abf80',
     quiet: '#376e49',
 };
-
-function glyph() {
-    return glyphs[Math.floor(Math.random() * glyphs.length)];
-}
 
 function wrap(text, columns, continuation = '    ') {
     const characters = Array.from(text);
@@ -73,8 +70,10 @@ function createSignal(section) {
     if (! context || ! settledContext) {
         section.setAttribute('data-failed', '');
         root.removeAttribute('data-matrix-booting');
+
         return;
     }
+
     const fontFamily = '"JetBrains Mono", monospace';
     const padding = 12;
 
@@ -99,6 +98,10 @@ function createSignal(section) {
         target.shadowColor = glow ? '#8aff9f' : 'transparent';
         target.fillText(value, character.x, character.y);
         target.shadowBlur = 0;
+    }
+
+    function streamHead(stream, time) {
+        return stream.originY + (time - stream.startedAt) / 1000 * stream.speed;
     }
 
     function showSettled() {
@@ -268,11 +271,13 @@ function createSignal(section) {
 
         if (! section.isConnected || document.hidden) {
             root.classList.remove('matrix-transmitting');
+
             return;
         }
 
         if (time - lastFrameAt < 28) {
             frameId = window.requestAnimationFrame(frame);
+
             return;
         }
 
@@ -284,7 +289,7 @@ function createSignal(section) {
                 return;
             }
 
-            const headY = stream.originY + (time - stream.startedAt) / 1000 * stream.speed;
+            const headY = streamHead(stream, time);
 
             stream.characters.forEach(character => {
                 if (character.arrivedAt === null && headY >= character.y) {
@@ -324,7 +329,7 @@ function createSignal(section) {
                 stream.lastMutationAt = time;
             }
 
-            const headY = stream.originY + (time - stream.startedAt) / 1000 * stream.speed;
+            const headY = streamHead(stream, time);
 
             stream.characters.forEach(character => {
                 if (character.settled || headY < character.y - 100) {

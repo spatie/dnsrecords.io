@@ -2,7 +2,7 @@
 
 <script>
     (function () {
-        var url = new URL(window.location.href);
+        const url = new URL(window.location.href);
 
         if (! url.searchParams.has('{{ ServeLookupShell::$lookupParameter }}')) {
             return;

@@ -2,11 +2,11 @@ const root = document.documentElement;
 const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
 const glyphs = Array.from('ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ01345789');
 
-function glyph() {
+export function glyph() {
     return glyphs[Math.floor(Math.random() * glyphs.length)];
 }
 
-export function construct(element, order = 0) {
+function construct(element, order = 0) {
     if (root.dataset.interface !== 'matrix' || motionPreference.matches) {
         return;
     }

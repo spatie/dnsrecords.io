@@ -117,19 +117,20 @@ function textNodesOf(element) {
     return nodes;
 }
 
+function totalLength(texts) {
+    return texts.reduce((total, text) => total + text.length, 0);
+}
+
 /**
  * A run of text written at a steady rate from a start time.
  */
 function track(element, texts, start, duration) {
-    const length = texts.reduce((total, text) => total + text.length, 0);
-
-    return { element, texts, start, duration, length, end: start + duration };
+    return { element, texts, start, duration, length: totalLength(texts), end: start + duration };
 }
 
 function lineTrack(element, start) {
     const texts = textNodesOf(element).map(node => new WritableText(node));
-    const length = texts.reduce((total, text) => total + text.length, 0);
-    const duration = Math.min(longestLine, length / lineCharactersPerSecond);
+    const duration = Math.min(longestLine, totalLength(texts) / lineCharactersPerSecond);
 
     return track(element, texts, start, duration);
 }
@@ -165,11 +166,11 @@ function matrixTracks(matrix, start) {
 
     Array.from(columns.keys()).sort((a, b) => a - b).forEach(column => {
         const cells = columns.get(column);
-        const longest = Math.max(1, ...cells.map(({ texts }) => texts.reduce((total, text) => total + text.length, 0)));
+        const longest = Math.max(1, ...cells.map(({ texts }) => totalLength(texts)));
         const duration = Math.min(longestColumn, Math.max(shortestColumn, longest / columnCharactersPerSecond));
 
         cells.forEach(({ cell, rowIndex, texts }) => {
-            const cellLength = texts.reduce((total, text) => total + text.length, 0);
+            const cellLength = totalLength(texts);
             const cellStart = columnStart + (rowIndex % 2) * oddRowDelay;
 
             tracks.push(track(cell, texts, cellStart, duration * cellLength / longest));

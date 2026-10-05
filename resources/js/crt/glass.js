@@ -1,6 +1,6 @@
-import { noise } from './glsl.js';
+import { compileShader, fullScreenVertexShader, noise } from './glsl.js';
 import { approach, between, exponential, noise1d } from './random.js';
-import { createShaderTextLife, createTextLife } from './text-fx.js';
+import { createShaderTextLife, createTextLife, terminalLines } from './text-fx.js';
 import { createTextLayer } from './text-layer.js';
 import { createTextPass, maximumLineEffects } from './text-pass.js';
 
@@ -11,14 +11,6 @@ import { createTextPass, maximumLineEffects } from './text-pass.js';
  * top of it. Nothing here runs on a fixed interval: every event is scheduled
  * by a random process and every slow change follows layered noise.
  */
-
-const vertexShader = `#version 300 es
-void main() {
-    vec2 position = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
-
-    gl_Position = vec4(position * 2.0 - 1.0, 0.0, 1.0);
-}
-`;
 
 const fragmentShader = `#version 300 es
 precision highp float;
@@ -195,22 +187,7 @@ void main() {
 }
 `;
 
-function compile(gl, type, source) {
-    const shader = gl.createShader(type);
-
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-
-    if (! gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        throw new Error(gl.getShaderInfoLog(shader));
-    }
-
-    return shader;
-}
-
 const restingFringe = .035;
-
-const textLineSelector = '.line, .brand, .prompt, .resolving, .results__header, .message, .terminal-footer p';
 
 const phosphorColors = {
     white: [.89, .89, .91],
@@ -237,8 +214,8 @@ export function createGlass(screen, picture, onReady) {
     const program = gl.createProgram();
 
     try {
-        gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, vertexShader));
-        gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, fragmentShader));
+        gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, fullScreenVertexShader));
+        gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentShader));
         gl.linkProgram(program);
     } catch (error) {
         return null;
@@ -566,6 +543,10 @@ export function createGlass(screen, picture, onReady) {
         return [shift, hold, Math.tan(skew * Math.PI / 180)];
     }
 
+    function needsAnotherFrame(animated, isOn) {
+        return animated || Math.abs(state.motion) > .002 || Math.abs(state.signal - (isOn ? 1 : 0)) > .002 || state.disturb > .002;
+    }
+
     function render(time, delta) {
         const animated = isAnimated();
         const isOn = root.getAttribute('data-power') !== 'off';
@@ -660,7 +641,7 @@ export function createGlass(screen, picture, onReady) {
         if (! isTextReady) {
             textLife.frame(time, life);
 
-            return animated || Math.abs(state.motion) > .002 || Math.abs(state.signal - (isOn ? 1 : 0)) > .002 || state.disturb > .002;
+            return needsAnotherFrame(animated, isOn);
         }
 
         const textAlpha = root.hasAttribute('data-output-stream')
@@ -673,7 +654,7 @@ export function createGlass(screen, picture, onReady) {
             handOver();
         }
 
-        return animated || Math.abs(state.motion) > .002 || Math.abs(state.signal - (isOn ? 1 : 0)) > .002 || state.disturb > .002;
+        return needsAnotherFrame(animated, isOn);
     }
 
     /**
@@ -802,6 +783,7 @@ export function createGlass(screen, picture, onReady) {
         shaderTextLife = createShaderTextLife(textLayer, { maximumEffects: maximumLineEffects });
 
         const content = () => document.getElementById('screen-content');
+
         lastScrollTop = content()?.scrollTop || 0;
         let phosphorUntil = 0;
 
@@ -815,7 +797,7 @@ export function createGlass(screen, picture, onReady) {
             const changedLines = changes.map(mutation => {
                 const target = mutation.target.nodeType === Node.ELEMENT_NODE ? mutation.target : mutation.target.parentElement;
 
-                return target ? target.closest(textLineSelector) : null;
+                return target ? target.closest(terminalLines) : null;
             });
 
             if (changedLines.every(Boolean)) {
@@ -842,7 +824,6 @@ export function createGlass(screen, picture, onReady) {
         document.addEventListener('selectionchange', () => {
             lastTypedAt = performance.now();
         });
-
 
         ['pointerover', 'pointerout', 'focusin', 'focusout'].forEach(type => {
             picture.addEventListener(type, event => {
@@ -873,9 +854,8 @@ export function createGlass(screen, picture, onReady) {
         }, { capture: true, passive: true });
 
         setInterval(() => {
-            const root = content();
-
-            const dots = root ? root.querySelector('.resolving__dots') : null;
+            const contentElement = content();
+            const dots = contentElement ? contentElement.querySelector('.resolving__dots') : null;
 
             if (performance.now() < phosphorUntil) {
                 textLayer.invalidate();
@@ -931,9 +911,6 @@ export function createGlass(screen, picture, onReady) {
 
         if (quality < qualityScales.length - 1) {
             quality++;
-            resize();
-
-            return;
         }
 
         resize();

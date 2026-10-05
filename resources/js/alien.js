@@ -317,7 +317,7 @@ function copyText(text) {
         return Promise.reject(new Error('No records in memory.'));
     }
 
-    if (! navigator.clipboard || ! navigator.clipboard.writeText) {
+    if (! navigator.clipboard?.writeText) {
         return Promise.reject(new Error('Select the records and press Cmd+C or Ctrl+C.'));
     }
 
@@ -670,7 +670,7 @@ document.addEventListener('input', () => {
 function startCursor() {
     let lastChangeAt = 0;
 
-    const tick = now => {
+    function tick(now) {
         requestAnimationFrame(tick);
 
         const mirror = element.mirror();
@@ -693,7 +693,7 @@ function startCursor() {
         lastChangeAt = now;
         cursor.setAttribute('data-a', randomGlyph());
         cursor.setAttribute('data-b', randomGlyph());
-    };
+    }
 
     requestAnimationFrame(tick);
 }
@@ -723,7 +723,7 @@ function scheduleGlitches() {
 }
 
 window.addEventListener('popstate', event => {
-    if (event.state && event.state.mother) {
+    if (event.state?.mother) {
         window.location.reload();
     }
 });
@@ -750,7 +750,7 @@ async function boot() {
 
     let isOnScreen = false;
 
-    const showScreen = () => {
+    function showScreen() {
         if (isOnScreen) {
             return;
         }
@@ -759,7 +759,7 @@ async function boot() {
         booting = null;
         content.classList.remove('is-booting');
         write(latestExchange());
-    };
+    }
 
     content.classList.add('is-booting');
     root.classList.remove('mother-boot');

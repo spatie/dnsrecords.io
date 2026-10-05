@@ -629,6 +629,7 @@ document.addEventListener('keydown', event => {
 
 function mountContent({ smooth = true } = {}) {
     const content = element.content();
+
     content.querySelectorAll('.copy-results').forEach(button => button.hidden = false);
     content.querySelectorAll('.line--record').forEach(addCopyButton);
 
@@ -651,24 +652,25 @@ function init() {
     scheduleDegauss();
 }
 
+function showPictureWithoutGlass() {
+    root.removeAttribute('data-glass-pending');
+    focusInput();
+}
+
 function loadGlass() {
     if (! ('WebGL2RenderingContext' in window)) {
-        root.removeAttribute('data-glass-pending');
-        focusInput();
+        showPictureWithoutGlass();
+
         return;
     }
 
     import('./crt/glass.js')
         .then(({ createGlass }) => {
             if (! createGlass(screenElement, document.getElementById('picture'), focusInput)) {
-                root.removeAttribute('data-glass-pending');
-                focusInput();
+                showPictureWithoutGlass();
             }
         })
-        .catch(() => {
-            root.removeAttribute('data-glass-pending');
-            focusInput();
-        });
+        .catch(showPictureWithoutGlass);
 }
 
 init();

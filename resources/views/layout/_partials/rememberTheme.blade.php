@@ -10,8 +10,8 @@
 <script>
     (function () {
         @if(request()->routeIs('home'))
-            var rememberedTheme = (document.cookie.match(/(?:^|; ){{ RememberTheme::$cookieName }}=([^;]*)/) || [])[1];
-            var homeUrls = @json($rememberableHomeUrls);
+            const rememberedTheme = (document.cookie.match(/(?:^|; ){{ RememberTheme::$cookieName }}=([^;]*)/) || [])[1];
+            const homeUrls = @json($rememberableHomeUrls);
 
             if (rememberedTheme && homeUrls[rememberedTheme]) {
                 window.location.replace(homeUrls[rememberedTheme]);
