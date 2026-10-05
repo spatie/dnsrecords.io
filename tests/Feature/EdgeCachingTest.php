@@ -65,7 +65,7 @@ class EdgeCachingTest extends TestCase
         foreach ($paths as $path) {
             $response = $this
                 ->get("{$this->baseUrl}{$path}")
-                ->assertSuccessful()
+                ->assertNotFound()
                 ->assertSee("url.searchParams.set('lookup', '1')", false)
                 ->assertDontSee('href="?lookup=1"', false)
                 ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
@@ -95,7 +95,7 @@ class EdgeCachingTest extends TestCase
             ->withoutHeader('Sec-Fetch-Mode')
             ->withoutHeader('Accept-Language')
             ->get("{$this->baseUrl}/kilcadiri.com.tr")
-            ->assertSuccessful()
+            ->assertNotFound()
             ->assertSee("url.searchParams.set('lookup', '1')", false);
 
         Process::assertNothingRan();
