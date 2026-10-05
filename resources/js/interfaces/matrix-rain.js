@@ -65,7 +65,8 @@ if (canvas) {
     function frame(time) {
         frameId = window.requestAnimationFrame(frame);
 
-        const decoding = document.documentElement.classList.contains('is-decoding');
+        const decoding = document.documentElement.classList.contains('is-decoding')
+            || document.documentElement.classList.contains('matrix-transmitting');
 
         if (time - lastFrame < (decoding ? 22 : 38)) {
             return;

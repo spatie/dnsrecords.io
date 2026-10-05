@@ -21,7 +21,7 @@
 }
 
 .matrix-vignette {
-    background: radial-gradient(ellipse at center, rgba(0, 5, 1, .66) 0%, rgba(0, 6, 2, .23) 58%, rgba(0, 0, 0, .75) 100%);
+    background: radial-gradient(ellipse at center, rgba(0, 5, 1, .8) 0%, rgba(0, 6, 2, .32) 58%, rgba(0, 0, 0, .75) 100%);
 }
 
 @keyframes matrix-cursor {

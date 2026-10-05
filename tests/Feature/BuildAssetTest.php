@@ -1,35 +1,49 @@
 <?php
 
+namespace Tests\Feature;
+
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
-beforeEach(function () {
-    File::ensureDirectoryExists(public_path('build/assets'));
+class BuildAssetTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
 
-    File::put(public_path('build/assets/test-asset.js'), 'console.log("dnsrecords");');
-});
+        File::ensureDirectoryExists(public_path('build/assets'));
+        File::put(public_path('build/assets/test-asset.js'), 'console.log("dnsrecords");');
+    }
 
-afterEach(function () {
-    File::delete(public_path('build/assets/test-asset.js'));
-});
+    protected function tearDown(): void
+    {
+        File::delete(public_path('build/assets/test-asset.js'));
 
-it('serves build assets with headers that let the edge keep them', function () {
-    $response = $this
-        ->get("{$this->baseUrl}/static/assets/test-asset.js")
-        ->assertSuccessful()
-        ->assertHeader('Content-Type', 'text/javascript; charset=utf-8');
+        parent::tearDown();
+    }
 
-    expect($response->headers->getCookies())->toBeEmpty()
-        ->and($response->headers->get('Cache-Control'))->toContain('immutable')
-        ->and($response->headers->get('Cache-Control'))->toContain('max-age=31536000')
-        ->and($response->headers->get('Cache-Control'))->toContain('public');
-});
+    #[Test]
+    public function it_serves_build_assets_with_headers_that_let_the_edge_keep_them(): void
+    {
+        $response = $this
+            ->get("{$this->baseUrl}/static/assets/test-asset.js")
+            ->assertSuccessful()
+            ->assertHeader('Content-Type', 'text/javascript; charset=utf-8');
 
-it('does not serve files outside the build directory', function (string $path) {
-    $this
-        ->get("{$this->baseUrl}/static/{$path}")
-        ->assertNotFound();
-})->with([
-    '..%2F..%2F.env',
-    '../index.php',
-    'assets/missing.js',
-]);
+        $this->assertEmpty($response->headers->getCookies());
+        $this->assertStringContainsString('immutable', $response->headers->get('Cache-Control'));
+        $this->assertStringContainsString('max-age=31536000', $response->headers->get('Cache-Control'));
+        $this->assertStringContainsString('public', $response->headers->get('Cache-Control'));
+    }
+
+    #[Test]
+    public function it_does_not_serve_files_outside_the_build_directory(): void
+    {
+        foreach (['..%2F..%2F.env', '../index.php', 'assets/missing.js'] as $path) {
+            $this
+                ->get("{$this->baseUrl}/static/{$path}")
+                ->assertNotFound();
+        }
+    }
+}
