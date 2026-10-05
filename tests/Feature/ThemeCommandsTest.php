@@ -146,6 +146,7 @@ class ThemeCommandsTest extends TestCase
         $switches = [
             ['/system7', 'system7', '/system7'],
             ['/system7/muthur', 'muthur', '/muthur'],
+            ['/muthur/mac', 'mac', '/system7'],
             ['/muthur/matrix', 'matrix', '/matrix'],
             ['/matrix/winxp', 'winxp', '/winxp'],
             ['/winxp/lcars', 'lcars', '/lcars'],
