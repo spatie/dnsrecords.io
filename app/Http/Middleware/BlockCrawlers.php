@@ -12,6 +12,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class BlockCrawlers
 {
+    /**
+     * Blocked browsers are remembered with a cookie that the cached lookup
+     * page can read, so they stop there next time instead of waking the app.
+     */
+    public static string $blockedCookieName = 'dnsrecords_blocked';
+
     public function __construct(
         protected LookupRequestInspector $inspector,
     ) {}
@@ -37,10 +43,16 @@ class BlockCrawlers
 
     protected function blockedResponse(BotSignal $signal): Response
     {
-        return response($signal->message(), $signal->statusCode(), [
+        $response = response($signal->message(), $signal->statusCode(), [
             'Content-Type' => 'text/plain',
             'X-Robots-Tag' => 'noindex, nofollow',
         ]);
+
+        if ($signal->statusCode() === Response::HTTP_FORBIDDEN) {
+            $response->withCookie(cookie(static::$blockedCookieName, '1', 60 * 24, httpOnly: false));
+        }
+
+        return $response;
     }
 
     /**

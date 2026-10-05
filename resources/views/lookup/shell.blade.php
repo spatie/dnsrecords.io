@@ -8,32 +8,43 @@
     <title>dnsrecords.io</title>
     <script>
         (function () {
-            var isAutomated = navigator.webdriver || /headless/i.test(navigator.userAgent);
-
-            if (isAutomated) {
-                document.documentElement.setAttribute('data-automated', '');
-
-                return;
-            }
-
             var url = new URL(window.location.href);
 
             url.searchParams.set('{{ $lookupParameter }}', '1');
 
-            window.location.replace(url.toString());
+            window.lookUp = function () {
+                document.cookie = '{{ $blockedCookieName }}=; path=/; max-age=0; samesite=lax';
+
+                window.location.replace(url.toString());
+            };
+
+            var isAutomated = navigator.webdriver || /headless/i.test(navigator.userAgent);
+            var wasBlocked = /(?:^|; ){{ $blockedCookieName }}=/.test(document.cookie);
+
+            if (isAutomated || wasBlocked) {
+                document.documentElement.setAttribute('data-blocked', '');
+
+                return;
+            }
+
+            window.lookUp();
         })();
     </script>
     <style>
         html { background: #050a07; color: #9effb4; font-family: monospace; }
-        .automated { display: none; }
-        [data-automated] .automated { display: block; }
+        button { font: inherit; }
+        .blocked { display: none; }
+        [data-blocked] .blocked { display: block; }
     </style>
 </head>
 <body>
-    <p class="automated">Automated DNS lookups are not allowed.</p>
+    <div class="blocked">
+        <p>Automated DNS lookups are not allowed.</p>
+        <p><button type="button" onclick="lookUp()">I'm a person, look up the DNS records</button></p>
+    </div>
 
     <noscript>
-        <p><a href="?{{ $lookupParameter }}=1">Look up the DNS records</a></p>
+        <p>Looking up DNS records needs JavaScript. You can also use the form on the <a href="/">homepage</a>.</p>
     </noscript>
 </body>
 </html>

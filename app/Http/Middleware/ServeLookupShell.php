@@ -25,7 +25,10 @@ class ServeLookupShell
         }
 
         $response = response()
-            ->view('lookup.shell', ['lookupParameter' => static::$lookupParameter])
+            ->view('lookup.shell', [
+                'lookupParameter' => static::$lookupParameter,
+                'blockedCookieName' => BlockCrawlers::$blockedCookieName,
+            ])
             ->header('X-Robots-Tag', 'noindex, nofollow');
 
         return CacheAtEdge::makeCacheable($response);
