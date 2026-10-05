@@ -29,26 +29,32 @@ function wrap(text, columns, continuation = '    ') {
 function signalLines(data, columns) {
     const titleColumns = Math.max(10, Math.floor(columns / 1.8));
     const lines = [
-        ...wrap(`> ${data.domain.toUpperCase()}`, titleColumns).map(text => ({ text, tone: 'bright', size: 27, gap: 12 })),
-        { text: `:: ${data.count ? `${data.count} RECORDS` : 'RESPONSE'} / SIGNAL DECODED`, tone: 'main', gap: 18 },
-        { text: '░'.repeat(Math.max(8, columns - 2)), tone: 'quiet', gap: 16 },
+        ...wrap(`> ${data.domain.toUpperCase()}`, titleColumns).map(text => ({ text, tone: 'bright', size: 24, gap: 12 })),
+        { text: `:: ${data.count ? `${data.count} RECORDS` : 'RESPONSE'} / SIGNAL DECODED`, tone: 'dim', gap: 12 },
+        { text: '░'.repeat(Math.max(8, columns - 2)), tone: 'quiet', gap: 18 },
     ];
 
     let recordNumber = 0;
 
-    data.lines.forEach(line => {
+    data.lines.forEach((line, lineIndex) => {
+        const nextLine = data.lines[lineIndex + 1];
+
         if (line.type) {
             recordNumber++;
 
-            const prefix = `› ${String(recordNumber).padStart(2, '0')}  ${line.type.padEnd(6)} `;
-            const answer = `${line.name}  ⇢  ${line.value}  ⟨${line.ttl}⟩`;
+            const label = `› ${String(recordNumber).padStart(2, '0')}  ${line.type.padEnd(6)} ${line.name}`;
+            const header = `${label}   ·  ttl ${line.ttl}`;
 
-            wrap(`${prefix}${answer}`, columns).forEach((text, index) => {
-                lines.push({ text, tone: index ? 'dim' : 'main', gap: index ? 0 : 4 });
+            wrap(header, columns).forEach(text => lines.push({ text, tone: 'dim', gap: 0 }));
+            wrap(`   └ ${line.value || '∅'}`, columns, '     ').forEach((text, index, wrapped) => {
+                const last = index === wrapped.length - 1;
+                const continues = nextLine && ! nextLine.type && nextLine.text.trim();
+
+                lines.push({ text, tone: 'bright', gap: last ? (continues ? 3 : 13) : 0 });
             });
         } else if (line.text.trim()) {
-            wrap(`    ${line.text.trim().replace(/\s+/g, ' ')}`, columns).forEach(text => {
-                lines.push({ text, tone: 'dim', gap: 0 });
+            wrap(`     ${line.text.trim().replace(/\s+/g, ' ')}`, columns, '     ').forEach(text => {
+                lines.push({ text, tone: 'main', gap: nextLine?.type ? 13 : 3 });
             });
         }
     });
@@ -78,13 +84,13 @@ function createSignal(section) {
     let height = 0;
     let scale = 1;
     let characters = [];
+    let rows = [];
     let frameId = null;
-    let startedAt = 0;
     let lastFrameAt = 0;
     let isComplete = false;
 
     function font(size) {
-        return `600 ${size}px ${fontFamily}`;
+        return `${size >= 24 ? 700 : 500} ${size}px ${fontFamily}`;
     }
 
     function paint(target, character, value, colour, glow = false) {
@@ -103,9 +109,46 @@ function createSignal(section) {
 
     function paintAll() {
         settledContext.clearRect(0, 0, width, height);
-        characters.forEach(character => paint(settledContext, character, character.value, character.colour));
+        characters.forEach(character => {
+            paint(settledContext, character, character.value, character.colour);
+            character.settled = true;
+        });
+        rows.forEach(row => row.complete = true);
         showSettled();
         isComplete = true;
+        root.classList.remove('matrix-transmitting');
+    }
+
+    function activateVisible(time) {
+        const canvasTop = canvas.getBoundingClientRect().top;
+        let staged = 0;
+
+        rows.forEach(row => {
+            const top = canvasTop + row.y;
+
+            if (row.complete || row.startedAt !== null || top >= window.innerHeight - 12 || top + row.height <= -25) {
+                return;
+            }
+
+            row.startedAt = time + staged * 75;
+            staged++;
+        });
+
+        return staged;
+    }
+
+    function wake() {
+        if (! section.isConnected || document.hidden || reducedMotion.matches) {
+            return;
+        }
+
+        const started = activateVisible(performance.now());
+        const active = rows.some(row => row.startedAt !== null && ! row.complete);
+
+        if ((started || active) && frameId === null) {
+            root.classList.add('matrix-transmitting');
+            frameId = window.requestAnimationFrame(frame);
+        }
     }
 
     function layout() {
@@ -121,41 +164,45 @@ function createSignal(section) {
             frameId = null;
         }
 
+        root.classList.remove('matrix-transmitting');
         width = nextWidth;
         scale = Math.min(window.devicePixelRatio || 1, 1.5);
         context.font = font(15);
 
         const cellWidth = context.measureText('M').width;
-        const columns = Math.max(22, Math.floor((width - padding * 2) / cellWidth));
+        const columns = Math.max(18, Math.floor((width - padding * 2) / cellWidth));
         const lines = signalLines(data, columns);
-        const bodyLines = Math.max(1, lines.length - 3);
-        const lineDelay = Math.min(95, 1250 / bodyLines);
         let y = padding;
 
         characters = [];
+        rows = [];
 
-        lines.forEach((line, lineIndex) => {
+        lines.forEach(line => {
             const size = line.size || 15;
-            const spacing = size === 27 ? cellWidth * 1.8 : cellWidth;
+            const row = { y, height: size >= 24 ? 38 : 24, startedAt: null, completedAt: null, complete: false, characters: [] };
+            const spacing = cellWidth * size / 15;
 
             Array.from(line.text).forEach((value, columnIndex) => {
                 if (value === ' ') {
                     return;
                 }
 
-                characters.push({
+                const character = {
                     value,
                     x: padding + columnIndex * spacing,
                     y,
                     size,
                     colour: ink[line.tone],
-                    settleAt: 120 + lineIndex * lineDelay + columnIndex * 7 + Math.random() * 210,
+                    delay: 420 + columnIndex * 8 + Math.random() * 230,
                     settled: false,
-                });
+                };
+
+                row.characters.push(character);
+                characters.push(character);
             });
 
-            y += size === 27 ? 47 : 26;
-            y += line.gap;
+            rows.push(row);
+            y += row.height + line.gap;
         });
 
         height = y + padding;
@@ -168,26 +215,24 @@ function createSignal(section) {
         settledContext.setTransform(scale, 0, 0, scale, 0, 0);
         context.textBaseline = 'top';
         settledContext.textBaseline = 'top';
-        startedAt = 0;
         lastFrameAt = 0;
         isComplete = false;
 
         if (previousComplete || reducedMotion.matches) {
             paintAll();
         } else {
-            frameId = window.requestAnimationFrame(frame);
+            wake();
         }
 
         root.removeAttribute('data-matrix-booting');
     }
 
     function frame(time) {
-        if (! section.isConnected) {
-            return;
-        }
+        frameId = null;
 
-        if (! startedAt) {
-            startedAt = time;
+        if (! section.isConnected || document.hidden) {
+            root.classList.remove('matrix-transmitting');
+            return;
         }
 
         if (time - lastFrameAt < 28) {
@@ -196,50 +241,82 @@ function createSignal(section) {
         }
 
         lastFrameAt = time;
-        const elapsed = time - startedAt;
+        activateVisible(time);
         let active = false;
 
-        characters.forEach(character => {
-            if (character.settled) {
+        rows.forEach(row => {
+            if (row.complete || row.startedAt === null) {
                 return;
             }
 
-            if (elapsed >= character.settleAt) {
-                character.settled = true;
-                paint(settledContext, character, character.value, character.colour);
-                return;
+            row.characters.forEach(character => {
+                if (character.settled) {
+                    return;
+                }
+
+                if (time >= row.startedAt + character.delay) {
+                    paint(settledContext, character, character.value, character.colour);
+                    character.settled = true;
+                } else {
+                    active = true;
+                }
+            });
+
+            if (row.characters.every(character => character.settled)) {
+                row.complete = true;
+                row.completedAt = time;
             }
-
-            active = true;
-
         });
 
         showSettled();
 
-        characters.forEach(character => {
-            if (character.settled) {
+        rows.forEach(row => {
+            if (row.complete || row.startedAt === null) {
                 return;
             }
 
-            const remaining = character.settleAt - elapsed;
+            row.characters.forEach(character => {
+                if (character.settled) {
+                    return;
+                }
 
-            if (remaining > 460) {
+                const remaining = row.startedAt + character.delay - time;
+
+                if (remaining > 780) {
+                    return;
+                }
+
+                const progress = 1 - remaining / 780;
+                const falling = { ...character, y: character.y - (1 - progress) * 210 };
+
+                if (progress > .35) {
+                    paint(context, character, glyph(), '#4a9561');
+                }
+
+                paint(context, falling, glyph(), '#effff1', true);
+                paint(context, { ...falling, y: falling.y - 20 }, glyph(), '#91e5a4');
+                paint(context, { ...falling, y: falling.y - 40 }, glyph(), '#5da772');
+                paint(context, { ...falling, y: falling.y - 60 }, glyph(), '#346447');
+                paint(context, { ...falling, y: falling.y - 80 }, glyph(), '#244d35');
+            });
+        });
+
+        rows.forEach(row => {
+            if (row.completedAt === null || time - row.completedAt >= 180) {
                 return;
             }
 
-            const progress = 1 - remaining / 460;
-            const falling = { ...character, y: character.y - (1 - progress) * 110 };
-
-            paint(context, falling, glyph(), '#e3ffea', true);
-            paint(context, { ...falling, y: falling.y - 23 }, glyph(), '#69ca82');
-            paint(context, { ...falling, y: falling.y - 46 }, glyph(), '#367447');
+            active = true;
+            context.globalAlpha = 1 - (time - row.completedAt) / 180;
+            row.characters.forEach(character => paint(context, character, character.value, '#effff1', true));
+            context.globalAlpha = 1;
         });
 
         if (active) {
             frameId = window.requestAnimationFrame(frame);
         } else {
-            paintAll();
-            frameId = null;
+            root.classList.remove('matrix-transmitting');
+            isComplete = rows.every(row => row.complete);
         }
     }
 
@@ -251,11 +328,14 @@ function createSignal(section) {
         const box = section.getBoundingClientRect();
         const isVisible = box.bottom > 0 && box.top < window.innerHeight;
 
-        if (isComplete && isVisible && ! document.hidden && ! reducedMotion.matches) {
+        if (frameId === null && isVisible && ! document.hidden && ! reducedMotion.matches) {
+            const canvasTop = canvas.getBoundingClientRect().top;
+            const visible = characters.filter(character => character.settled && canvasTop + character.y > 0 && canvasTop + character.y < window.innerHeight);
+
             showSettled();
 
             for (let index = 0; index < 12; index++) {
-                const character = characters[Math.floor(Math.random() * characters.length)];
+                const character = visible[Math.floor(Math.random() * visible.length)];
 
                 if (character) {
                     paint(context, character, glyph(), '#f0fff2', true);
@@ -268,11 +348,34 @@ function createSignal(section) {
         window.setTimeout(glitch, 4000 + Math.random() * 3500);
     }
 
-    document.fonts.ready.then(layout).catch(() => {
+    const abort = new AbortController();
+    const resizeObserver = new ResizeObserver(layout);
+    const removalObserver = new MutationObserver(() => {
+        if (section.isConnected) {
+            return;
+        }
+
+        abort.abort();
+        resizeObserver.disconnect();
+        removalObserver.disconnect();
+
+        if (frameId !== null) {
+            window.cancelAnimationFrame(frameId);
+        }
+    });
+
+    window.addEventListener('scroll', wake, { passive: true, signal: abort.signal });
+    window.addEventListener('resize', wake, { passive: true, signal: abort.signal });
+    document.addEventListener('visibilitychange', wake, { signal: abort.signal });
+    removalObserver.observe(document.getElementById('entries'), { childList: true, subtree: true });
+
+    document.fonts.ready.then(() => {
+        layout();
+        resizeObserver.observe(section);
+    }).catch(() => {
         section.setAttribute('data-failed', '');
         root.removeAttribute('data-matrix-booting');
     });
-    new ResizeObserver(layout).observe(section);
     window.setTimeout(glitch, 4800);
 }
 

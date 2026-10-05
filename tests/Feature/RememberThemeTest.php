@@ -1,54 +1,71 @@
 <?php
 
+namespace Tests\Feature;
+
 use App\Http\Middleware\RememberTheme;
 use Illuminate\Testing\TestResponse;
+use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\Cookie;
+use Tests\TestCase;
 
-function themeCookie(TestResponse $response): ?Cookie
+class RememberThemeTest extends TestCase
 {
-    return collect($response->headers->getCookies())
-        ->first(fn (Cookie $cookie) => $cookie->getName() === RememberTheme::$cookieName);
+    protected function themeCookie(TestResponse $response): ?Cookie
+    {
+        return collect($response->headers->getCookies())
+            ->first(fn (Cookie $cookie) => $cookie->getName() === RememberTheme::$cookieName);
+    }
+
+    #[Test]
+    public function it_remembers_the_theme_of_a_home_page_with_a_script(): void
+    {
+        $this
+            ->get("{$this->baseUrl}/matrix")
+            ->assertSuccessful()
+            ->assertSee("document.cookie = 'dnsrecords_theme=matrix;", false);
+    }
+
+    #[Test]
+    public function it_opens_the_remembered_theme_from_the_terminal_home_page_with_a_script(): void
+    {
+        $this
+            ->get("{$this->baseUrl}/")
+            ->assertSuccessful()
+            ->assertSee('window.location.replace(homeUrls[rememberedTheme])', false)
+            ->assertSee('"matrix":"https:\/\/dnsrecords.io.dev\/matrix"', false)
+            ->assertDontSee('"crt":', false);
+    }
+
+    #[Test]
+    public function it_only_opens_the_remembered_theme_from_the_terminal_home_page(): void
+    {
+        $this
+            ->get("{$this->baseUrl}/matrix")
+            ->assertDontSee('homeUrls', false);
+
+        $this
+            ->get("{$this->baseUrl}/spatie.be?lookup=1")
+            ->assertDontSee('homeUrls', false);
+    }
+
+    #[Test]
+    public function it_remembers_the_theme_of_a_lookup_with_a_cookie_that_scripts_can_read(): void
+    {
+        $cookie = $this->themeCookie($this->get("{$this->baseUrl}/matrix/spatie.be?lookup=1"));
+
+        $this->assertNotNull($cookie);
+        $this->assertSame('matrix', $cookie->getValue());
+        $this->assertFalse($cookie->isHttpOnly());
+    }
+
+    #[Test]
+    public function it_can_select_the_terminal_again(): void
+    {
+        $response = $this
+            ->withUnencryptedCookie(RememberTheme::$cookieName, 'matrix')
+            ->get("{$this->baseUrl}/?theme=terminal")
+            ->assertRedirect('/');
+
+        $this->assertSame('crt', $this->themeCookie($response)?->getValue());
+    }
 }
-
-it('remembers the theme of a home page with a script', function () {
-    $this
-        ->get("{$this->baseUrl}/matrix")
-        ->assertSuccessful()
-        ->assertSee("document.cookie = 'dnsrecords_theme=matrix;", false);
-});
-
-it('opens the remembered theme from the terminal home page with a script', function () {
-    $this
-        ->get("{$this->baseUrl}/")
-        ->assertSuccessful()
-        ->assertSee('window.location.replace(homeUrls[rememberedTheme])', false)
-        ->assertSee('"matrix":"https:\/\/dnsrecords.io.dev\/matrix"', false)
-        ->assertDontSee('"crt":', false);
-});
-
-it('only opens the remembered theme from the terminal home page', function () {
-    $this
-        ->get("{$this->baseUrl}/matrix")
-        ->assertDontSee('homeUrls', false);
-
-    $this
-        ->get("{$this->baseUrl}/spatie.be?lookup=1")
-        ->assertDontSee('homeUrls', false);
-});
-
-it('remembers the theme of a lookup with a cookie that scripts can read', function () {
-    $cookie = themeCookie($this->get("{$this->baseUrl}/matrix/spatie.be?lookup=1"));
-
-    expect($cookie)->not->toBeNull()
-        ->and($cookie->getValue())->toBe('matrix')
-        ->and($cookie->isHttpOnly())->toBeFalse();
-});
-
-it('can select the terminal again', function () {
-    $response = $this
-        ->withUnencryptedCookie(RememberTheme::$cookieName, 'matrix')
-        ->get("{$this->baseUrl}/?theme=terminal")
-        ->assertRedirect('/');
-
-    expect(themeCookie($response)->getValue())->toBe('crt');
-});

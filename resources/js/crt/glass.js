@@ -741,8 +741,8 @@ export function createGlass(screen, picture, onReady) {
         const revealElapsed = reveal.startedAt < 0 ? -1 : now() - reveal.startedAt;
         const ghostAge = performance.now() - ghostLastAt;
         const ghostDistance = Math.abs(textLayer.ring[2] - ghostScroll);
-        const ghostStrength = isAnimated() && ghostAge < 1400 && ghostDistance < screen.clientHeight * .8
-            ? .8 * Math.pow(1 - ghostAge / 1400, 1.25)
+        const ghostStrength = isAnimated() && ghostAge < 420 && ghostDistance < screen.clientHeight * .8
+            ? .24 * Math.pow(1 - ghostAge / 420, 1.8)
             : 0;
 
         if (revealElapsed > reveal.longestDelay + .6) {
