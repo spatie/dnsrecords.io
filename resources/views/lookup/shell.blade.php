@@ -8,6 +8,14 @@
     <title>dnsrecords.io</title>
     <script>
         (function () {
+            var isAutomated = navigator.webdriver || /headless/i.test(navigator.userAgent);
+
+            if (isAutomated) {
+                document.documentElement.setAttribute('data-automated', '');
+
+                return;
+            }
+
             var url = new URL(window.location.href);
 
             url.searchParams.set('{{ $lookupParameter }}', '1');
@@ -17,9 +25,13 @@
     </script>
     <style>
         html { background: #050a07; color: #9effb4; font-family: monospace; }
+        .automated { display: none; }
+        [data-automated] .automated { display: block; }
     </style>
 </head>
 <body>
+    <p class="automated">Automated DNS lookups are not allowed.</p>
+
     <noscript>
         <p><a href="?{{ $lookupParameter }}=1">Look up the DNS records</a></p>
     </noscript>
