@@ -26,6 +26,11 @@ let lookupInProgress = null;
 root.classList.replace('no-js', 'js');
 entries.querySelectorAll('.copy-records').forEach(button => button.hidden = false);
 
+function clearInput() {
+    input.value = '';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 function setStatus(message) {
     status.textContent = message;
     if (root.dataset.interface === 'matrix') {
@@ -65,7 +70,7 @@ function saveSnapshot(url, method = 'pushState') {
 function clearResults() {
     root.classList.remove('is-decoding');
     entries.replaceChildren();
-    input.value = '';
+    clearInput();
     input.readOnly = false;
     submitButton.disabled = false;
     lookupInProgress = null;
@@ -197,7 +202,7 @@ async function lookup(command) {
         return;
     }
 
-    input.value = '';
+    clearInput();
     input.focus({ preventScroll: true });
     saveSnapshot(result.url);
     if (root.dataset.interface === 'matrix') {
@@ -325,7 +330,7 @@ window.addEventListener('popstate', event => {
     }
     document.title = snapshot.title;
     document.querySelector('meta[name="description"]').content = snapshot.description;
-    input.value = '';
+    clearInput();
     input.readOnly = false;
     submitButton.disabled = false;
     lookupInProgress = null;

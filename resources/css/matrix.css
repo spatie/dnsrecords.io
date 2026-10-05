@@ -66,25 +66,6 @@
     background: transparent;
 }
 
-.interface--matrix.is-decoding .matrix-query::after {
-    content: '';
-    position: absolute;
-    z-index: 3;
-    right: 0;
-    left: 0;
-    height: 2px;
-    background: #e9ffed;
-    box-shadow: 0 0 20px 5px #69ff8c;
-    pointer-events: none;
-    animation: matrix-query-scan .9s linear infinite;
-}
-
-@keyframes matrix-query-scan {
-    from { top: 0; opacity: 0; }
-    20% { opacity: 1; }
-    to { top: 100%; opacity: 0; }
-}
-
 .matrix-query label {
     display: block;
     margin-bottom: 13px;
@@ -116,79 +97,54 @@
     position: relative;
     flex: 1 1 auto;
     min-width: 0;
+    height: 74px;
 }
 
 .matrix-query input {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
     width: 100%;
-    height: 74px;
-    padding: 12px 18px;
+    height: 100%;
+    padding: 0 18px;
     border: 0;
-    border-bottom: 0;
-    border-radius: 0;
-    outline: none;
-    background: linear-gradient(90deg, rgba(0, 12, 4, .75) 0%, rgba(10, 51, 20, .72) 50%, rgba(0, 12, 4, .75) 100%);
-    background-size: 240% 100%;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    opacity: 0;
+    font: 20px/1.4 'JetBrains Mono', monospace;
+}
+
+.matrix-query__ascii {
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    transition: filter .2s ease-out;
+}
+
+.matrix-query__input:focus-within .matrix-query__ascii {
+    filter: drop-shadow(0 0 12px rgba(102, 255, 134, .6));
+}
+
+.matrix-query__input--fallback input,
+.no-js .matrix-query input {
+    padding: 12px 18px;
+    border: 1px solid #69c982;
+    background: rgba(0, 13, 4, .86);
     color: #e6ffec;
-    box-shadow: inset 0 -20px 35px rgba(51, 248, 99, .06), 0 10px 26px rgba(0, 0, 0, .34);
     caret-color: #c3ffcf;
-    font: 21px/1.4 'JetBrains Mono', monospace;
-    animation: matrix-input-current 8s linear infinite;
+    opacity: 1;
 }
 
-@keyframes matrix-input-current {
-    to { background-position: -240% 0; }
-}
-
-.matrix-query input::placeholder {
+.matrix-query__input--fallback input::placeholder,
+.no-js .matrix-query input::placeholder {
     color: #689775;
 }
 
-.matrix-query input:focus {
-    box-shadow: inset 0 -20px 35px rgba(51, 248, 99, .12), 0 4px 40px rgba(43, 255, 91, .22);
-}
-
-.matrix-query__energy {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: 2px;
-    background: linear-gradient(90deg, #235a34, #d9ffe1 22%, #5aff80 50%, #a7ffbb 78%, #235a34);
-    background-size: 220% 100%;
-    box-shadow: 0 0 16px rgba(92, 255, 125, .76);
-    transform: scaleX(0);
-    transform-origin: left;
-}
-
-.matrix-query.is-built .matrix-query__energy {
-    animation: matrix-line-assemble .85s cubic-bezier(.2, 0, 0, 1) both, matrix-line-current 3s linear .85s infinite;
-}
-
-.matrix-query__energy::after {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: 0;
-    width: 18px;
-    height: 6px;
-    background: #eaffee;
-    box-shadow: 0 0 17px 5px #5dff84;
-    opacity: .8;
-    animation: matrix-line-spark 3s ease-in-out 1s infinite;
-}
-
-@keyframes matrix-line-assemble {
-    to { transform: scaleX(1); }
-}
-
-@keyframes matrix-line-current {
-    to { background-position: -220% 0; }
-}
-
-@keyframes matrix-line-spark {
-    0% { left: 0; opacity: 0; }
-    12%, 75% { opacity: .8; }
-    100% { left: calc(100% - 18px); opacity: 0; }
+.matrix-query__input--fallback .matrix-query__ascii,
+.no-js .matrix-query__ascii {
+    display: none;
 }
 
 .matrix-query button {
@@ -244,26 +200,6 @@
 .interface--matrix.is-decoding .matrix-query button {
     color: #fff;
     text-shadow: 0 0 20px #aaffba, 0 0 60px #61ff85;
-}
-
-.interface--matrix.is-decoding .matrix-query__energy::after {
-    animation-duration: .65s;
-}
-
-.matrix-query__input .matrix-input-glyph {
-    position: absolute;
-    z-index: 2;
-    top: 0;
-    color: #b7ffc9;
-    font: 16px/1 'JetBrains Mono', monospace;
-    pointer-events: none;
-    text-shadow: 0 0 12px #69ff90;
-    animation: matrix-input-drop .65s ease-in both;
-}
-
-@keyframes matrix-input-drop {
-    from { opacity: 1; transform: translateY(-32px); }
-    to { opacity: 0; transform: translateY(60px); }
 }
 
 .matrix-status {
@@ -502,12 +438,9 @@
         flex-wrap: wrap;
     }
 
-    .matrix-query input {
-        height: 64px;
-    }
-
     .matrix-query__input {
         flex-basis: 100%;
+        height: 64px;
     }
 
     .matrix-query button {
@@ -533,16 +466,9 @@
 @media (prefers-reduced-motion: reduce) {
     .matrix-code-curtain span,
     .matrix-query.is-built button,
-    .matrix-query.is-built .matrix-query__energy,
-    .matrix-query__energy::after,
     .matrix-switcher summary::before,
     .matrix-query label,
-    .matrix-query input,
-    .interface--matrix.is-decoding .matrix-query::after {
+    .matrix-query input {
         animation: none;
-    }
-
-    .matrix-query__energy {
-        transform: scaleX(1);
     }
 }

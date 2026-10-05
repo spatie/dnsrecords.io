@@ -42,7 +42,7 @@
         <form id="form" class="matrix-query" method="post" action="{{ $theme->homeUrl() }}" data-matrix-construct>
             <label for="url"><span aria-hidden="true">&gt;_</span> <span data-matrix-scramble>DOMAIN OR COMMAND</span></label>
             <div class="matrix-query__line">
-                <div class="matrix-query__input"><input id="url" name="command" aria-label="Domain or command" placeholder="example.com" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" autofocus><span class="matrix-query__energy" aria-hidden="true"></span></div>
+                <div class="matrix-query__input"><input id="url" name="command" aria-label="Domain or command" placeholder="example.com" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" autofocus><canvas class="matrix-query__ascii" aria-hidden="true"></canvas></div>
                 <button type="submit" aria-label="Decode"><span aria-hidden="true">[</span> <span data-matrix-button-label aria-hidden="true">DECODE</span> <span aria-hidden="true">]</span></button>
             </div>
         </form>
