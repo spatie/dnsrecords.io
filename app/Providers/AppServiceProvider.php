@@ -7,7 +7,9 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\Support\ViewErrorBag;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,5 +27,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('lookups', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
 
         View::share('errors', new ViewErrorBag);
+
+        Vite::createAssetPathsUsing(fn (string $path) => '/static/'.Str::after($path, 'build/'));
     }
 }

@@ -1,7 +1,12 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+    /*
+     * Build assets are served by the app, which adds the cache headers that
+     * let the edge keep them until the next deploy.
+     */
+    base: command === 'build' ? '/static/' : '',
     plugins: [
         laravel({
             input: [
@@ -20,4 +25,4 @@ export default defineConfig({
             refresh: true,
         }),
     ],
-});
+}));
