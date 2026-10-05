@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->append(ServeLookupShell::class);
-        $middleware->encryptCookies(except: [RememberTheme::$cookieName]);
+        $middleware->encryptCookies(except: [RememberTheme::$cookieName, BlockCrawlers::$blockedCookieName]);
 
         /*
          * Lookups don't change anything, and the forms that submit them are

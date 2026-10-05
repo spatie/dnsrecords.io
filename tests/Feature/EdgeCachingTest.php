@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Process;
+use Symfony\Component\HttpFoundation\Cookie;
 
 dataset('homePages', ['/', '/old', '/lcars', '/muthur', '/matrix', '/system7', '/winxp']);
 
@@ -51,7 +52,7 @@ it('answers plain lookup urls with a page that can be cached at the edge', funct
         ->get("{$this->baseUrl}{$path}")
         ->assertSuccessful()
         ->assertSee("url.searchParams.set('lookup', '1')", false)
-        ->assertSee('<a href="?lookup=1">', false)
+        ->assertDontSee('href="?lookup=1"', false)
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 
     expect($response->headers->getCookies())->toBeEmpty()
@@ -80,11 +81,38 @@ it('answers plain lookup urls from crawlers without waking the lookup', function
     Process::assertNothingRan();
 });
 
-it('does not send automated browsers on to the lookup', function () {
+it('does not send automated or blocked browsers on to the lookup', function () {
     $this
         ->get("{$this->baseUrl}/spatie.be")
         ->assertSee('navigator.webdriver', false)
+        ->assertSee('(?:^|; )dnsrecords_blocked=', false)
         ->assertSee('Automated DNS lookups are not allowed.');
+});
+
+it('remembers blocked browsers with a cookie that scripts can read', function () {
+    $response = $this
+        ->withHeader('User-Agent', 'ClaudeBot/1.0')
+        ->get("{$this->baseUrl}/spatie.be?lookup=1")
+        ->assertForbidden();
+
+    $cookie = collect($response->headers->getCookies())
+        ->first(fn (Cookie $cookie) => $cookie->getName() === 'dnsrecords_blocked');
+
+    expect($cookie)->not->toBeNull()
+        ->and($cookie->getValue())->toBe('1')
+        ->and($cookie->isHttpOnly())->toBeFalse();
+});
+
+it('does not remember browsers that are only rate limited', function () {
+    config()->set('bot-protection.lookups_per_minute_per_subnet', 1);
+
+    $this->get("{$this->baseUrl}/spatie.be?lookup=1")->assertSuccessful();
+
+    $response = $this
+        ->get("{$this->baseUrl}/spatie.be?lookup=1")
+        ->assertTooManyRequests();
+
+    expect(collect($response->headers->getCookies())->map->getName())->not->toContain('dnsrecords_blocked');
 });
 
 it('looks up domains when the lookup parameter is present', function () {
