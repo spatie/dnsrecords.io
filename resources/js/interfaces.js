@@ -1,4 +1,5 @@
 import { fetchScreen, lookupUrl } from './crt/lookup.js';
+import { switchTheme } from './theme-shortcuts.js';
 import './interfaces/window-controls.js';
 import './interfaces/matrix-rain.js';
 import './interfaces/matrix-construct.js';
@@ -224,6 +225,10 @@ form.addEventListener('submit', event => {
     if (command.toLowerCase() === 'clear') {
         clearResults();
 
+        return;
+    }
+
+    if (switchTheme(command)) {
         return;
     }
 

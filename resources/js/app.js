@@ -1,8 +1,14 @@
+import { switchTheme } from './theme-shortcuts.js';
+
 const form = document.getElementById('form');
 const input = document.getElementById('url');
 
 form.addEventListener('submit', event => {
     event.preventDefault();
+
+    if (switchTheme(input.value)) {
+        return;
+    }
 
     const lookupBaseUrl = form.getAttribute('action').replace(/\/$/, '');
 

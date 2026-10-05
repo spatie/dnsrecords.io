@@ -5,13 +5,9 @@ namespace App\Services\Commands;
 use App\Services\Commands\Commands\Clear;
 use App\Services\Commands\Commands\DnsLookup;
 use App\Services\Commands\Commands\Doom;
-use App\Services\Commands\Commands\ExitToTerminal;
 use App\Services\Commands\Commands\Ip;
-use App\Services\Commands\Commands\Lcars;
 use App\Services\Commands\Commands\Localhost;
 use App\Services\Commands\Commands\Manual;
-use App\Services\Commands\Commands\Mother;
-use App\Services\Commands\Commands\Old;
 use App\Services\Commands\Commands\SwitchTheme;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,11 +19,7 @@ class CommandChain
         Clear::class,
         Ip::class,
         Doom::class,
-        Old::class,
         SwitchTheme::class,
-        Mother::class,
-        Lcars::class,
-        ExitToTerminal::class,
         DnsLookup::class,
     ];
 

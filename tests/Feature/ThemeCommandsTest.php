@@ -218,4 +218,20 @@ class ThemeCommandsTest extends TestCase
             ->assertSuccessful()
             ->assertSee('data-interface="mother"', false);
     }
+
+    #[Test]
+    public function it_lets_the_browser_open_other_themes_without_asking_the_app(): void
+    {
+        $this
+            ->get("{$this->baseUrl}/")
+            ->assertSee('<script type="application/json" id="theme-shortcuts">', false)
+            ->assertSee('"mac":{"url":"https:\/\/dnsrecords.io.dev\/system7","theme":"system7"}', false)
+            ->assertSee('"muthur":{"url":"https:\/\/dnsrecords.io.dev\/muthur","theme":"mother"}', false)
+            ->assertDontSee('"exit":', false);
+
+        $this
+            ->get("{$this->baseUrl}/matrix")
+            ->assertSee('"exit":{"url":"https:\/\/dnsrecords.io.dev","theme":"crt"}', false)
+            ->assertSee('"old":{"url":"https:\/\/dnsrecords.io.dev\/old","theme":"classic"}', false);
+    }
 }
