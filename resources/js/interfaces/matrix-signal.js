@@ -29,9 +29,7 @@ function wrap(text, columns, continuation = '    ') {
 function signalLines(data, columns) {
     const titleColumns = Math.max(10, Math.floor(columns / 1.8));
     const lines = [
-        ...wrap(`> ${data.domain.toUpperCase()}`, titleColumns).map(text => ({ text, tone: 'bright', size: 24, gap: 12 })),
-        { text: `:: ${data.count ? `${data.count} RECORDS` : 'RESPONSE'} / SIGNAL DECODED`, tone: 'dim', gap: 12 },
-        { text: '░'.repeat(Math.max(8, columns - 2)), tone: 'quiet', gap: 18 },
+        ...wrap(`> ${data.domain.toUpperCase()}`, titleColumns).map(text => ({ text, tone: 'bright', size: 24, gap: 18 })),
     ];
 
     let recordNumber = 0;
@@ -85,6 +83,7 @@ function createSignal(section) {
     let scale = 1;
     let characters = [];
     let rows = [];
+    let streams = [];
     let frameId = null;
     let lastFrameAt = 0;
     let isComplete = false;
@@ -114,6 +113,7 @@ function createSignal(section) {
             character.settled = true;
         });
         rows.forEach(row => row.complete = true);
+        streams = [];
         showSettled();
         isComplete = true;
         root.classList.remove('matrix-transmitting');
@@ -121,7 +121,7 @@ function createSignal(section) {
 
     function activateVisible(time) {
         const canvasTop = canvas.getBoundingClientRect().top;
-        let staged = 0;
+        const visible = [];
 
         rows.forEach(row => {
             const top = canvasTop + row.y;
@@ -130,11 +130,45 @@ function createSignal(section) {
                 return;
             }
 
-            row.startedAt = time + staged * 75;
-            staged++;
+            row.startedAt = time;
+            visible.push(row);
         });
 
-        return staged;
+        const columns = new Map();
+
+        visible.forEach(row => row.characters.forEach(character => {
+            const key = `${character.size}:${Math.round(character.x * 10)}`;
+
+            if (! columns.has(key)) {
+                columns.set(key, []);
+            }
+
+            columns.get(key).push(character);
+        }));
+
+        let index = 0;
+
+        columns.forEach(column => {
+            column.sort((first, second) => first.y - second.y);
+
+            streams.push({
+                x: column[0].x,
+                size: column[0].size,
+                characters: column,
+                originY: column[0].y - 160,
+                endY: column[column.length - 1].y + 80,
+                startedAt: time + index * 11 + Math.random() * 110,
+                speed: 390 + Math.random() * 120,
+                lastMutationAt: 0,
+                done: false,
+            });
+
+            index++;
+        });
+
+        visible.filter(row => row.characters.length === 0).forEach(row => row.complete = true);
+
+        return columns.size;
     }
 
     function wake() {
@@ -143,7 +177,7 @@ function createSignal(section) {
         }
 
         const started = activateVisible(performance.now());
-        const active = rows.some(row => row.startedAt !== null && ! row.complete);
+        const active = streams.some(stream => ! stream.done);
 
         if ((started || active) && frameId === null) {
             root.classList.add('matrix-transmitting');
@@ -176,10 +210,11 @@ function createSignal(section) {
 
         characters = [];
         rows = [];
+        streams = [];
 
         lines.forEach(line => {
             const size = line.size || 15;
-            const row = { y, height: size >= 24 ? 38 : 24, startedAt: null, completedAt: null, complete: false, characters: [] };
+            const row = { y, height: size >= 24 ? 38 : 24, startedAt: null, complete: false, characters: [] };
             const spacing = cellWidth * size / 15;
 
             Array.from(line.text).forEach((value, columnIndex) => {
@@ -193,8 +228,9 @@ function createSignal(section) {
                     y,
                     size,
                     colour: ink[line.tone],
-                    delay: 420 + columnIndex * 8 + Math.random() * 230,
+                    arrivedAt: null,
                     settled: false,
+                    cipher: glyph(),
                 };
 
                 row.characters.push(character);
@@ -242,110 +278,75 @@ function createSignal(section) {
 
         lastFrameAt = time;
         activateVisible(time);
-        let active = false;
 
-        rows.forEach(row => {
-            if (row.complete || row.startedAt === null) {
+        streams.forEach(stream => {
+            if (stream.done || time < stream.startedAt) {
                 return;
             }
 
-            row.characters.forEach(character => {
-                if (character.settled) {
-                    return;
+            const headY = stream.originY + (time - stream.startedAt) / 1000 * stream.speed;
+
+            stream.characters.forEach(character => {
+                if (character.arrivedAt === null && headY >= character.y) {
+                    character.arrivedAt = time;
                 }
 
-                if (time >= row.startedAt + character.delay) {
+                if (! character.settled && character.arrivedAt !== null && time - character.arrivedAt >= 110) {
                     paint(settledContext, character, character.value, character.colour);
                     character.settled = true;
-                } else {
-                    active = true;
                 }
             });
 
-            if (row.characters.every(character => character.settled)) {
+            if (stream.characters.every(character => character.settled) && headY > stream.endY) {
+                stream.done = true;
+            }
+        });
+
+        rows.forEach(row => {
+            if (row.startedAt !== null && row.characters.every(character => character.settled)) {
                 row.complete = true;
-                row.completedAt = time;
             }
         });
 
-        showSettled();
+        context.clearRect(0, 0, width, height);
 
-        rows.forEach(row => {
-            if (row.complete || row.startedAt === null) {
+        streams.forEach(stream => {
+            if (stream.done || time < stream.startedAt) {
                 return;
             }
 
-            row.characters.forEach(character => {
-                if (character.settled) {
+            if (time - stream.lastMutationAt > 65) {
+                stream.characters.forEach(character => {
+                    if (! character.settled) {
+                        character.cipher = glyph();
+                    }
+                });
+                stream.lastMutationAt = time;
+            }
+
+            const headY = stream.originY + (time - stream.startedAt) / 1000 * stream.speed;
+
+            stream.characters.forEach(character => {
+                if (character.settled || headY < character.y - 100) {
                     return;
                 }
 
-                const remaining = row.startedAt + character.delay - time;
+                const distance = Math.abs(headY - character.y);
+                const colour = distance < 25 ? '#e7ffeb' : distance < 65 ? '#8ceaa6' : '#3f995a';
 
-                if (remaining > 780) {
-                    return;
-                }
-
-                const progress = 1 - remaining / 780;
-                const falling = { ...character, y: character.y - (1 - progress) * 210 };
-
-                if (progress > .35) {
-                    paint(context, character, glyph(), '#4a9561');
-                }
-
-                paint(context, falling, glyph(), '#effff1', true);
-                paint(context, { ...falling, y: falling.y - 20 }, glyph(), '#91e5a4');
-                paint(context, { ...falling, y: falling.y - 40 }, glyph(), '#5da772');
-                paint(context, { ...falling, y: falling.y - 60 }, glyph(), '#346447');
-                paint(context, { ...falling, y: falling.y - 80 }, glyph(), '#244d35');
+                paint(context, character, character.cipher, colour, distance < 25);
             });
         });
 
-        rows.forEach(row => {
-            if (row.completedAt === null || time - row.completedAt >= 180) {
-                return;
-            }
+        // Resolved characters cover their own code stream as it passes.
+        context.drawImage(settled, 0, 0, width, height);
 
-            active = true;
-            context.globalAlpha = 1 - (time - row.completedAt) / 180;
-            row.characters.forEach(character => paint(context, character, character.value, '#effff1', true));
-            context.globalAlpha = 1;
-        });
-
-        if (active) {
+        if (streams.some(stream => ! stream.done)) {
             frameId = window.requestAnimationFrame(frame);
         } else {
             root.classList.remove('matrix-transmitting');
             isComplete = rows.every(row => row.complete);
         }
-    }
-
-    function glitch() {
-        if (! section.isConnected) {
-            return;
-        }
-
-        const box = section.getBoundingClientRect();
-        const isVisible = box.bottom > 0 && box.top < window.innerHeight;
-
-        if (frameId === null && isVisible && ! document.hidden && ! reducedMotion.matches) {
-            const canvasTop = canvas.getBoundingClientRect().top;
-            const visible = characters.filter(character => character.settled && canvasTop + character.y > 0 && canvasTop + character.y < window.innerHeight);
-
-            showSettled();
-
-            for (let index = 0; index < 12; index++) {
-                const character = visible[Math.floor(Math.random() * visible.length)];
-
-                if (character) {
-                    paint(context, character, glyph(), '#f0fff2', true);
-                }
-            }
-
-            window.setTimeout(showSettled, 90);
-        }
-
-        window.setTimeout(glitch, 4000 + Math.random() * 3500);
     }
 
     const abort = new AbortController();
@@ -376,7 +377,6 @@ function createSignal(section) {
         section.setAttribute('data-failed', '');
         root.removeAttribute('data-matrix-booting');
     });
-    window.setTimeout(glitch, 4800);
 }
 
 export function mountSignals(container) {

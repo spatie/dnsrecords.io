@@ -11,7 +11,7 @@ class ClassicInterfacesTest extends TestCase
     public function it_shows_each_interface_and_its_lookup_form(): void
     {
         foreach (['matrix', 'system7', 'winxp'] as $interface) {
-            $this
+            $response = $this
                 ->get("{$this->baseUrl}/{$interface}")
                 ->assertSuccessful()
                 ->assertSee("data-interface=\"{$interface}\"", false)
@@ -19,6 +19,10 @@ class ClassicInterfacesTest extends TestCase
                 ->assertSee('id="entries"', false)
                 ->assertDontSee('name="_token"', false)
                 ->assertSee('Interfaces');
+
+            if ($interface === 'matrix') {
+                $response->assertSee('class="matrix-query__ascii"', false);
+            }
         }
     }
 
