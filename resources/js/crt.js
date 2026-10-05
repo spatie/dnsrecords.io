@@ -1,6 +1,7 @@
 import { degaussWobble } from './crt/degauss.js';
 import { followOutput } from './crt/follow-output.js';
 import { fetchScreen, lookupUrl } from './crt/lookup.js';
+import { switchTheme } from './theme-shortcuts.js';
 
 const root = document.documentElement;
 const announcer = document.getElementById('announcer');
@@ -464,6 +465,10 @@ function run(command) {
     if (trimmed.toLowerCase() === 'clear') {
         clearScreen();
 
+        return;
+    }
+
+    if (switchTheme(trimmed)) {
         return;
     }
 

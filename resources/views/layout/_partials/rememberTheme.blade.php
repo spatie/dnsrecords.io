@@ -1,5 +1,6 @@
 @use('App\Enums\Theme')
 @use('App\Http\Middleware\RememberTheme')
+@use('App\Services\Commands\ThemeShortcuts')
 
 @php
     $rememberableHomeUrls = collect(Theme::cases())
@@ -22,3 +23,4 @@
         document.cookie = '{{ RememberTheme::$cookieName }}={{ Theme::current()->cookieValue() }}; path=/; max-age={{ 60 * 60 * 24 * 365 }}; samesite=lax';
     })();
 </script>
+<script type="application/json" id="theme-shortcuts">@json(ThemeShortcuts::forBrowser(Theme::current()))</script>

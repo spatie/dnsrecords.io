@@ -3,6 +3,7 @@
  * load. Anything that is not an LCARS page falls back to normal navigation.
  */
 import { withLookupParameter, withoutLookupParameter } from './crt/lookup.js';
+import { switchTheme } from './theme-shortcuts.js';
 
 const root = document.documentElement;
 const body = document.body;
@@ -233,6 +234,10 @@ form.addEventListener('submit', event => {
         return;
     }
 
+    if (switchTheme(command)) {
+        return;
+    }
+
     scan(command);
 });
 
@@ -246,6 +251,11 @@ document.addEventListener('click', event => {
     if (commandLink) {
         event.preventDefault();
         flash(commandLink);
+
+        if (switchTheme(commandLink.getAttribute('data-command'))) {
+            return;
+        }
+
         scan(commandLink.getAttribute('data-command'));
 
         return;

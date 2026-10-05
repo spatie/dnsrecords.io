@@ -1,4 +1,5 @@
 import { fetchScreen, lookupUrl } from './crt/lookup.js';
+import { switchTheme } from './theme-shortcuts.js';
 import { writeOut, randomGlyph } from './alien/writer.js';
 import { createPhosphor } from './alien/phosphor.js';
 import { createRoomLights } from './alien/room-lights.js';
@@ -20,7 +21,6 @@ const element = {
 const underlineFlashDuration = 80;
 const minimumProcessing = 420;
 const typingGlyphInterval = 50;
-const exitCommands = ['exit', 'home', 'terminal', 'default'];
 
 let writing = null;
 let booting = null;
@@ -355,10 +355,6 @@ chances.forEach(question => {
     localCommands[question] = inquiry => respond(inquiry, ['Does not compute.']);
 });
 
-exitCommands.forEach(command => {
-    localCommands[command] = () => window.location.assign('/?theme=terminal');
-});
-
 function specialOrder(inquiry) {
     if (! hasOverride) {
         respond(inquiry, ['Unable to clarify.', 'Special order 937.', 'Science officer eyes only.']);
@@ -500,6 +496,10 @@ function run(command) {
     }
 
     if (runLocalCommand(inquiry)) {
+        return;
+    }
+
+    if (switchTheme(inquiry)) {
         return;
     }
 
