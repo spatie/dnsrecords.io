@@ -80,6 +80,13 @@ it('answers plain lookup urls from crawlers without waking the lookup', function
     Process::assertNothingRan();
 });
 
+it('does not send automated browsers on to the lookup', function () {
+    $this
+        ->get("{$this->baseUrl}/spatie.be")
+        ->assertSee('navigator.webdriver', false)
+        ->assertSee('Automated DNS lookups are not allowed.');
+});
+
 it('looks up domains when the lookup parameter is present', function () {
     $response = $this
         ->get("{$this->baseUrl}/spatie.be?lookup=1")
