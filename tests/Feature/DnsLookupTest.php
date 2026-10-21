@@ -67,6 +67,25 @@ class DnsLookupTest extends TestCase
     }
 
     #[Test]
+    public function it_redirects_direct_visits_with_a_full_url_to_the_domain(): void
+    {
+        foreach (['', '/old', '/lcars', '/muthur', '/matrix', '/system7', '/winxp'] as $prefix) {
+            foreach ([
+                'https://mortelmansvantricht.be/nl',
+                'http://mortelmansvantricht.be/nl?source=example',
+                'https%3A%2F%2Fmortelmansvantricht.be%2Fnl',
+                'HTTPS://MortelmansVanTricht.be:8443/nl?lookup=1',
+            ] as $url) {
+                $this
+                    ->get("{$this->baseUrl}{$prefix}/{$url}")
+                    ->assertRedirect("{$prefix}/mortelmansvantricht.be");
+            }
+        }
+
+        Process::assertNothingRan();
+    }
+
+    #[Test]
     public function it_answers_unsanitized_lookup_urls_directly(): void
     {
         $this

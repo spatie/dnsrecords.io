@@ -22,7 +22,23 @@ class ServeLookupShell
 
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $this->isPlainLookup($request)) {
+        $route = $this->lookupRoute($request);
+
+        if (! $route) {
+            return $next($request);
+        }
+
+        $command = $route->parameter('command');
+
+        if (preg_match('~^https?://~i', $command)) {
+            $host = parse_url($command, PHP_URL_HOST);
+
+            if ($host) {
+                return redirect()->route($route->getName(), ['command' => strtolower($host)]);
+            }
+        }
+
+        if ($request->query->has(static::$lookupParameter)) {
             return $next($request);
         }
 
@@ -36,22 +52,18 @@ class ServeLookupShell
         return CacheAtEdge::makeCacheable($response);
     }
 
-    protected function isPlainLookup(Request $request): bool
+    protected function lookupRoute(Request $request): ?\Illuminate\Routing\Route
     {
         if (! $request->isMethodCacheable()) {
-            return false;
-        }
-
-        if ($request->query->has(static::$lookupParameter)) {
-            return false;
+            return null;
         }
 
         try {
             $route = Route::getRoutes()->match($request);
         } catch (HttpExceptionInterface) {
-            return false;
+            return null;
         }
 
-        return $route->named('command', '*.command');
+        return $route->named('command', '*.command') ? $route : null;
     }
 }
